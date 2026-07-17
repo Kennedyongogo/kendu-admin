@@ -37,6 +37,7 @@ import {
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
 import ProgrammesTabs from "./ProgrammesTabs";
+import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function FeeList() {
   const navigate = useNavigate();
@@ -112,34 +113,37 @@ export default function FeeList() {
     }
   };
 
-  if (loading && items.length === 0) {
-    return <BrandPageLoader message="Loading fees…" />;
-  }
-
   return (
     <Box sx={pageShellSx}>
       <UsersHero
         title="Programme fees"
-        subtitle="Manage tuition and other fees across programmes, per year and semester"
+        subtitle="Tuition and other fees by programme, year and semester"
         icon={<PaymentsIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate(programmeFilterId ? `/programmes/fees/create?programme_id=${programmeFilterId}` : "/programmes/fees/create")}
-          >
-            Add fee
-          </HeroActionButton>
+          <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search fees…">
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                navigate(
+                  programmeFilterId
+                    ? `/programmes/fees/create?programme_id=${programmeFilterId}`
+                    : "/programmes/fees/create"
+                )
+              }
+            >
+              Add fee
+            </HeroActionButton>
+          </ProgrammeHeroSearch>
         }
       />
 
-      <ProgrammesTabs
-        value="fees"
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search fees…"
-      />
+      <ProgrammesTabs value="fees" />
 
+      {loading && items.length === 0 && !error ? (
+        <BrandPageLoader message="Loading fees…" />
+      ) : (
+      <>
       {programmeFilterId ? (
         <Chip
           label="Filtered by programme · clear"
@@ -259,6 +263,8 @@ export default function FeeList() {
           sx={{ borderTop: "1px solid rgba(0,96,80,0.1)", "& .MuiTablePagination-toolbar": { fontFamily: '"Plus Jakarta Sans", sans-serif', fontWeight: 600 } }}
         />
       </Box>
+      </>
+      )}
     </Box>
   );
 }

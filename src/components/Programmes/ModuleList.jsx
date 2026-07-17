@@ -35,6 +35,7 @@ import {
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
 import ProgrammesTabs from "./ProgrammesTabs";
+import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function ModuleList() {
   const navigate = useNavigate();
@@ -121,22 +122,25 @@ export default function ModuleList() {
         subtitle="Manage the modules taught across each programme"
         icon={<ModuleIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate(programmeFilterId ? `/programmes/modules/create?programme_id=${programmeFilterId}` : "/programmes/modules/create")}
-          >
-            Add module
-          </HeroActionButton>
+          <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search modules…">
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                navigate(
+                  programmeFilterId
+                    ? `/programmes/modules/create?programme_id=${programmeFilterId}`
+                    : "/programmes/modules/create"
+                )
+              }
+            >
+              Add module
+            </HeroActionButton>
+          </ProgrammeHeroSearch>
         }
       />
 
-      <ProgrammesTabs
-        value="modules"
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search modules…"
-      />
+      <ProgrammesTabs value="modules" />
 
       {programmeFilterId ? (
         <Chip

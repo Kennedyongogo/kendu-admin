@@ -40,6 +40,7 @@ import {
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
 import ProgrammesTabs from "./ProgrammesTabs";
+import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function SubjectList() {
   const navigate = useNavigate();
@@ -131,28 +132,25 @@ export default function SubjectList() {
         subtitle="Manage subject-specific KCSE grade requirements for each programme"
         icon={<GradeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() =>
-              navigate(
-                programmeFilterId
-                  ? `/programmes/subjects/create?programme_id=${programmeFilterId}`
-                  : "/programmes/subjects/create"
-              )
-            }
-          >
-            Add subject
-          </HeroActionButton>
+          <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search subjects…">
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                navigate(
+                  programmeFilterId
+                    ? `/programmes/subjects/create?programme_id=${programmeFilterId}`
+                    : "/programmes/subjects/create"
+                )
+              }
+            >
+              Add subject
+            </HeroActionButton>
+          </ProgrammeHeroSearch>
         }
       />
 
-      <ProgrammesTabs
-        value="subjects"
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search subjects…"
-      />
+      <ProgrammesTabs value="subjects" />
 
       {programmeFilterId ? (
         <Chip

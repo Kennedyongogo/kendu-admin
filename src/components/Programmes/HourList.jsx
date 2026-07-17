@@ -34,6 +34,7 @@ import {
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
 import ProgrammesTabs from "./ProgrammesTabs";
+import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function HourList() {
   const navigate = useNavigate();
@@ -120,22 +121,25 @@ export default function HourList() {
         subtitle="Manage teaching/practice hour distributions across programme years"
         icon={<ScheduleIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate(programmeFilterId ? `/programmes/hours/create?programme_id=${programmeFilterId}` : "/programmes/hours/create")}
-          >
-            Add hour block
-          </HeroActionButton>
+          <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search hours…">
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() =>
+                navigate(
+                  programmeFilterId
+                    ? `/programmes/hours/create?programme_id=${programmeFilterId}`
+                    : "/programmes/hours/create"
+                )
+              }
+            >
+              Add hour block
+            </HeroActionButton>
+          </ProgrammeHeroSearch>
         }
       />
 
-      <ProgrammesTabs
-        value="hours"
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search hours…"
-      />
+      <ProgrammesTabs value="hours" />
 
       {programmeFilterId ? (
         <Chip

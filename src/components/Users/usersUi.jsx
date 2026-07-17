@@ -81,13 +81,13 @@ export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }
         }}
       />
       <Stack
-        direction={{ xs: "column", sm: "row" }}
+        direction={{ xs: "column", lg: "row" }}
         justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
+        alignItems={{ xs: "stretch", lg: "center" }}
         spacing={2}
         sx={{ position: "relative", zIndex: 1 }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: "1 1 auto" }}>
           {leading || null}
           {icon ? (
             <Box
@@ -125,7 +125,8 @@ export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }
                   fontSize: "0.9rem",
                   opacity: 0.88,
                   mt: 0.5,
-                  maxWidth: 480,
+                  maxWidth: "100%",
+                  whiteSpace: { xs: "normal", sm: "nowrap" },
                 }}
               >
                 {subtitle}
@@ -134,7 +135,12 @@ export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }
           </Box>
         </Stack>
         {actions ? (
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            sx={{ flexShrink: 0, width: { xs: "100%", lg: "auto" } }}
+          >
             {actions}
           </Stack>
         ) : null}

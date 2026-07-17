@@ -42,6 +42,7 @@ import {
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
 import ProgrammesTabs from "./ProgrammesTabs";
+import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 function ProgrammeThumb({ src, size = 42 }) {
   return (
@@ -167,22 +168,23 @@ export default function Programmes() {
         subtitle="Manage academic programmes offered by the school"
         icon={<MenuBookIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/programmes/create")}
+          <ProgrammeHeroSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search programmes…"
           >
-            Add programme
-          </HeroActionButton>
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/programmes/create")}
+            >
+              Add programme
+            </HeroActionButton>
+          </ProgrammeHeroSearch>
         }
       />
 
-      <ProgrammesTabs
-        value="programmes"
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search programmes…"
-      />
+      <ProgrammesTabs value="programmes" />
 
       {error ? (
         <Alert severity="error" sx={{ mb: 2, borderRadius: "14px" }} onClose={() => setError(null)}>

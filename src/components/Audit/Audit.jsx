@@ -358,7 +358,12 @@ export default function Audit() {
         icon={<HistoryIcon sx={{ fontSize: 28, color: "#fff" }} />}
       />
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 2.5 }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1.5}
+        sx={{ mb: 2.5 }}
+        alignItems="stretch"
+      >
         <StatPill label="Total entries" value={totalLogs.toLocaleString()} />
         <StatPill label="Success on page" value={pageStats.success} accent="#15803d" />
         <StatPill label="Failed on page" value={pageStats.failed} accent="#b91c1c" />
