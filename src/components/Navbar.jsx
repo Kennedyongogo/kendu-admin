@@ -6,6 +6,8 @@ import {
   History,
   Dashboard,
   MenuBook,
+  LibraryMusic,
+  AssignmentInd,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -141,7 +143,10 @@ const MENU_SECTIONS = [
   },
   {
     label: "Operations",
-    items: [{ text: "Programmes", icon: <MenuBook />, path: "/programmes" }],
+    items: [
+      { text: "Programmes", icon: <MenuBook />, path: "/programmes" },
+      { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
+    ],
   },
   {
     label: "Administration",
@@ -150,6 +155,7 @@ const MENU_SECTIONS = [
   {
     label: "System",
     items: [
+      { text: "Music", icon: <LibraryMusic />, path: "/music" },
       { text: "Settings", icon: <Settings />, path: "/settings" },
       { text: "Audit Trail", icon: <History />, path: "/audit" },
     ],
@@ -278,6 +284,8 @@ const Navbar = (props) => {
     (path === "/programmes" && location.pathname.startsWith("/programmes")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
+    (path === "/music" && location.pathname.startsWith("/music")) ||
+    (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
   const logout = () => {

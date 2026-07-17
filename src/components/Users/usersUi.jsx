@@ -40,7 +40,7 @@ export const fadeUp = {
   }),
 };
 
-export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
+export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }) {
   return (
     <Box
       component={motion.div}
@@ -87,7 +87,8 @@ export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
         spacing={2}
         sx={{ position: "relative", zIndex: 1 }}
       >
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+          {leading || null}
           {icon ? (
             <Box
               sx={{
@@ -99,12 +100,13 @@ export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
               }}
             >
               {icon}
             </Box>
           ) : null}
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               sx={{
                 fontFamily: fontDisplay,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -44,6 +44,7 @@ import {
   pageShellSx,
 } from "./usersShared";
 import { UsersHero, FormSection, fadeUp, UserAvatar } from "./usersUi";
+import useProgrammeEnrolmentOptions from "./useProgrammeEnrolmentOptions";
 
 const initialForm = () => ({
   email: "",
@@ -54,6 +55,9 @@ const initialForm = () => ({
   role: "staff",
   position: "",
   is_public: false,
+  programme_id: "",
+  year_of_study: "",
+  semester: "",
   profileFile: null,
   profilePreview: "",
 });
@@ -63,9 +67,50 @@ export default function UsersCreate() {
   const [form, setForm] = useState(initialForm());
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [programmes, setProgrammes] = useState([]);
 
   const actor = getActorFromStorage();
   const creatableRoles = assignableRoles(actor?.role);
+  const enrolment = useProgrammeEnrolmentOptions(
+    form.role === "student" ? form.programme_id : ""
+  );
+
+  useEffect(() => {
+    if (form.role !== "student" || !form.programme_id || enrolment.loading) return;
+    setForm((prev) => {
+      const yearOk = enrolment.years.some((y) => String(y) === String(prev.year_of_study));
+      const semOk = enrolment.semesters.some((s) => String(s) === String(prev.semester));
+      if (yearOk && semOk) return prev;
+      return {
+        ...prev,
+        year_of_study: yearOk
+          ? prev.year_of_study
+          : enrolment.years[0] != null
+            ? String(enrolment.years[0])
+            : "",
+        semester: semOk
+          ? prev.semester
+          : enrolment.semesters[0] != null
+            ? String(enrolment.semesters[0])
+            : "",
+      };
+    });
+  }, [form.role, form.programme_id, enrolment.loading, enrolment.years, enrolment.semesters]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/programmes?is_active=true&limit=100", {
+          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) setProgrammes(Array.isArray(data.data) ? data.data : []);
+      } catch {
+        setProgrammes([]);
+      }
+    })();
+  }, []);
 
   const goBack = () => navigate("/users");
 
@@ -99,6 +144,15 @@ export default function UsersCreate() {
       });
       return;
     }
+    if (form.role === "student" && (!form.programme_id || !form.year_of_study || !form.semester)) {
+      Swal.fire({
+        icon: "error",
+        title: "Student enrolment incomplete",
+        text: "Programme, year of study, and semester are required for students.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -117,6 +171,9 @@ export default function UsersCreate() {
       }
       if (form.role === "student") {
         body.append("admission_number", form.admission_number.trim());
+        body.append("programme_id", form.programme_id);
+        body.append("year_of_study", form.year_of_study);
+        body.append("semester", form.semester);
       }
       if (form.profileFile) body.append("profile_image", form.profileFile);
 
@@ -342,22 +399,93 @@ export default function UsersCreate() {
                 sx={inputSx}
               />
               {form.role === "student" ? (
-                <TextField
-                  label="Admission number"
-                  fullWidth
-                  required
-                  value={form.admission_number}
-                  onChange={(e) => setForm({ ...form, admission_number: e.target.value })}
-                  helperText="Required for student accounts"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputSx}
-                />
+                <>
+                  <TextField
+                    label="Admission number"
+                    fullWidth
+                    required
+                    value={form.admission_number}
+                    onChange={(e) => setForm({ ...form, admission_number: e.target.value })}
+                    helperText="Required for student accounts"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={inputSx}
+                  />
+                  <FormControl fullWidth required sx={inputSx}>
+                    <InputLabel>Programme</InputLabel>
+                    <Select
+                      label="Programme"
+                      value={form.programme_id}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          programme_id: e.target.value,
+                          year_of_study: "",
+                          semester: "",
+                        })
+                      }
+                    >
+                      {programmes.map((p) => (
+                        <MenuItem key={p.id} value={p.id}>
+                          {p.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      select
+                      fullWidth
+                      required
+                      label="Year of study"
+                      value={form.year_of_study}
+                      disabled={!form.programme_id || enrolment.loading || enrolment.years.length === 0}
+                      helperText={
+                        !form.programme_id
+                          ? "Select a programme first"
+                          : enrolment.loading
+                            ? "Loading years…"
+                            : undefined
+                      }
+                      onChange={(e) => setForm({ ...form, year_of_study: e.target.value })}
+                      sx={inputSx}
+                    >
+                      {enrolment.years.map((y) => (
+                        <MenuItem key={y} value={String(y)}>
+                          Year {y}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <TextField
+                      select
+                      fullWidth
+                      required
+                      label="Semester"
+                      value={form.semester}
+                      disabled={!form.programme_id || enrolment.loading || enrolment.semesters.length === 0}
+                      helperText={
+                        !form.programme_id
+                          ? "Select a programme first"
+                          : enrolment.loading
+                            ? "Loading semesters…"
+                            : undefined
+                      }
+                      onChange={(e) => setForm({ ...form, semester: e.target.value })}
+                      sx={inputSx}
+                    >
+                      {enrolment.semesters.map((s) => (
+                        <MenuItem key={s} value={String(s)}>
+                          {enrolment.semester_labels?.[s] || `Semester ${s}`}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Stack>
+                </>
               ) : (
                 <TextField
                   label="Position / title"
@@ -388,6 +516,10 @@ export default function UsersCreate() {
                       admission_number: role === "student" ? form.admission_number : "",
                       position: role === "student" ? "" : form.position,
                       is_public: role === "student" ? false : form.is_public,
+                      programme_id: role === "student" ? form.programme_id : "",
+                      year_of_study: role === "student" ? form.year_of_study : "",
+                      semester: role === "student" ? form.semester : "",
+                      password: role === "student" && !form.password ? "123456" : form.password,
                     });
                   }}
                 >

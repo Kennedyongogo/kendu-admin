@@ -38,6 +38,8 @@ import {
   Badge as BadgeIcon,
   Groups as GroupsIcon,
   Public as PublicIcon,
+  UploadFile as UploadFileIcon,
+  MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
@@ -59,6 +61,7 @@ import {
   ghostBtnSx,
   pageShellSx,
 } from "./usersShared";
+import BrandPageLoader from "../Util/BrandPageLoader";
 import {
   UsersHero,
   RoleTabs,
@@ -68,6 +71,8 @@ import {
   HeroActionButton,
   RoleBadge,
 } from "./usersUi";
+import StudentImportDialog from "./StudentImportDialog";
+import useProgrammeEnrolmentOptions from "./useProgrammeEnrolmentOptions";
 
 const emptyForm = () => ({
   email: "",
@@ -78,6 +83,9 @@ const emptyForm = () => ({
   role: "staff",
   position: "",
   is_public: false,
+  programme_id: "",
+  year_of_study: "",
+  semester: "",
   profileFile: null,
   profilePreview: "",
   removeProfileImage: false,
@@ -86,7 +94,7 @@ const emptyForm = () => ({
 export default function UsersTable() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -97,10 +105,37 @@ export default function UsersTable() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [programmes, setProgrammes] = useState([]);
 
   const actor = getActorFromStorage();
   const editableRoles = assignableRoles(actor?.role);
   const canEditRole = editableRoles.length > 0;
+  const enrolment = useProgrammeEnrolmentOptions(
+    form.role === "student" ? form.programme_id : ""
+  );
+
+  useEffect(() => {
+    if (form.role !== "student" || !form.programme_id || enrolment.loading) return;
+    setForm((prev) => {
+      const yearOk = enrolment.years.some((y) => String(y) === String(prev.year_of_study));
+      const semOk = enrolment.semesters.some((s) => String(s) === String(prev.semester));
+      if (yearOk && semOk) return prev;
+      return {
+        ...prev,
+        year_of_study: yearOk
+          ? prev.year_of_study
+          : enrolment.years[0] != null
+            ? String(enrolment.years[0])
+            : "",
+        semester: semOk
+          ? prev.semester
+          : enrolment.semesters[0] != null
+            ? String(enrolment.semesters[0])
+            : "",
+      };
+    });
+  }, [form.role, form.programme_id, enrolment.loading, enrolment.years, enrolment.semesters]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -168,6 +203,21 @@ export default function UsersTable() {
     fetchUsers();
   }, [fetchUsers]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/programmes?is_active=true&limit=100", {
+          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) setProgrammes(Array.isArray(data.data) ? data.data : []);
+      } catch {
+        setProgrammes([]);
+      }
+    })();
+  }, []);
+
   const handleTabChange = (_, newValue) => {
     setActiveTab(newValue);
     setPage(0);
@@ -182,6 +232,9 @@ export default function UsersTable() {
     role: u.role ?? "staff",
     position: u.position ?? "",
     is_public: Boolean(u.is_public),
+    programme_id: u.programme_id || u.programme?.id || "",
+    year_of_study: u.year_of_study != null ? String(u.year_of_study) : "",
+    semester: u.semester != null ? String(u.semester) : "",
     profileFile: null,
     profilePreview: profileImageSrc(u),
     removeProfileImage: false,
@@ -276,6 +329,17 @@ export default function UsersTable() {
       });
       return;
     }
+    if (form.role === "student") {
+      if (!form.programme_id || !form.year_of_study || !form.semester) {
+        Swal.fire({
+          icon: "warning",
+          title: "Student enrolment incomplete",
+          text: "Programme, year of study, and semester are required for students.",
+          confirmButtonColor: primaryGreen,
+        });
+        return;
+      }
+    }
 
     setSaving(true);
     try {
@@ -294,8 +358,14 @@ export default function UsersTable() {
       );
       if (form.role !== "student") {
         body.append("position", form.position?.trim() || "");
+        body.append("programme_id", "");
+        body.append("year_of_study", "");
+        body.append("semester", "");
       } else {
         body.append("position", "");
+        body.append("programme_id", form.programme_id);
+        body.append("year_of_study", form.year_of_study);
+        body.append("semester", form.semester);
       }
       if (form.profileFile) {
         body.append("profile_image", form.profileFile);
@@ -351,6 +421,11 @@ export default function UsersTable() {
   };
 
   const showAdmissionColumn = ROLE_TABS[activeTab]?.value === "student";
+  const isStudentsTab = ROLE_TABS[activeTab]?.value === "student";
+
+  if (loading && users.length === 0) {
+    return <BrandPageLoader message="Loading users…" />;
+  }
 
   return (
     <Box sx={pageShellSx}>
@@ -359,9 +434,26 @@ export default function UsersTable() {
         subtitle="Create and manage admin, staff, and student accounts"
         icon={<GroupsIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/users/create")}>
-            Create user
-          </HeroActionButton>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+            {isStudentsTab ? (
+              <HeroActionButton
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => setImportOpen(true)}
+                sx={{
+                  color: "#fff",
+                  borderColor: "rgba(255,255,255,0.45)",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.16)" },
+                }}
+              >
+                Import Excel
+              </HeroActionButton>
+            ) : null}
+            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/users/create")}>
+              Create user
+            </HeroActionButton>
+          </Stack>
         }
       />
 
@@ -577,11 +669,30 @@ export default function UsersTable() {
             <DetailField icon={<EmailIcon fontSize="small" />} label="Email" value={selectedUser.email} />
             <DetailField icon={<PhoneIcon fontSize="small" />} label="Phone" value={selectedUser.phone} />
             {selectedUser.role === "student" ? (
-              <DetailField
-                icon={<BadgeIcon fontSize="small" />}
-                label="Admission number"
-                value={selectedUser.admission_number}
-              />
+              <>
+                <DetailField
+                  icon={<BadgeIcon fontSize="small" />}
+                  label="Admission number"
+                  value={selectedUser.admission_number}
+                />
+                <DetailField
+                  icon={<MenuBookIcon fontSize="small" />}
+                  label="Programme"
+                  value={selectedUser.programme?.name || "—"}
+                />
+                <DetailField
+                  icon={<BadgeIcon fontSize="small" />}
+                  label="Year / semester"
+                  value={
+                    [
+                      selectedUser.year_of_study != null ? `Year ${selectedUser.year_of_study}` : null,
+                      selectedUser.semester != null ? `Sem ${selectedUser.semester}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "—"
+                  }
+                />
+              </>
             ) : (
               <>
                 <DetailField
@@ -748,22 +859,93 @@ export default function UsersTable() {
             sx={inputSx}
           />
           {form.role === "student" ? (
-            <TextField
-              label="Admission number"
-              fullWidth
-              required
-              value={form.admission_number}
-              onChange={(e) => setForm({ ...form, admission_number: e.target.value })}
-              helperText="Required for students"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={inputSx}
-            />
+            <>
+              <TextField
+                label="Admission number"
+                fullWidth
+                required
+                value={form.admission_number}
+                onChange={(e) => setForm({ ...form, admission_number: e.target.value })}
+                helperText="Required for students"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+              />
+              <FormControl fullWidth required sx={inputSx}>
+                <InputLabel>Programme</InputLabel>
+                <Select
+                  label="Programme"
+                  value={form.programme_id}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      programme_id: e.target.value,
+                      year_of_study: "",
+                      semester: "",
+                    })
+                  }
+                >
+                  {programmes.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {p.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  select
+                  fullWidth
+                  required
+                  label="Year of study"
+                  value={form.year_of_study}
+                  disabled={!form.programme_id || enrolment.loading || enrolment.years.length === 0}
+                  helperText={
+                    !form.programme_id
+                      ? "Select a programme first"
+                      : enrolment.loading
+                        ? "Loading years…"
+                        : undefined
+                  }
+                  onChange={(e) => setForm({ ...form, year_of_study: e.target.value })}
+                  sx={inputSx}
+                >
+                  {enrolment.years.map((y) => (
+                    <MenuItem key={y} value={String(y)}>
+                      Year {y}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  fullWidth
+                  required
+                  label="Semester"
+                  value={form.semester}
+                  disabled={!form.programme_id || enrolment.loading || enrolment.semesters.length === 0}
+                  helperText={
+                    !form.programme_id
+                      ? "Select a programme first"
+                      : enrolment.loading
+                        ? "Loading semesters…"
+                        : undefined
+                  }
+                  onChange={(e) => setForm({ ...form, semester: e.target.value })}
+                  sx={inputSx}
+                >
+                  {enrolment.semesters.map((s) => (
+                    <MenuItem key={s} value={String(s)}>
+                      {enrolment.semester_labels?.[s] || `Semester ${s}`}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+            </>
           ) : (
             <TextField
               label="Position / title"
@@ -794,6 +976,9 @@ export default function UsersTable() {
                   admission_number: role === "student" ? form.admission_number : "",
                   position: role === "student" ? "" : form.position,
                   is_public: role === "student" ? false : form.is_public,
+                  programme_id: role === "student" ? form.programme_id : "",
+                  year_of_study: role === "student" ? form.year_of_study : "",
+                  semester: role === "student" ? form.semester : "",
                 });
               }}
             >
@@ -841,6 +1026,12 @@ export default function UsersTable() {
           </Typography>
         </Stack>
       </PremiumDialog>
+
+      <StudentImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => void fetchUsers()}
+      />
     </Box>
   );
 }

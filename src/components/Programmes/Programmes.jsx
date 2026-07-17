@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
   Button,
   Chip,
   IconButton,
-  TextField,
   Stack,
   CircularProgress,
   Alert,
@@ -18,8 +18,6 @@ import {
   TablePagination,
   Tooltip,
   Avatar,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -27,9 +25,6 @@ import {
   Delete as DeleteIcon,
   Visibility as ViewIcon,
   MenuBook as MenuBookIcon,
-  AccessTime as AccessTimeIcon,
-  Description as DescriptionIcon,
-  Image as ImageIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
@@ -39,58 +34,19 @@ import {
   textPrimary,
   textSecondary,
   textMuted,
-  inputSx,
-  primaryBtnSx,
-  ghostBtnSx,
   pageShellSx,
-} from "../Users/usersShared";
-import {
-  UsersHero,
-  RoleTabs,
-  PremiumDialog,
-  DetailField,
-  HeroActionButton,
-} from "../Users/usersUi";
+  authHeaders,
+  programmeImageSrc,
+  formatCategory,
+} from "./programmesShared";
+import BrandPageLoader from "../Util/BrandPageLoader";
+import { UsersHero, HeroActionButton } from "../Users/usersUi";
+import ProgrammesTabs from "./ProgrammesTabs";
 
-const STATUS_TABS = [
-  { label: "All", value: null },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-];
-
-const emptyForm = () => ({
-  name: "",
-  description: "",
-  duration: "",
-  is_active: true,
-  imageFile: null,
-  imagePreview: "",
-});
-
-function authHeaders(token, isMultipart = false) {
-  const headers = {
-    Accept: "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-  if (!isMultipart) headers["Content-Type"] = "application/json";
-  return headers;
-}
-
-function programmeImageSrc(row) {
-  if (!row) return "";
-  if (row.image_url) return row.image_url;
-  if (row.image) {
-    if (/^https?:\/\//i.test(row.image)) return row.image;
-    return `/uploads/programmes/${row.image}`;
-  }
-  return "";
-}
-
-function ProgrammeThumb({ name, src, size = 42 }) {
-  const imageSrc = src || "";
+function ProgrammeThumb({ src, size = 42 }) {
   return (
     <Avatar
-      src={imageSrc || undefined}
+      src={src || undefined}
       variant="rounded"
       sx={{
         width: size,
@@ -101,27 +57,28 @@ function ProgrammeThumb({ name, src, size = 42 }) {
         boxShadow: "0 4px 12px rgba(20,26,58,0.08)",
       }}
     >
-      {!imageSrc ? <MenuBookIcon sx={{ fontSize: size * 0.45 }} /> : null}
+      {!src ? <MenuBookIcon sx={{ fontSize: size * 0.45 }} /> : null}
     </Avatar>
   );
 }
 
 export default function Programmes() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
-  const [openView, setOpenView] = useState(false);
-  const [openForm, setOpenForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [selected, setSelected] = useState(null);
-  const [form, setForm] = useState(emptyForm());
-  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const loadProgrammes = useCallback(async () => {
     setLoading(true);
@@ -136,9 +93,7 @@ export default function Programmes() {
       page: String(page + 1),
       limit: String(rowsPerPage),
     });
-    const status = STATUS_TABS[activeTab]?.value;
-    if (status === "active") params.set("is_active", "true");
-    if (status === "inactive") params.set("is_active", "false");
+    if (debouncedSearch) params.set("search", debouncedSearch);
 
     try {
       const res = await fetch(`/api/programmes?${params.toString()}`, {
@@ -155,114 +110,21 @@ export default function Programmes() {
     } finally {
       setLoading(false);
     }
-  }, [token, page, rowsPerPage, activeTab]);
+  }, [token, page, rowsPerPage, debouncedSearch]);
 
   useEffect(() => {
     void loadProgrammes();
   }, [loadProgrammes]);
 
-  const handleTabChange = (_e, value) => {
-    setActiveTab(value);
+  useEffect(() => {
     setPage(0);
-  };
-
-  const openCreate = () => {
-    setEditing(null);
-    setForm(emptyForm());
-    setOpenForm(true);
-  };
-
-  const openEdit = (row) => {
-    setEditing(row);
-    setForm({
-      name: row.name || "",
-      description: row.description || "",
-      duration: row.duration || "",
-      is_active: row.is_active !== false,
-      imageFile: null,
-      imagePreview: programmeImageSrc(row),
-    });
-    setOpenForm(true);
-  };
-
-  const openViewDialog = (row) => {
-    setSelected(row);
-    setOpenView(true);
-  };
-
-  const closeDialogs = () => {
-    setOpenView(false);
-    setOpenForm(false);
-    setEditing(null);
-    setSelected(null);
-    setForm(emptyForm());
-  };
-
-  const onImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setForm((prev) => ({
-      ...prev,
-      imageFile: file,
-      imagePreview: URL.createObjectURL(file),
-    }));
-  };
-
-  const saveProgramme = async () => {
-    if (!form.name.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Name required",
-        text: "Please enter a programme name",
-        confirmButtonColor: primaryGreen,
-      });
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const body = new FormData();
-      body.append("name", form.name.trim());
-      body.append("description", form.description || "");
-      body.append("duration", form.duration || "");
-      body.append("is_active", String(form.is_active));
-      if (form.imageFile) body.append("image", form.imageFile);
-
-      const url = editing ? `/api/programmes/${editing.id}` : "/api/programmes";
-      const method = editing ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: authHeaders(token, true),
-        body,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Save failed");
-
-      Swal.fire({
-        icon: "success",
-        title: editing ? "Programme updated" : "Programme created",
-        timer: 1400,
-        showConfirmButton: false,
-      });
-      closeDialogs();
-      await loadProgrammes();
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Could not save programme",
-        confirmButtonColor: primaryGreen,
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  }, [debouncedSearch]);
 
   const deleteProgramme = async (row) => {
     const result = await Swal.fire({
       icon: "warning",
       title: "Delete programme?",
-      text: `"${row.name}" will be permanently removed.`,
+      text: `"${row.name}" will be permanently removed, along with its fees, hours, and modules.`,
       showCancelButton: true,
       confirmButtonColor: primaryGreen,
       cancelButtonColor: "#78716C",
@@ -294,6 +156,10 @@ export default function Programmes() {
     }
   };
 
+  if (loading && items.length === 0) {
+    return <BrandPageLoader message="Loading programmes…" />;
+  }
+
   return (
     <Box sx={pageShellSx}>
       <UsersHero
@@ -301,13 +167,22 @@ export default function Programmes() {
         subtitle="Manage academic programmes offered by the school"
         icon={<MenuBookIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+          <HeroActionButton
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate("/programmes/create")}
+          >
             Add programme
           </HeroActionButton>
         }
       />
 
-      <RoleTabs activeTab={activeTab} onChange={handleTabChange} tabs={STATUS_TABS} />
+      <ProgrammesTabs
+        value="programmes"
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search programmes…"
+      />
 
       {error ? (
         <Alert severity="error" sx={{ mb: 2, borderRadius: "14px" }} onClose={() => setError(null)}>
@@ -325,7 +200,7 @@ export default function Programmes() {
         }}
       >
         <TableContainer>
-          <Table size="medium" sx={{ minWidth: 720 }}>
+          <Table size="medium" sx={{ minWidth: 760 }}>
             <TableHead>
               <TableRow
                 sx={{
@@ -343,6 +218,7 @@ export default function Programmes() {
               >
                 <TableCell width={56}>#</TableCell>
                 <TableCell>Programme</TableCell>
+                <TableCell>Category</TableCell>
                 <TableCell>Duration</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -351,20 +227,20 @@ export default function Programmes() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                     <CircularProgress sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>
                       No programmes in this tab.
                     </Typography>
                     <Button
                       variant="text"
                       startIcon={<AddIcon />}
-                      onClick={openCreate}
+                      onClick={() => navigate("/programmes/create")}
                       sx={{ mt: 1, color: primaryGreen, fontWeight: 700, textTransform: "none" }}
                     >
                       Create first programme
@@ -390,7 +266,7 @@ export default function Programmes() {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1.5} alignItems="center">
-                          <ProgrammeThumb name={row.name} src={img} size={44} />
+                          <ProgrammeThumb src={img} size={44} />
                           <Box sx={{ minWidth: 0 }}>
                             <Typography sx={{ fontWeight: 700, color: textPrimary, lineHeight: 1.25 }}>
                               {row.name || "—"}
@@ -399,7 +275,7 @@ export default function Programmes() {
                               sx={{
                                 fontSize: "0.78rem",
                                 color: textSecondary,
-                                maxWidth: 360,
+                                maxWidth: 340,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -409,6 +285,11 @@ export default function Programmes() {
                             </Typography>
                           </Box>
                         </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "0.85rem", fontWeight: 600, color: textSecondary }}>
+                          {formatCategory(row.category)}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography sx={{ fontSize: "0.85rem", fontWeight: 600, color: textSecondary }}>
@@ -434,13 +315,13 @@ export default function Programmes() {
                             {
                               title: "View",
                               icon: <ViewIcon fontSize="small" />,
-                              onClick: () => openViewDialog(row),
+                              onClick: () => navigate(`/programmes/${row.id}`),
                               color: textSecondary,
                             },
                             {
                               title: "Edit",
                               icon: <EditIcon fontSize="small" />,
-                              onClick: () => openEdit(row),
+                              onClick: () => navigate(`/programmes/${row.id}/edit`),
                               color: primaryGreen,
                             },
                             {
@@ -493,155 +374,7 @@ export default function Programmes() {
           }}
         />
       </Box>
-
-      <PremiumDialog
-        open={openView}
-        onClose={closeDialogs}
-        title={selected?.name || "Programme details"}
-        subtitle="Programme overview"
-        icon={<MenuBookIcon />}
-        footer={
-          <Button onClick={closeDialogs} sx={ghostBtnSx}>
-            Close
-          </Button>
-        }
-      >
-        {selected ? (
-          <Stack spacing={1.5}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
-              <ProgrammeThumb name={selected.name} src={programmeImageSrc(selected)} size={72} />
-              <Box>
-                <Chip
-                  label={selected.is_active !== false ? "Active" : "Inactive"}
-                  size="small"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "0.72rem",
-                    bgcolor:
-                      selected.is_active !== false ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.06)",
-                    color: selected.is_active !== false ? primaryDark : textSecondary,
-                  }}
-                />
-              </Box>
-            </Stack>
-            <DetailField
-              icon={<MenuBookIcon fontSize="small" />}
-              label="Programme name"
-              value={selected.name}
-            />
-            <DetailField
-              icon={<AccessTimeIcon fontSize="small" />}
-              label="Duration"
-              value={selected.duration || "—"}
-            />
-            <DetailField
-              icon={<DescriptionIcon fontSize="small" />}
-              label="Description"
-              value={selected.description || "—"}
-            />
-          </Stack>
-        ) : null}
-      </PremiumDialog>
-
-      <PremiumDialog
-        open={openForm}
-        onClose={saving ? undefined : closeDialogs}
-        title={editing ? "Edit programme" : "Add programme"}
-        subtitle={editing ? "Update programme details" : "Create a new academic programme"}
-        icon={editing ? <EditIcon /> : <AddIcon />}
-        footer={
-          <>
-            <Button onClick={closeDialogs} disabled={saving} sx={ghostBtnSx}>
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => void saveProgramme()}
-              disabled={saving}
-              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
-              sx={primaryBtnSx}
-            >
-              {saving ? "Saving…" : editing ? "Save changes" : "Create"}
-            </Button>
-          </>
-        }
-      >
-        <Stack spacing={2}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <ProgrammeThumb
-              name={form.name || editing?.name}
-              src={form.imagePreview}
-              size={72}
-            />
-            <Box>
-              <Button
-                component="label"
-                variant="outlined"
-                startIcon={<ImageIcon />}
-                sx={{
-                  fontFamily: '"Plus Jakarta Sans", sans-serif',
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  borderColor: "rgba(0,96,80,0.3)",
-                  color: primaryGreen,
-                  "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
-                }}
-              >
-                {form.imagePreview ? "Change image" : "Upload image"}
-                <input type="file" hidden accept="image/jpeg,image/png,image/webp,image/gif" onChange={onImageChange} />
-              </Button>
-              <Typography sx={{ fontSize: "0.75rem", color: textSecondary, mt: 0.75 }}>
-                JPEG, PNG, or WebP · max 5MB
-              </Typography>
-            </Box>
-          </Box>
-          <TextField
-            label="Programme name"
-            fullWidth
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            sx={inputSx}
-          />
-          <TextField
-            label="Duration"
-            placeholder="e.g. 3 years, 18 months"
-            fullWidth
-            value={form.duration}
-            onChange={(e) => setForm({ ...form, duration: e.target.value })}
-            sx={inputSx}
-          />
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            minRows={3}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            sx={inputSx}
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={form.is_active}
-                onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                sx={{
-                  "& .MuiSwitch-switchBase.Mui-checked": { color: primaryGreen },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    bgcolor: primaryGreen,
-                  },
-                }}
-              />
-            }
-            label={
-              <Typography sx={{ fontWeight: 600, color: textPrimary, fontSize: "0.9rem" }}>
-                Active
-              </Typography>
-            }
-          />
-        </Stack>
-      </PremiumDialog>
     </Box>
   );
 }
+

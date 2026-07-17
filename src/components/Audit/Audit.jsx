@@ -51,6 +51,7 @@ import {
   DetailField,
   UserAvatar,
 } from "../Users/usersUi";
+import BrandPageLoader from "../Util/BrandPageLoader";
 
 /** Matches backend resource_type values from audit middleware / controllers */
 const RESOURCE_TABS = [
@@ -344,6 +345,10 @@ export default function Audit() {
     setSearchQuery(searchInput);
     setPage(0);
   };
+
+  if (loading && auditLogs.length === 0) {
+    return <BrandPageLoader message="Loading audit trail…" />;
+  }
 
   return (
     <Box sx={pageShellSx}>

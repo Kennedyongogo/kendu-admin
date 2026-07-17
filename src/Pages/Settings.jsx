@@ -30,6 +30,7 @@ import {
   Shield,
   PhotoCamera,
 } from "@mui/icons-material";
+import BrandPageLoader from "../components/Util/BrandPageLoader";
 import { RoleBadge, UserAvatar } from "../components/Users/usersUi";
 
 const BRAND = {
@@ -494,6 +495,10 @@ export default function Settings({ user }) {
     setDLoading(false);
   };
 
+  if (fetching) {
+    return <BrandPageLoader message="Loading settings…" />;
+  }
+
   return (
     <Box
       sx={{
@@ -506,13 +511,7 @@ export default function Settings({ user }) {
         boxSizing: "border-box",
       }}
     >
-      {fetching ? (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 10, gap: 2 }}>
-          <CircularProgress sx={{ color: BRAND.green }} />
-          <Typography sx={{ fontFamily: fontBody, color: textSecondary }}>Loading your settings…</Typography>
-        </Box>
-      ) : (
-        <Stack spacing={3}>
+      <Stack spacing={3}>
           <Box
             component={motion.div}
             initial={{ opacity: 0, y: 16 }}
@@ -880,7 +879,6 @@ export default function Settings({ user }) {
             </SettingsSection>
           </Box>
         </Stack>
-      )}
     </Box>
   );
 }
