@@ -109,9 +109,8 @@ function StatCard({ icon, label, value, accent, tint, onClick, delay = 0 }) {
       animate="visible"
       onClick={onClick}
       sx={{
-        flex: "1 1 160px",
-        minWidth: 150,
-        maxWidth: { xs: "100%", sm: 260 },
+        width: "100%",
+        minWidth: 0,
         p: { xs: 2.25, sm: 2.75 },
         borderRadius: "20px",
         bgcolor: "#fff",
@@ -319,26 +318,54 @@ export default function Dashboard() {
         </Alert>
       ) : null}
 
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2.5,
-          mb: 3,
-        }}
-      >
-        {CARDS.map((card, i) => (
-          <StatCard
-            key={card.key}
-            icon={card.icon}
-            label={card.label}
-            value={Number(stats[card.key] || 0).toLocaleString()}
-            accent={card.accent}
-            tint={card.tint}
-            onClick={() => navigate(card.path)}
-            delay={i}
-          />
-        ))}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mb: 3 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr 1fr",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(4, 1fr)",
+            },
+            gap: 2.5,
+          }}
+        >
+          {CARDS.slice(0, 4).map((card, i) => (
+            <StatCard
+              key={card.key}
+              icon={card.icon}
+              label={card.label}
+              value={Number(stats[card.key] || 0).toLocaleString()}
+              accent={card.accent}
+              tint={card.tint}
+              onClick={() => navigate(card.path)}
+              delay={i}
+            />
+          ))}
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+            },
+            gap: 2.5,
+          }}
+        >
+          {CARDS.slice(4).map((card, i) => (
+            <StatCard
+              key={card.key}
+              icon={card.icon}
+              label={card.label}
+              value={Number(stats[card.key] || 0).toLocaleString()}
+              accent={card.accent}
+              tint={card.tint}
+              onClick={() => navigate(card.path)}
+              delay={i + 4}
+            />
+          ))}
+        </Box>
       </Box>
 
       {/* Edge-to-edge admissions status chart */}
