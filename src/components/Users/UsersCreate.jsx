@@ -192,36 +192,61 @@ export default function UsersCreate() {
               size={88}
             />
             <Box>
-              <Button
-                component="label"
-                startIcon={<PhotoCamera />}
-                variant="outlined"
-                sx={{
-                  fontFamily: '"Plus Jakarta Sans", sans-serif',
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  borderColor: "rgba(0,96,80,0.3)",
-                  color: primaryGreen,
-                  "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
-                }}
-              >
-                {form.profilePreview ? "Change photo" : "Upload photo"}
-                <input
-                  type="file"
-                  hidden
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setForm((prev) => ({
-                      ...prev,
-                      profileFile: file,
-                      profilePreview: URL.createObjectURL(file),
-                    }));
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+                <Button
+                  component="label"
+                  startIcon={<PhotoCamera />}
+                  variant="outlined"
+                  sx={{
+                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: "12px",
+                    borderColor: "rgba(0,96,80,0.3)",
+                    color: primaryGreen,
+                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
                   }}
-                />
-              </Button>
+                >
+                  {form.profilePreview ? "Change photo" : "Upload photo"}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setForm((prev) => ({
+                        ...prev,
+                        profileFile: file,
+                        profilePreview: URL.createObjectURL(file),
+                      }));
+                      e.target.value = "";
+                    }}
+                  />
+                </Button>
+                {form.profilePreview ? (
+                  <Button
+                    type="button"
+                    variant="text"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        profileFile: null,
+                        profilePreview: "",
+                      }))
+                    }
+                    sx={{
+                      fontFamily: '"Plus Jakarta Sans", sans-serif',
+                      textTransform: "none",
+                      fontWeight: 600,
+                      color: textSecondary,
+                      "&:hover": { color: "#b42318", bgcolor: "rgba(180,35,24,0.06)" },
+                    }}
+                  >
+                    Remove photo
+                  </Button>
+                ) : null}
+              </Stack>
               <Typography sx={{ fontSize: "0.8rem", color: textSecondary, mt: 1 }}>
                 Optional · JPEG, PNG, or WebP · max 5MB
               </Typography>

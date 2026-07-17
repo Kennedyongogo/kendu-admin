@@ -80,6 +80,7 @@ const emptyForm = () => ({
   is_public: false,
   profileFile: null,
   profilePreview: "",
+  removeProfileImage: false,
 });
 
 export default function UsersTable() {
@@ -183,6 +184,7 @@ export default function UsersTable() {
     is_public: Boolean(u.is_public),
     profileFile: null,
     profilePreview: profileImageSrc(u),
+    removeProfileImage: false,
   });
 
   const handleEditOpen = (user) => {
@@ -295,7 +297,11 @@ export default function UsersTable() {
       } else {
         body.append("position", "");
       }
-      if (form.profileFile) body.append("profile_image", form.profileFile);
+      if (form.profileFile) {
+        body.append("profile_image", form.profileFile);
+      } else if (form.removeProfileImage) {
+        body.append("remove_profile_image", "true");
+      }
 
       const res = await fetch(`/api/users/${selectedUser.id}`, {
         method: "PUT",
@@ -630,39 +636,67 @@ export default function UsersTable() {
             <UserAvatar
               name={form.full_name || selectedUser?.full_name}
               role={form.role}
-              src={form.profilePreview || selectedUser}
+              src={form.removeProfileImage ? "" : form.profilePreview || selectedUser}
               size={72}
             />
             <Box>
-              <Button
-                component="label"
-                variant="outlined"
-                sx={{
-                  fontFamily: '"Plus Jakarta Sans", sans-serif',
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  borderColor: "rgba(0,96,80,0.3)",
-                  color: primaryGreen,
-                  "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
-                }}
-              >
-                {form.profilePreview ? "Change photo" : "Upload photo"}
-                <input
-                  type="file"
-                  hidden
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setForm((prev) => ({
-                      ...prev,
-                      profileFile: file,
-                      profilePreview: URL.createObjectURL(file),
-                    }));
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  sx={{
+                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: "12px",
+                    borderColor: "rgba(0,96,80,0.3)",
+                    color: primaryGreen,
+                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
                   }}
-                />
-              </Button>
+                >
+                  {form.profilePreview && !form.removeProfileImage ? "Change photo" : "Upload photo"}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setForm((prev) => ({
+                        ...prev,
+                        profileFile: file,
+                        profilePreview: URL.createObjectURL(file),
+                        removeProfileImage: false,
+                      }));
+                      e.target.value = "";
+                    }}
+                  />
+                </Button>
+                {(form.profilePreview || selectedUser?.profile_image || selectedUser?.profile_image_url) &&
+                !form.removeProfileImage ? (
+                  <Button
+                    type="button"
+                    variant="text"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        profileFile: null,
+                        profilePreview: "",
+                        removeProfileImage: true,
+                      }))
+                    }
+                    sx={{
+                      fontFamily: '"Plus Jakarta Sans", sans-serif',
+                      textTransform: "none",
+                      fontWeight: 600,
+                      color: textSecondary,
+                      "&:hover": { color: "#b42318", bgcolor: "rgba(180,35,24,0.06)" },
+                    }}
+                  >
+                    Remove photo
+                  </Button>
+                ) : null}
+              </Stack>
               <Typography sx={{ fontSize: "0.75rem", color: textSecondary, mt: 0.75 }}>
                 JPEG, PNG, or WebP · max 5MB
               </Typography>
