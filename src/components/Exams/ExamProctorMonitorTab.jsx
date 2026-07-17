@@ -1,0 +1,451 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Divider,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+
+import {
+  ExamFilterBar,
+  FilterField,
+  FilterSelect,
+  ExamSummaryChips,
+  ExamPanelCard,
+  ExamPrimaryButton,
+  PremiumDialog,
+  DialogGhostButton,
+  TabPanelShell,
+} from "./examUi";
+import { authHeaders, PROCTORING_MODE_LABELS, formatDateTime, primaryRed, primaryDark } from "./examShared";
+
+const accent = primaryRed;
+const accentDark = primaryDark;
+
+const toDateIso = (d) => {
+  if (!d) return "";
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return "";
+  return dt.toISOString().slice(0, 10);
+};
+
+const formatMaybeIso = (iso) => {
+  if (!iso) return "—";
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return "—";
+  return dt.toLocaleString();
+};
+
+/** Modes tracked on this tab (activity signals). Live invigilation uses LiveKit instead. */
+const ACTIVITY_PROCTORING_MODES = ["record_only", "strict_auto"];
+
+const sessionStatusOf = (row) => String(row?.session_status || "").trim();
+
+const isActiveSession = (row) => {
+  const ss = sessionStatusOf(row);
+  if (ss === "cancelled") return false;
+  if (ss === "scheduled" || ss === "live") return true;
+  if (!ss && row?.start_time) return true;
+  return false;
+};
+
+export default function ExamProctorMonitorTab() {
+  const navigate = useNavigate();
+  const [date, setDate] = useState(toDateIso(new Date()));
+  const [statusMode, setStatusMode] = useState("active"); // active | all
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [schedulesError, setSchedulesError] = useState("");
+  const [schedules, setSchedules] = useState([]);
+
+  const displaySchedules = useMemo(() => {
+    const rows = Array.isArray(schedules) ? schedules : [];
+    const activityOnly = rows.filter((r) => ACTIVITY_PROCTORING_MODES.includes(String(r.proctoring_mode || "")));
+    if (statusMode === "all") {
+      return activityOnly.filter((r) => sessionStatusOf(r) !== "cancelled");
+    }
+    return activityOnly.filter((r) => isActiveSession(r));
+  }, [schedules, statusMode]);
+
+  const [selectedScheduleId, setSelectedScheduleId] = useState("");
+  const selectedSchedule = useMemo(
+    () => displaySchedules.find((s) => String(s.id) === String(selectedScheduleId)) || null,
+    [displaySchedules, selectedScheduleId]
+  );
+
+  const [monitorLoading, setMonitorLoading] = useState(false);
+  const [monitorRefreshing, setMonitorRefreshing] = useState(false);
+  const [monitorError, setMonitorError] = useState("");
+  const [monitor, setMonitor] = useState(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [logDialogOpen, setLogDialogOpen] = useState(false);
+  const [logDialogStudent, setLogDialogStudent] = useState("");
+  const [logDialogAttemptId, setLogDialogAttemptId] = useState("");
+  const [logLoading, setLogLoading] = useState(false);
+  const [logError, setLogError] = useState("");
+  const [logRows, setLogRows] = useState([]);
+  const [logFilter, setLogFilter] = useState("all");
+
+  const loadSchedules = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSchedulesLoading(true);
+    setSchedulesError("");
+    try {
+      const res = await fetch(
+        `/api/exams?date=${encodeURIComponent(date)}&is_active=true`,
+        { headers: authHeaders(token) }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "Could not load exam schedules.");
+      setSchedules(Array.isArray(data.data) ? data.data : []);
+    } catch (e) {
+      setSchedulesError(e.message || "Could not load exam schedules.");
+      setSchedules([]);
+    } finally {
+      setSchedulesLoading(false);
+    }
+  }, [date]);
+
+  useEffect(() => {
+    void loadSchedules();
+  }, [loadSchedules]);
+
+  useEffect(() => {
+    if (!displaySchedules.length) {
+      setSelectedScheduleId("");
+      setMonitor(null);
+      return;
+    }
+    const stillValid = displaySchedules.some((s) => String(s.id) === String(selectedScheduleId));
+    if (!stillValid) setSelectedScheduleId(String(displaySchedules[0].id));
+  }, [displaySchedules, selectedScheduleId]);
+
+  const loadMonitor = useCallback(async (scheduleId, options = {}) => {
+    const { silent = false } = options;
+    const token = localStorage.getItem("token");
+    if (!token || !scheduleId) return;
+    if (silent) setMonitorRefreshing(true);
+    else {
+      setMonitorLoading(true);
+      setMonitorError("");
+    }
+    try {
+      const res = await fetch(`/api/exams/${encodeURIComponent(scheduleId)}/proctor-monitor`, {
+        headers: authHeaders(token),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "Could not load proctor monitor.");
+      setMonitor(data.data || null);
+      setLastUpdatedAt(new Date().toISOString());
+      if (!silent) setMonitorError("");
+    } catch (e) {
+      if (!silent) {
+        setMonitorError(e.message || "Could not load proctor monitor.");
+        setMonitor(null);
+      }
+    } finally {
+      if (silent) setMonitorRefreshing(false);
+      else setMonitorLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedScheduleId) return;
+    void loadMonitor(selectedScheduleId, { silent: false });
+  }, [selectedScheduleId, loadMonitor]);
+
+  useEffect(() => {
+    if (!autoRefresh || !selectedScheduleId) return undefined;
+    const id = window.setInterval(() => {
+      void loadMonitor(selectedScheduleId, { silent: true });
+    }, 8000);
+    return () => window.clearInterval(id);
+  }, [autoRefresh, selectedScheduleId, loadMonitor]);
+
+  const rosterRows = monitor?.roster_rows || [];
+  const summary = monitor?.summary || { total: 0, not_started: 0, in_progress: 0, submitted: 0 };
+  const filteredLogRows =
+    logFilter === "all" ? logRows : logRows.filter((r) => String(r?.event_type || "") === logFilter);
+
+  const openSessionLog = async (row) => {
+    const token = localStorage.getItem("token");
+    const attemptId = row?.attempt?.id;
+    if (!token || !attemptId) return;
+    setLogDialogStudent(row?.student?.user?.full_name || row?.student?.user?.username || "Student");
+    setLogDialogAttemptId(attemptId);
+    setLogDialogOpen(true);
+    setLogLoading(true);
+    setLogError("");
+    setLogRows([]);
+    setLogFilter("all");
+    try {
+      const res = await fetch(`/api/exam-session-logs?exam_attempt_id=${encodeURIComponent(attemptId)}`, {
+        headers: authHeaders(token),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "Could not load session logs.");
+      setLogRows(Array.isArray(data.data) ? data.data : []);
+    } catch (e) {
+      setLogError(e.message || "Could not load session logs.");
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
+  const selectEllipsisSx = {
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    "& .MuiSelect-select": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      display: "block",
+    },
+  };
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        overflow: "hidden",
+        boxSizing: "border-box",
+        py: 1,
+      }}
+    >
+      <ExamFilterBar onRefresh={() => void loadSchedules()}>
+        <FilterField type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+        <FilterSelect label="Show" value={statusMode} onChange={(e) => setStatusMode(e.target.value)}>
+          <MenuItem value="active">Active only</MenuItem>
+          <MenuItem value="all">All (not cancelled)</MenuItem>
+        </FilterSelect>
+        <FilterSelect label="Auto refresh" value={autoRefresh ? "on" : "off"} onChange={(e) => setAutoRefresh(e.target.value === "on")}>
+          <MenuItem value="on">On (8s)</MenuItem>
+          <MenuItem value="off">Off</MenuItem>
+        </FilterSelect>
+        <FilterSelect label="Exam schedule" value={selectedScheduleId} onChange={(e) => setSelectedScheduleId(e.target.value)}>
+          {displaySchedules.length ? null : <MenuItem value="">No schedules</MenuItem>}
+          {displaySchedules.map((s) => (
+            <MenuItem key={s.id} value={s.id}>
+              {s.title || s.exam?.title || "Exam"} · {s.curriculum_class?.name || s.curriculum_class_level?.name || "Class"} ·{" "}
+              {PROCTORING_MODE_LABELS[s.proctoring_mode] || s.proctoring_mode || "Exam"} · {sessionStatusOf(s) || "scheduled"}
+            </MenuItem>
+          ))}
+        </FilterSelect>
+      </ExamFilterBar>
+
+      <TabPanelShell loading={schedulesLoading && !schedules.length} error={schedulesError} onDismissError={() => setSchedulesError("")}>
+
+      {monitorLoading && !monitor ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress sx={{ color: accent }} />
+        </Box>
+      ) : monitorError && !monitor ? (
+        <Alert severity="error">{monitorError}</Alert>
+      ) : null}
+
+      {monitorError && String(monitorError).includes("LiveKit") ? (
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => navigate(`/exam/${selectedScheduleId}/live`)}
+            sx={{ bgcolor: accent, "&:hover": { bgcolor: accentDark }, alignSelf: "flex-start" }}
+          >
+            Open LiveKit invigilation room
+          </Button>
+        </Stack>
+      ) : null}
+
+      {!monitorLoading && monitor ? (
+        <Box sx={{ width: "100%", maxWidth: "100%", minWidth: 0, overflow: "hidden" }}>
+          <ExamSummaryChips
+            items={[
+              ...(monitor?.proctoring_mode_label || selectedSchedule?.proctoring_mode
+                ? [{ label: "Mode", value: monitor?.proctoring_mode_label || PROCTORING_MODE_LABELS[selectedSchedule.proctoring_mode] || selectedSchedule.proctoring_mode }]
+                : []),
+              { label: "Total", value: summary.total },
+              { label: "Not started", value: summary.not_started },
+              { label: "In progress", value: summary.in_progress, tone: "warn" },
+              { label: "Submitted", value: summary.submitted, tone: "success" },
+              ...(monitorRefreshing ? [{ label: "Status", value: "Updating…" }] : []),
+              ...(lastUpdatedAt ? [{ label: "Updated", value: formatMaybeIso(lastUpdatedAt) }] : []),
+            ]}
+          />
+
+          <Divider sx={{ mb: 2 }} />
+
+          {rosterRows.length ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))",
+                gap: 1.25,
+                width: "100%",
+                maxWidth: "100%",
+                minWidth: 0,
+              }}
+            >
+              {rosterRows.map((r, idx) => {
+                const fullName = r.student?.user?.full_name || r.student?.user?.username || r.student?.user?.email || "Student";
+                const status = r.status || "not_started";
+                const chipColor =
+                  status === "submitted" || status === "completed"
+                    ? "success"
+                    : status === "closed"
+                      ? "error"
+                    : status === "in_progress"
+                      ? "warning"
+                      : "default";
+                return (
+                  <Card key={r.student?.id || `${fullName}-${idx}`} variant="outlined" sx={{ borderColor: "#FEE2E2" }}>
+                    <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+                      <Stack spacing={0.75}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                          {fullName}
+                        </Typography>
+                        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                          <Chip size="small" label={String(status).split("_").join(" ")} color={chipColor} />
+                          <Chip size="small" label={`Tab: ${r.tab_switch_count ?? 0}`} variant="outlined" />
+                          <Chip size="small" label={`Warnings: ${r.warning_count ?? 0}`} variant="outlined" />
+                          <Chip
+                            size="small"
+                            label={`Events: ${r.session_log_count ?? (r.session_logs?.length ?? 0)}`}
+                            variant="outlined"
+                          />
+                          {r.paper_submitted ? (
+                            <Chip size="small" label="Paper submitted" color="success" variant="outlined" />
+                          ) : null}
+                        </Stack>
+                        {selectedSchedule?.proctoring_mode === "live_monitor" ? (
+                          <Typography variant="caption" color="text.secondary">
+                            Webcam: {r.webcam_enabled ? "On" : "Off"}
+                          </Typography>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            Monitoring: activity log (no webcam on this mode)
+                          </Typography>
+                        )}
+                        {r.cancellation_reason ? (
+                          <Typography variant="caption" color="error.main">
+                            Closed reason: {String(r.cancellation_reason)}
+                          </Typography>
+                        ) : null}
+                        <Typography variant="caption" color="text.secondary">
+                          Last activity: {formatMaybeIso(r.last_activity_at)}
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="text"
+                          sx={{ alignSelf: "flex-start", px: 0 }}
+                          disabled={!r?.attempt?.id && !(r.session_log_count > 0)}
+                          onClick={() => void openSessionLog(r)}
+                        >
+                          View session log ({r.session_log_count ?? 0})
+                        </Button>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>
+          ) : (
+            <Alert severity="info">No roster rows found for this schedule.</Alert>
+          )}
+        </Box>
+      ) : null}
+
+      {!schedulesLoading && !displaySchedules.length && schedules.length > 0 ? (
+        <Alert severity="warning" sx={{ mt: 2, maxWidth: "100%", "& .MuiAlert-message": { minWidth: 0, wordBreak: "break-word" } }}>
+          No <strong>Monitored</strong> or <strong>Strict</strong> exams on this date. Live invigilation exams appear under
+          Online exams / LiveKit — not on this tab.
+        </Alert>
+      ) : null}
+
+      {!monitorLoading && !monitor && !schedulesLoading && displaySchedules.length ? (
+        <Alert severity="info" sx={{ mt: 2, maxWidth: "100%", "& .MuiAlert-message": { minWidth: 0 } }}>
+          Pick an exam above to open the activity monitor.
+        </Alert>
+      ) : null}
+
+      </TabPanelShell>
+
+      <PremiumDialog
+        open={logDialogOpen}
+        onClose={() => setLogDialogOpen(false)}
+        title="Session log"
+        subtitle={logDialogStudent}
+        maxWidth="md"
+        footer={<DialogGhostButton onClick={() => setLogDialogOpen(false)}>Close</DialogGhostButton>}
+      >
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 1.25 }}>
+            <TextField size="small" label="Attempt ID" value={logDialogAttemptId} InputProps={{ readOnly: true }} fullWidth />
+            <FormControl size="small" sx={{ width: { xs: "100%", sm: 180 }, minWidth: { sm: 160 }, flexShrink: 0 }}>
+              <Select value={logFilter} onChange={(e) => setLogFilter(e.target.value)}>
+                <MenuItem value="all">All events</MenuItem>
+                {[...new Set((logRows || []).map((r) => String(r?.event_type || "")).filter(Boolean))].map((ev) => (
+                  <MenuItem key={ev} value={ev}>
+                    {ev}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+          {logLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+              <CircularProgress size={24} sx={{ color: accent }} />
+            </Box>
+          ) : logError ? (
+            <Alert severity="error">{logError}</Alert>
+          ) : filteredLogRows.length ? (
+            <Stack spacing={1}>
+              {filteredLogRows.map((r) => (
+                <Card key={r.id} variant="outlined" sx={{ borderColor: "#FEE2E2" }}>
+                  <CardContent sx={{ p: 1.1, "&:last-child": { pb: 1.1 } }}>
+                    <Stack spacing={0.5}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Chip size="small" label={r.event_type || "event"} />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatMaybeIso(r.event_timestamp)}
+                        </Typography>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        Time: {r.cumulative_time_seconds ?? 0}s elapsed / {r.remaining_time_seconds ?? 0}s remaining
+                      </Typography>
+                      {r.event_data != null ? (
+                        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                          {JSON.stringify(r.event_data)}
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          ) : (
+            <Alert severity="info">No session logs found for this attempt.</Alert>
+          )}
+      </PremiumDialog>
+    </Box>
+  );
+}
+

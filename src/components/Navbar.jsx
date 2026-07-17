@@ -1,0 +1,614 @@
+import React, { cloneElement, useEffect, useState } from "react";
+import {
+  Logout,
+  PeopleAlt,
+  Settings,
+  History,
+  Event,
+  School,
+  MenuBook,
+  Dashboard,
+  Badge,
+  AccountBalance,
+  Quiz,
+  AssignmentTurnedIn,
+  TransferWithinAStation,
+} from "@mui/icons-material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { styled, useTheme, alpha } from "@mui/material/styles";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import CssBaseline from "@mui/material/CssBaseline";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import { Box, Typography } from "@mui/material";
+import Header from "./Header/Header";
+
+const drawerWidth = 280;
+const drawerCollapsedWidth = 100;
+
+const navRed = "#DC2626";
+const navRedDark = "#B91C1C";
+const navRedLight = "#FEE2E2";
+const navRedHoverBg = "rgba(220, 38, 38, 0.08)";
+const navRedActiveBg = "rgba(220, 38, 38, 0.12)";
+const sidebarBg = "#FFFBF7";
+const textPrimary = "#1C1917";
+const textMuted = "#78716C";
+
+const fontBody = '"Plus Jakarta Sans", "Inter", system-ui, sans-serif';
+const fontDisplay = '"Fraunces", "Georgia", serif';
+
+const drawerPaperSx = (theme, open) => ({
+  border: "none",
+  borderRight: `1px solid ${alpha(navRed, 0.08)}`,
+  background: `linear-gradient(180deg, ${sidebarBg} 0%, #FFFFFF 55%, ${alpha(navRedLight, 0.35)} 100%)`,
+  boxShadow: open ? "4px 0 32px rgba(28, 25, 23, 0.06)" : "2px 0 16px rgba(28, 25, 23, 0.04)",
+  overflowX: "hidden",
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+});
+
+const openedMixin = (theme) => ({
+  width: drawerWidth,
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: "hidden",
+});
+
+const closedMixin = (theme) => ({
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: "hidden",
+  width: drawerCollapsedWidth,
+});
+
+const DrawerHeader = styled("div", {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: open ? "space-between" : "center",
+  padding: open ? theme.spacing(2, 2, 1.5, 2) : theme.spacing(1.5, 0.5),
+  minHeight: open ? 80 : 72,
+  flexShrink: 0,
+}));
+
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  background: `linear-gradient(135deg, ${navRed} 0%, ${navRedDark} 100%)`,
+  boxShadow: "0 4px 24px rgba(220, 38, 38, 0.28), inset 0 -1px 0 rgba(255,255,255,0.08)",
+  marginLeft: open ? drawerWidth : drawerCollapsedWidth,
+  width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${drawerCollapsedWidth}px)`,
+  transition: theme.transitions.create(["width", "margin"], {
+    easing: theme.transitions.easing.sharp,
+    duration: open
+      ? theme.transitions.duration.enteringScreen
+      : theme.transitions.duration.leavingScreen,
+  }),
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(90deg, rgba(255,255,255,0.06) 0%, transparent 40%)",
+    pointerEvents: "none",
+  },
+}));
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  boxSizing: "border-box",
+  ...(open && {
+    whiteSpace: "nowrap",
+    ...openedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...openedMixin(theme),
+      ...drawerPaperSx(theme, true),
+    },
+  }),
+  ...(!open && {
+    whiteSpace: "normal",
+    ...closedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...closedMixin(theme),
+      ...drawerPaperSx(theme, false),
+    },
+  }),
+}));
+
+const MENU_SECTIONS = [
+  {
+    label: "Overview",
+    items: [{ text: "Dashboard", icon: <Dashboard />, path: "/dashboard" }],
+  },
+  {
+    label: "Operations",
+    items: [
+      { text: "HR", icon: <Badge />, path: "/hr" },
+      { text: "Accounting", icon: <AccountBalance />, path: "/accounting" },
+      { text: "Exam", icon: <Quiz />, path: "/exam" },
+      { text: "Assignments", icon: <AssignmentTurnedIn />, path: "/assignments" },
+      { text: "Curriculum", icon: <MenuBook />, path: "/curriculum" },
+      { text: "Timetable", icon: <Event />, path: "/timetable" },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { text: "Users", icon: <PeopleAlt />, path: "/users" },
+      { text: "Class transfer", icon: <TransferWithinAStation />, path: "/class-transfer" },
+      { text: "Elimu Plus", icon: <School />, path: "/elimu-plus" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { text: "Settings", icon: <Settings />, path: "/settings" },
+      { text: "Audit Trail", icon: <History />, path: "/audit" },
+    ],
+  },
+];
+
+const flatMenuItems = MENU_SECTIONS.flatMap((s) => s.items);
+
+function NavIconBox({ selected, children, compact }) {
+  return (
+    <Box
+      sx={{
+        width: compact ? 36 : 38,
+        height: compact ? 36 : 38,
+        borderRadius: "11px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        transition: "all 0.22s ease",
+        background: selected
+          ? `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`
+          : alpha(navRed, 0.06),
+        color: selected ? "#fff" : textMuted,
+        boxShadow: selected ? "0 4px 12px rgba(220, 38, 38, 0.35)" : "none",
+        "& .MuiSvgIcon-root": { fontSize: compact ? 20 : 21 },
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function NavItem({ item, open, selected, onNavigate }) {
+  return (
+    <ListItemButton
+      onClick={() => onNavigate(item.path)}
+      selected={selected}
+      sx={{
+        flexDirection: open ? "row" : "column",
+        alignItems: "center",
+        justifyContent: open ? "flex-start" : "center",
+        gap: open ? 0.75 : 0.4,
+        px: open ? 1.5 : 0.25,
+        py: open ? 0.85 : 0.65,
+        mx: open ? 1.5 : 0.25,
+        mb: 0.5,
+        borderRadius: "12px",
+        minHeight: open ? 46 : "auto",
+        whiteSpace: open ? "nowrap" : "normal",
+        textAlign: "center",
+        width: open ? "auto" : "100%",
+        boxSizing: "border-box",
+        transition: "all 0.2s ease",
+        bgcolor: selected ? navRedActiveBg : "transparent",
+        "&:hover": {
+          bgcolor: selected ? navRedActiveBg : navRedHoverBg,
+          transform: open ? "translateX(2px)" : "none",
+        },
+        "&.Mui-selected": {
+          bgcolor: navRedActiveBg,
+          "&:hover": { bgcolor: navRedActiveBg },
+        },
+      }}
+    >
+      {open ? (
+        <>
+          <NavIconBox selected={selected}>
+            {cloneElement(item.icon)}
+          </NavIconBox>
+          <Typography
+            component="span"
+            sx={{
+              fontFamily: fontBody,
+              fontSize: "0.9rem",
+              fontWeight: selected ? 700 : 500,
+              color: selected ? navRed : textPrimary,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {item.text}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <ListItemIcon
+            sx={{
+              minWidth: 0,
+              justifyContent: "center",
+              mb: 0,
+            }}
+          >
+            <NavIconBox selected={selected} compact>
+              {cloneElement(item.icon)}
+            </NavIconBox>
+          </ListItemIcon>
+          <Typography
+            component="span"
+            sx={{
+              fontFamily: fontBody,
+              fontSize: "0.65rem",
+              fontWeight: selected ? 700 : 500,
+              color: selected ? navRed : textMuted,
+              lineHeight: 1.25,
+              letterSpacing: 0,
+              width: "100%",
+              px: 0.15,
+              wordBreak: "break-word",
+              overflowWrap: "break-word",
+            }}
+          >
+            {item.text}
+          </Typography>
+        </>
+      )}
+    </ListItemButton>
+  );
+}
+
+const Navbar = (props) => {
+  const { user } = props;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
+  const [open, setOpen] = useState(() => window.innerWidth >= theme.breakpoints.values.md);
+  const [menuItems, setMenuItems] = useState([]);
+
+  const handleDrawerOpen = () => setOpen(true);
+  const handleDrawerClose = () => setOpen(false);
+
+  const isNavPathSelected = (path) =>
+    location.pathname === path ||
+    (path === "/dashboard" && location.pathname.startsWith("/dashboard")) ||
+    (path === "/hr" && location.pathname.startsWith("/hr")) ||
+    (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
+    (path === "/exam" && location.pathname.startsWith("/exam")) ||
+    (path === "/assignments" && location.pathname.startsWith("/assignments")) ||
+    (path === "/elimu-plus" && location.pathname.startsWith("/elimu-plus")) ||
+    (path === "/curriculum" && location.pathname.startsWith("/curriculum")) ||
+    (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
+    (path === "/settings" && location.pathname.startsWith("/settings")) ||
+    (path === "/audit" && location.pathname.startsWith("/audit")) ||
+    (path === "/users" && location.pathname.startsWith("/users"));
+
+  const logout = () => {
+    localStorage.clear();
+    navigate("/");
+    fetch("/api/admin-users/logout", {
+      method: "GET",
+      credentials: "include",
+    });
+  };
+
+  useEffect(() => {
+    if (user) setMenuItems(flatMenuItems);
+  }, [user]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setOpen(window.innerWidth >= theme.breakpoints.values.md);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [theme.breakpoints.values.md]);
+
+  const sections =
+    menuItems.length > 0
+      ? MENU_SECTIONS.map((section) => ({
+          ...section,
+          items: section.items.filter((item) =>
+            menuItems.some((m) => m.path === item.path)
+          ),
+        })).filter((s) => s.items.length > 0)
+      : [];
+
+  return (
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+      <AppBar position="fixed" open={open} elevation={0}>
+        <Toolbar
+          disableGutters
+          sx={{
+            minHeight: { xs: 64, sm: 68 },
+            px: { xs: 1.5, sm: 2.5 },
+          }}
+        >
+          <Header
+            setUser={props.setUser}
+            handleDrawerOpen={handleDrawerOpen}
+            open={open}
+          />
+        </Toolbar>
+      </AppBar>
+
+      <Drawer variant="permanent" open={open}>
+        <DrawerHeader open={open}>
+          {open ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: "13px",
+                  background: `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  boxShadow: "0 6px 16px rgba(220, 38, 38, 0.35)",
+                }}
+              >
+                <School sx={{ color: "#fff", fontSize: 24 }} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    fontFamily: fontDisplay,
+                    fontWeight: 700,
+                    fontSize: "1.05rem",
+                    color: textPrimary,
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Elimu Plus
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
+                    color: navRed,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Admin Portal
+                </Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.35 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "12px",
+                  background: `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+                }}
+              >
+                <School sx={{ color: "#fff", fontSize: 22 }} />
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.6rem",
+                  fontWeight: 700,
+                  color: navRed,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  lineHeight: 1.1,
+                  textAlign: "center",
+                }}
+              >
+                Admin
+              </Typography>
+            </Box>
+          )}
+          {open && (
+            <IconButton
+              onClick={handleDrawerClose}
+              size="small"
+              aria-label="Collapse navigation"
+              sx={{
+                color: textMuted,
+                bgcolor: alpha(navRed, 0.06),
+                "&:hover": { bgcolor: alpha(navRed, 0.12), color: navRed },
+              }}
+            >
+              {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+            </IconButton>
+          )}
+        </DrawerHeader>
+
+        <Divider sx={{ borderColor: alpha(navRed, 0.08), mx: open ? 2 : 1 }} />
+
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            py: 1.5,
+            "&::-webkit-scrollbar": { width: 4 },
+            "&::-webkit-scrollbar-thumb": {
+              bgcolor: alpha(navRed, 0.2),
+              borderRadius: 4,
+            },
+          }}
+        >
+          {open
+            ? sections.map((section) => (
+                <Box key={section.label} sx={{ mb: 1 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: fontBody,
+                      fontSize: "0.65rem",
+                      fontWeight: 700,
+                      color: textMuted,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      px: 2.5,
+                      pt: 1,
+                      pb: 0.75,
+                    }}
+                  >
+                    {section.label}
+                  </Typography>
+                  <List disablePadding>
+                    {section.items.map((item) => (
+                      <NavItem
+                        key={item.path}
+                        item={item}
+                        open={open}
+                        selected={isNavPathSelected(item.path)}
+                        onNavigate={navigate}
+                      />
+                    ))}
+                  </List>
+                </Box>
+              ))
+            : (
+              <List disablePadding sx={{ px: 0.5 }}>
+                {menuItems.map((item) => (
+                  <NavItem
+                    key={item.path}
+                    item={item}
+                    open={open}
+                    selected={isNavPathSelected(item.path)}
+                    onNavigate={navigate}
+                  />
+                ))}
+              </List>
+            )}
+        </Box>
+
+        <Divider sx={{ borderColor: alpha(navRed, 0.08), mx: open ? 2 : 1 }} />
+
+        <Box sx={{ py: 1.5, flexShrink: 0 }}>
+          <ListItemButton
+            onClick={logout}
+            sx={{
+              flexDirection: open ? "row" : "column",
+              alignItems: "center",
+              justifyContent: open ? "flex-start" : "center",
+              gap: open ? 0.75 : 0.4,
+              px: open ? 1.5 : 0.25,
+              py: open ? 1 : 0.65,
+              mx: open ? 1.5 : 0.25,
+              borderRadius: "12px",
+              minHeight: open ? 46 : "auto",
+              whiteSpace: open ? "nowrap" : "normal",
+              textAlign: "center",
+              width: open ? "auto" : "100%",
+              boxSizing: "border-box",
+              "&:hover": {
+                bgcolor: alpha(navRed, 0.08),
+                "& .logout-icon": {
+                  bgcolor: alpha(navRed, 0.15),
+                  color: navRed,
+                },
+              },
+            }}
+          >
+            {open ? (
+              <>
+                <Box
+                  className="logout-icon"
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: "11px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    bgcolor: alpha(textMuted, 0.1),
+                    color: textMuted,
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <Logout sx={{ fontSize: 20 }} />
+                </Box>
+                <Typography
+                  component="span"
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.9rem",
+                    fontWeight: 600,
+                    color: textPrimary,
+                  }}
+                >
+                  Sign out
+                </Typography>
+              </>
+            ) : (
+              <>
+                <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+                  <Box
+                    className="logout-icon"
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "11px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: alpha(textMuted, 0.1),
+                      color: textMuted,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <Logout sx={{ fontSize: 20 }} />
+                  </Box>
+                </ListItemIcon>
+                <Typography
+                  component="span"
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.65rem",
+                    fontWeight: 600,
+                    color: textMuted,
+                    lineHeight: 1.25,
+                    width: "100%",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                  }}
+                >
+                  Sign out
+                </Typography>
+              </>
+            )}
+          </ListItemButton>
+        </Box>
+      </Drawer>
+    </Box>
+  );
+};
+
+export default Navbar;
