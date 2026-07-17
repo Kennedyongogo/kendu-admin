@@ -1,5 +1,4 @@
 import React from "react";
-import "ol/ol.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import { ThemeProvider } from "@mui/material";

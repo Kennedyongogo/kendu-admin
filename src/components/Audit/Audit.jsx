@@ -1,112 +1,102 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Alert,
-  Avatar,
   Box,
+  Button,
   Chip,
   CircularProgress,
+  FormControl,
   IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import HistoryIcon from "@mui/icons-material/History";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import LanOutlinedIcon from "@mui/icons-material/LanOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import FingerprintOutlinedIcon from "@mui/icons-material/FingerprintOutlined";
+import SearchIcon from "@mui/icons-material/Search";
+import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
 import {
-  ElimuPlusHero,
-  ElimuPlusTabs,
-  DataTableShell,
-  tableHeadRowSx,
-  tablePaginationSx,
-  TabPanelShell,
-  PremiumDialog,
-  DetailField,
-  DialogGhostButton,
-} from "../SchoolProfile/elimuPlusUi";
-import { fadeUp } from "../Users/usersUi";
-import {
-  primaryRed,
+  authJsonHeaders,
+  primaryGreen,
   primaryDark,
-  primaryLight,
   warmCream,
   textPrimary,
   textSecondary,
   textMuted,
-  fontBody,
-  fontDisplay,
-  elimuViewportSx,
-  actionIconSx,
-  hrPanelCardSx,
-} from "../HR/hrShared";
-import { getInitials } from "../Users/usersShared";
+  inputSx,
+  ghostBtnSx,
+  pageShellSx,
+} from "../Users/usersShared";
+import {
+  UsersHero,
+  RoleTabs,
+  PremiumDialog,
+  DetailField,
+  UserAvatar,
+} from "../Users/usersUi";
 
-const resourceTypes = [
-  { value: 0, label: "All" },
-  { value: 1, label: "Exams" },
-  { value: 2, label: "Students" },
-  { value: 3, label: "Teachers" },
-  { value: 4, label: "Fees" },
-  { value: 5, label: "Report cards" },
-  { value: 6, label: "Curriculum" },
-  { value: 7, label: "Admissions" },
-  { value: 8, label: "Users" },
-  { value: 9, label: "System" },
-  { value: 10, label: "Other" },
+/** Matches backend resource_type values from audit middleware / controllers */
+const RESOURCE_TABS = [
+  { label: "All", value: null },
+  { label: "Users", value: "user" },
+  { label: "Programmes", value: "programme" },
+  { label: "System", value: "system" },
 ];
 
-const resourceTypeValues = [
-  "",
-  "exam",
-  "student",
-  "teacher",
-  "fee_invoice",
-  "report_card",
-  "curriculum",
-  "admission_application",
-  "user",
-  "system",
-  "other",
+/** Matches AuditTrail.action ENUM */
+const ACTION_OPTIONS = [
+  { label: "All actions", value: "" },
+  { label: "Create", value: "create" },
+  { label: "Read", value: "read" },
+  { label: "Update", value: "update" },
+  { label: "Delete", value: "delete" },
+  { label: "Login", value: "login" },
+  { label: "Logout", value: "logout" },
+  { label: "Other", value: "other" },
+];
+
+/** Matches AuditTrail.status ENUM */
+const STATUS_OPTIONS = [
+  { label: "All statuses", value: "" },
+  { label: "Success", value: "success" },
+  { label: "Failed", value: "failed" },
 ];
 
 const ACTION_STYLES = {
-  create: { color: "#16A34A", bg: "#DCFCE7" },
-  read: { color: "#2563EB", bg: "#DBEAFE" },
-  update: { color: "#D97706", bg: "#FEF3C7" },
-  delete: { color: "#DC2626", bg: "#FEE2E2" },
-  login: { color: "#7C3AED", bg: "#EDE9FE" },
-  logout: { color: "#6B7280", bg: "#F3F4F6" },
-  default: { color: "#57534E", bg: "#F5F5F4" },
+  create: { color: "#15803d", bg: "#dcfce7" },
+  read: { color: "#1e2858", bg: "rgba(30,40,88,0.1)" },
+  update: { color: "#a16207", bg: "#fef3c7" },
+  delete: { color: "#b91c1c", bg: "#fee2e2" },
+  login: { color: "#006050", bg: "rgba(0,96,80,0.12)" },
+  logout: { color: "#57534e", bg: "#f5f5f4" },
+  other: { color: "#57534e", bg: "#f5f5f4" },
 };
 
 const STATUS_STYLES = {
-  success: { color: "#16A34A", bg: "#DCFCE7" },
-  failed: { color: "#DC2626", bg: "#FEE2E2" },
-  pending: { color: "#D97706", bg: "#FEF3C7" },
+  success: { color: "#15803d", bg: "#dcfce7" },
+  failed: { color: "#b91c1c", bg: "#fee2e2" },
 };
 
-function formatActionText(action) {
-  return String(action || "other")
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function formatResourceType(type) {
-  if (!type) return "Other";
-  return String(type)
+function formatLabel(value) {
+  if (!value) return "—";
+  return String(value)
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
@@ -125,19 +115,12 @@ function formatDate(dateString) {
   });
 }
 
-function actionStyle(action) {
-  const key = String(action || "").toLowerCase();
-  if (ACTION_STYLES[key]) return ACTION_STYLES[key];
-  if (key.includes("delete")) return ACTION_STYLES.delete;
-  if (key.includes("create")) return ACTION_STYLES.create;
-  if (key.includes("update")) return ACTION_STYLES.update;
-  if (key.includes("login")) return ACTION_STYLES.login;
-  if (key.includes("read")) return ACTION_STYLES.read;
-  return ACTION_STYLES.default;
+function actionTone(action) {
+  return ACTION_STYLES[String(action || "").toLowerCase()] || ACTION_STYLES.other;
 }
 
-function statusStyle(status) {
-  return STATUS_STYLES[String(status || "").toLowerCase()] || ACTION_STYLES.default;
+function statusTone(status) {
+  return STATUS_STYLES[String(status || "").toLowerCase()] || ACTION_STYLES.other;
 }
 
 function AuditChip({ label, tone }) {
@@ -146,14 +129,14 @@ function AuditChip({ label, tone }) {
       label={label}
       size="small"
       sx={{
-        fontFamily: fontBody,
+        fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
         fontWeight: 700,
         fontSize: "0.72rem",
         height: 26,
         borderRadius: "8px",
         color: tone.color,
         bgcolor: tone.bg,
-        border: `1px solid ${tone.color}22`,
+        border: "none",
       }}
     />
   );
@@ -163,10 +146,10 @@ function JsonBlock({ title, data, variant = "neutral" }) {
   if (!data || (typeof data === "object" && !Object.keys(data).length)) return null;
   const palette =
     variant === "old"
-      ? { bg: "#FEF2F2", border: "rgba(220,38,38,0.18)", label: primaryDark }
+      ? { bg: "#fef2f2", border: "rgba(185,28,28,0.16)", label: "#b91c1c" }
       : variant === "new"
-        ? { bg: "#F0FDF4", border: "rgba(22,163,74,0.18)", label: "#16A34A" }
-        : { bg: warmCream, border: "rgba(220,38,38,0.08)", label: textSecondary };
+        ? { bg: "#f0fdf4", border: "rgba(21,128,61,0.16)", label: "#15803d" }
+        : { bg: warmCream, border: "rgba(0,96,80,0.1)", label: textSecondary };
 
   return (
     <Box
@@ -178,7 +161,16 @@ function JsonBlock({ title, data, variant = "neutral" }) {
       }}
     >
       <Box sx={{ px: 2, py: 1.25, borderBottom: `1px solid ${palette.border}` }}>
-        <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", fontWeight: 800, color: palette.label, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        <Typography
+          sx={{
+            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+            fontSize: "0.72rem",
+            fontWeight: 800,
+            color: palette.label,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+          }}
+        >
           {title}
         </Typography>
       </Box>
@@ -203,21 +195,42 @@ function JsonBlock({ title, data, variant = "neutral" }) {
   );
 }
 
-function StatPill({ label, value, accent = primaryRed }) {
+function StatPill({ label, value, accent = primaryGreen }) {
   return (
     <Box
       sx={{
-        ...hrPanelCardSx,
         px: 2,
         py: 1.5,
         minWidth: 140,
         flex: 1,
+        borderRadius: "16px",
+        bgcolor: "#fff",
+        border: "1px solid rgba(0,96,80,0.1)",
+        boxShadow: "0 8px 24px -12px rgba(20,26,58,0.12)",
       }}
     >
-      <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", fontWeight: 700, color: textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      <Typography
+        sx={{
+          fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+          fontSize: "0.72rem",
+          fontWeight: 700,
+          color: textMuted,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+        }}
+      >
         {label}
       </Typography>
-      <Typography sx={{ fontFamily: fontDisplay, fontWeight: 800, fontSize: "1.5rem", color: accent, lineHeight: 1.2, mt: 0.25 }}>
+      <Typography
+        sx={{
+          fontFamily: '"Fraunces", Georgia, serif',
+          fontWeight: 800,
+          fontSize: "1.5rem",
+          color: accent,
+          lineHeight: 1.2,
+          mt: 0.25,
+        }}
+      >
         {value}
       </Typography>
     </Box>
@@ -230,10 +243,15 @@ export default function Audit() {
   const [error, setError] = useState(null);
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalLogs, setTotalLogs] = useState(0);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [actionFilter, setActionFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAuditLogs = useCallback(async () => {
     try {
@@ -249,29 +267,35 @@ export default function Audit() {
         page: String(page + 1),
         limit: String(rowsPerPage),
       });
-      const resourceType = resourceTypeValues[selectedTab];
-      if (resourceType) queryParams.append("resource_type", resourceType);
+
+      const resourceType = RESOURCE_TABS[selectedTab]?.value;
+      if (resourceType) queryParams.set("resource_type", resourceType);
+      if (actionFilter) queryParams.set("action", actionFilter);
+      if (statusFilter) queryParams.set("status", statusFilter);
+      if (searchQuery.trim()) queryParams.set("q", searchQuery.trim());
 
       const response = await fetch(`/api/audit-trail?${queryParams}`, {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: authJsonHeaders(token),
       });
       const data = await response.json();
 
-      if (data.success) {
-        setAuditLogs(data.data || []);
-        setTotalLogs(data.pagination?.total || 0);
-      } else {
+      if (!response.ok || !data.success) {
         setError(data.message || "Could not load audit logs.");
+        setAuditLogs([]);
+        setTotalLogs(0);
+        return;
       }
+
+      setAuditLogs(Array.isArray(data.data) ? data.data : []);
+      setTotalLogs(data.pagination?.total || 0);
     } catch (err) {
       setError(err.message || "Could not load audit logs.");
+      setAuditLogs([]);
+      setTotalLogs(0);
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, selectedTab]);
+  }, [page, rowsPerPage, selectedTab, actionFilter, statusFilter, searchQuery]);
 
   useEffect(() => {
     void fetchAuditLogs();
@@ -283,228 +307,365 @@ export default function Audit() {
     return { success, failed };
   }, [auditLogs]);
 
-  const handleViewLog = (log) => {
+  const handleViewLog = async (log) => {
     setSelectedLog(log);
     setOpenViewDialog(true);
+    const token = localStorage.getItem("token");
+    if (!token || !log?.id) return;
+
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/audit-trail/${log.id}`, {
+        headers: authJsonHeaders(token),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data) {
+        setSelectedLog(data.data);
+      }
+    } catch {
+      // keep list row data if detail fetch fails
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const closeDialog = () => {
     setOpenViewDialog(false);
     setSelectedLog(null);
+    setDetailLoading(false);
   };
 
-  const handleTabChange = (value) => {
+  const handleTabChange = (_e, value) => {
     setSelectedTab(value);
     setPage(0);
   };
 
+  const applySearch = () => {
+    setSearchQuery(searchInput);
+    setPage(0);
+  };
+
   return (
-    <Box
-      component={motion.div}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      sx={{
-        ...elimuViewportSx,
-        gap: 2,
-        pb: 3,
-      }}
-    >
-      <ElimuPlusHero
+    <Box sx={pageShellSx}>
+      <UsersHero
         title="Audit Trail"
-        subtitle="Track admin portal activity — who did what, when, and whether it succeeded."
-        icon={<HistoryIcon sx={{ fontSize: 26 }} />}
-        actions={
-          <Tooltip title="Refresh logs">
-            <IconButton
-              onClick={() => void fetchAuditLogs()}
-              disabled={loading}
-              sx={{
-                bgcolor: "rgba(255,255,255,0.15)",
-                color: "#fff",
-                border: "1px solid rgba(255,255,255,0.22)",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
-              }}
-            >
-              {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : <RefreshRoundedIcon />}
-            </IconButton>
-          </Tooltip>
-        }
+        subtitle="Track who did what in the admin portal — actions, resources, and outcomes."
+        icon={<HistoryIcon sx={{ fontSize: 28, color: "#fff" }} />}
       />
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 2.5 }}>
         <StatPill label="Total entries" value={totalLogs.toLocaleString()} />
-        <StatPill label="Success on page" value={pageStats.success} accent="#16A34A" />
-        <StatPill label="Failed on page" value={pageStats.failed} accent={primaryRed} />
+        <StatPill label="Success on page" value={pageStats.success} accent="#15803d" />
+        <StatPill label="Failed on page" value={pageStats.failed} accent="#b91c1c" />
       </Stack>
 
-      <Box component={motion.div} variants={fadeUp} custom={1} initial="hidden" animate="visible">
-        <ElimuPlusTabs activeTab={selectedTab} onChange={handleTabChange} tabs={resourceTypes} />
-      </Box>
+      <RoleTabs activeTab={selectedTab} onChange={handleTabChange} tabs={RESOURCE_TABS} />
+
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={1.5}
+        sx={{ mb: 2.5 }}
+        alignItems={{ xs: "stretch", md: "center" }}
+      >
+        <TextField
+          size="small"
+          placeholder="Search description…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") applySearch();
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: textMuted, fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ ...inputSx, flex: 1, minWidth: 200 }}
+        />
+        <FormControl size="small" sx={{ ...inputSx, minWidth: 160 }}>
+          <InputLabel>Action</InputLabel>
+          <Select
+            label="Action"
+            value={actionFilter}
+            onChange={(e) => {
+              setActionFilter(e.target.value);
+              setPage(0);
+            }}
+          >
+            {ACTION_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value || "all"} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ ...inputSx, minWidth: 150 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            label="Status"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(0);
+            }}
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value || "all"} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          onClick={applySearch}
+          sx={{
+            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+            fontWeight: 700,
+            textTransform: "none",
+            borderRadius: "12px",
+            bgcolor: primaryGreen,
+            px: 2.5,
+            "&:hover": { bgcolor: primaryDark },
+          }}
+        >
+          Search
+        </Button>
+      </Stack>
+
+      {error ? (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: "14px" }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      ) : null}
 
       <Box
-        component={motion.div}
-        variants={fadeUp}
-        custom={2}
-        initial="hidden"
-        animate="visible"
-        sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
+        sx={{
+          borderRadius: "20px",
+          overflow: "hidden",
+          border: "1px solid rgba(0,96,80,0.1)",
+          bgcolor: "#fff",
+          boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
+        }}
       >
-        <TabPanelShell error={error} loading={loading} onDismissError={() => setError(null)}>
-          <DataTableShell
-            pagination={
-              <TablePagination
-                component="div"
-                count={totalLogs}
-                page={page}
-                onPageChange={(_, newPage) => setPage(newPage)}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(e) => {
-                  setRowsPerPage(parseInt(e.target.value, 10));
-                  setPage(0);
+        <TableContainer>
+          <Table size="medium" sx={{ minWidth: 720 }}>
+            <TableHead>
+              <TableRow
+                sx={{
+                  bgcolor: warmCream,
+                  "& .MuiTableCell-head": {
+                    color: textSecondary,
+                    fontWeight: 700,
+                    fontSize: "0.7rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    borderBottom: "1px solid rgba(0,96,80,0.1)",
+                    py: 1.75,
+                  },
                 }}
-                rowsPerPageOptions={[5, 10, 25, 50]}
-                sx={tablePaginationSx}
-              />
-            }
-          >
-            <Table sx={{ minWidth: 640 }}>
-              <TableHead>
-                <TableRow sx={tableHeadRowSx}>
-                  <TableCell width={56}>#</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell>Action</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="center" width={88}>
-                    View
+              >
+                <TableCell width={56}>#</TableCell>
+                <TableCell>User</TableCell>
+                <TableCell>Action</TableCell>
+                <TableCell>Resource</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>When</TableCell>
+                <TableCell align="right" width={72}>
+                  View
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
+                    <CircularProgress sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {auditLogs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <Box sx={{ py: 6, textAlign: "center" }}>
-                        <HistoryIcon sx={{ fontSize: 40, color: primaryLight, mb: 1 }} />
-                        <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary }}>
-                          No audit logs yet
-                        </Typography>
-                        <Typography sx={{ fontFamily: fontBody, fontSize: "0.88rem", color: textMuted, mt: 0.5 }}>
-                          Activity will appear here as staff use the admin portal.
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  auditLogs.map((log, idx) => {
-                    const name = log.user?.full_name || "System";
-                    return (
-                      <TableRow
-                        key={log.id}
-                        hover
+              ) : auditLogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <Box sx={{ py: 6, textAlign: "center" }}>
+                      <HistoryIcon sx={{ fontSize: 40, color: "rgba(0,96,80,0.25)", mb: 1 }} />
+                      <Typography
                         sx={{
-                          "&:nth-of-type(even)": { bgcolor: "rgba(220,38,38,0.02)" },
-                          "&:hover": { bgcolor: "rgba(220,38,38,0.04)" },
-                          "& .MuiTableCell-root": {
-                            fontFamily: fontBody,
-                            borderColor: "rgba(220,38,38,0.06)",
-                            py: 1.5,
-                          },
+                          fontFamily: '"Fraunces", Georgia, serif',
+                          fontWeight: 700,
+                          color: textPrimary,
                         }}
                       >
-                        <TableCell sx={{ fontWeight: 700, color: textMuted }}>
-                          {page * rowsPerPage + idx + 1}
-                        </TableCell>
-                        <TableCell>
-                          <Stack direction="row" spacing={1.25} alignItems="center">
-                            <Avatar
-                              sx={{
-                                width: 36,
-                                height: 36,
-                                fontSize: "0.82rem",
-                                fontWeight: 700,
-                                fontFamily: fontDisplay,
-                                bgcolor: primaryRed,
-                                color: "#fff",
-                              }}
-                            >
-                              {getInitials(name)}
-                            </Avatar>
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography sx={{ fontWeight: 700, color: textPrimary, fontSize: "0.88rem" }}>
-                                {name}
-                              </Typography>
-                              <Typography sx={{ fontSize: "0.75rem", color: textMuted }} noWrap>
-                                {log.user?.email || "System activity"}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </TableCell>
-                        <TableCell>
-                          <AuditChip label={formatActionText(log.action)} tone={actionStyle(log.action)} />
-                        </TableCell>
-                        <TableCell>
-                          <AuditChip label={log.status || "—"} tone={statusStyle(log.status)} />
-                        </TableCell>
-                        <TableCell align="center">
-                          <Tooltip title="View details">
-                            <IconButton size="small" onClick={() => handleViewLog(log)} sx={actionIconSx}>
-                              <VisibilityOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </DataTableShell>
-        </TabPanelShell>
+                        No audit logs found
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.88rem", color: textMuted, mt: 0.5 }}>
+                        Try another filter, or activity will appear as staff use the portal.
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                auditLogs.map((log, idx) => {
+                  const name = log.user?.full_name || "System";
+                  const when = log.created_at || log.createdAt;
+                  return (
+                    <TableRow
+                      key={log.id}
+                      hover
+                      sx={{
+                        transition: "background 0.15s ease",
+                        "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
+                        "& td": { borderColor: "rgba(0,96,80,0.06)" },
+                      }}
+                    >
+                      <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem" }}>
+                        {page * rowsPerPage + idx + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <UserAvatar name={name} role={log.user?.role || "admin"} size={40} />
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ fontWeight: 700, color: textPrimary, fontSize: "0.88rem" }}>
+                              {name}
+                            </Typography>
+                            <Typography sx={{ fontSize: "0.75rem", color: textMuted }} noWrap>
+                              {log.user?.email || "System activity"}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <AuditChip label={formatLabel(log.action)} tone={actionTone(log.action)} />
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontWeight: 600, fontSize: "0.85rem", color: textPrimary }}>
+                          {formatLabel(log.resource_type)}
+                        </Typography>
+                        {log.resource_id ? (
+                          <Typography
+                            sx={{
+                              fontSize: "0.7rem",
+                              color: textMuted,
+                              fontFamily: "monospace",
+                              maxWidth: 120,
+                            }}
+                            noWrap
+                            title={log.resource_id}
+                          >
+                            {log.resource_id}
+                          </Typography>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <AuditChip label={formatLabel(log.status)} tone={statusTone(log.status)} />
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "0.82rem", fontWeight: 600, color: textSecondary }}>
+                          {formatDate(when)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="View details">
+                          <IconButton
+                            size="small"
+                            onClick={() => void handleViewLog(log)}
+                            sx={{
+                              color: primaryGreen,
+                              bgcolor: "rgba(0,96,80,0.08)",
+                              "&:hover": { bgcolor: "rgba(0,96,80,0.16)" },
+                            }}
+                          >
+                            <VisibilityOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={totalLogs}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          sx={{
+            borderTop: "1px solid rgba(0,96,80,0.08)",
+            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+            color: textSecondary,
+          }}
+        />
       </Box>
 
       <PremiumDialog
         open={openViewDialog}
         onClose={closeDialog}
         title="Audit log details"
-        subtitle={selectedLog ? formatDate(selectedLog.createdAt || selectedLog.created_at) : ""}
+        subtitle={
+          selectedLog
+            ? formatDate(selectedLog.created_at || selectedLog.createdAt)
+            : ""
+        }
         icon={<HistoryIcon />}
         maxWidth="md"
-        footer={<DialogGhostButton onClick={closeDialog}>Close</DialogGhostButton>}
+        footer={
+          <Button onClick={closeDialog} sx={ghostBtnSx}>
+            Close
+          </Button>
+        }
       >
-        {selectedLog ? (
+        {detailLoading && !selectedLog ? (
+          <Box sx={{ py: 4, textAlign: "center" }}>
+            <CircularProgress sx={{ color: primaryGreen }} />
+          </Box>
+        ) : selectedLog ? (
           <Stack spacing={2}>
+            {detailLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 0.5 }}>
+                <CircularProgress size={22} sx={{ color: primaryGreen }} />
+              </Box>
+            ) : null}
             <Box
               sx={{
                 p: 2,
                 borderRadius: "18px",
                 background: `linear-gradient(135deg, ${warmCream} 0%, #fff 100%)`,
-                border: "1px solid rgba(220,38,38,0.08)",
+                border: "1px solid rgba(0,96,80,0.1)",
               }}
             >
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Avatar
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    bgcolor: primaryRed,
-                    color: "#fff",
-                    fontFamily: fontDisplay,
-                    fontWeight: 700,
-                  }}
-                >
-                  {getInitials(selectedLog.user?.full_name || "System")}
-                </Avatar>
+                <UserAvatar
+                  name={selectedLog.user?.full_name || "System"}
+                  role={selectedLog.user?.role || "admin"}
+                  size={48}
+                />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.1rem", color: textPrimary }}>
+                  <Typography
+                    sx={{
+                      fontFamily: '"Fraunces", Georgia, serif',
+                      fontWeight: 700,
+                      fontSize: "1.1rem",
+                      color: textPrimary,
+                    }}
+                  >
                     {selectedLog.user?.full_name || "System"}
                   </Typography>
-                  <Typography sx={{ fontFamily: fontBody, fontSize: "0.85rem", color: textSecondary }}>
+                  <Typography sx={{ fontSize: "0.85rem", color: textSecondary }}>
                     {selectedLog.user?.email || "No user email"}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap justifyContent="flex-end">
-                  <AuditChip label={formatActionText(selectedLog.action)} tone={actionStyle(selectedLog.action)} />
-                  <AuditChip label={selectedLog.status} tone={statusStyle(selectedLog.status)} />
+                  <AuditChip label={formatLabel(selectedLog.action)} tone={actionTone(selectedLog.action)} />
+                  <AuditChip label={formatLabel(selectedLog.status)} tone={statusTone(selectedLog.status)} />
                 </Stack>
               </Stack>
             </Box>
@@ -516,10 +677,26 @@ export default function Audit() {
                 gap: 1.5,
               }}
             >
-              <DetailField icon={<CategoryOutlinedIcon fontSize="small" />} label="Resource type" value={formatResourceType(selectedLog.resource_type)} />
-              <DetailField icon={<FingerprintOutlinedIcon fontSize="small" />} label="Resource ID" value={selectedLog.resource_id || "—"} />
-              <DetailField icon={<LanOutlinedIcon fontSize="small" />} label="IP address" value={selectedLog.ip_address || "—"} />
-              <DetailField icon={<ScheduleOutlinedIcon fontSize="small" />} label="Date & time" value={formatDate(selectedLog.createdAt || selectedLog.created_at)} />
+              <DetailField
+                icon={<CategoryOutlinedIcon fontSize="small" />}
+                label="Resource type"
+                value={formatLabel(selectedLog.resource_type)}
+              />
+              <DetailField
+                icon={<FingerprintOutlinedIcon fontSize="small" />}
+                label="Resource ID"
+                value={selectedLog.resource_id || "—"}
+              />
+              <DetailField
+                icon={<LanOutlinedIcon fontSize="small" />}
+                label="IP address"
+                value={selectedLog.ip_address || "—"}
+              />
+              <DetailField
+                icon={<ScheduleOutlinedIcon fontSize="small" />}
+                label="Date & time"
+                value={formatDate(selectedLog.created_at || selectedLog.createdAt)}
+              />
             </Box>
 
             <DetailField
@@ -528,15 +705,17 @@ export default function Audit() {
               value={selectedLog.description || "—"}
             />
 
+            {selectedLog.user_agent ? (
+              <DetailField
+                icon={<DevicesOutlinedIcon fontSize="small" />}
+                label="User agent"
+                value={selectedLog.user_agent}
+              />
+            ) : null}
+
             <JsonBlock title="Previous values" data={selectedLog.old_values} variant="old" />
             <JsonBlock title="New values" data={selectedLog.new_values} variant="new" />
             <JsonBlock title="Metadata" data={selectedLog.metadata} variant="neutral" />
-
-            {selectedLog.error_message ? (
-              <Alert severity="error" sx={{ borderRadius: "14px", fontFamily: fontBody }}>
-                {selectedLog.error_message}
-              </Alert>
-            ) : null}
           </Stack>
         ) : null}
       </PremiumDialog>

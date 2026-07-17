@@ -1,11 +1,16 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import { School } from "@mui/icons-material";
 
-const primaryRed = "#DC2626";
-const primaryDark = "#B91C1C";
+const BRAND = {
+  navy: "#1e2858",
+  green: "#006050",
+  gold: "#c8a840",
+};
 
-export default function BrandPageLoader({ message = "Loading..." }) {
+const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
+const fontDisplay = '"Fraunces", "Georgia", serif';
+
+export default function BrandPageLoader({ message = "Loading…" }) {
   return (
     <Box
       sx={{
@@ -18,40 +23,68 @@ export default function BrandPageLoader({ message = "Loading..." }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "rgba(255, 255, 255, 1)",
+        background: `linear-gradient(165deg, #f7faf8 0%, #fff 45%, rgba(0,96,80,0.06) 100%)`,
         zIndex: 1300,
         gap: 2,
+        px: 3,
       }}
     >
       <Box
+        component="img"
+        src="/images/logo.png"
+        alt="Kendu Adventist School of Medical Sciences"
         sx={{
-          width: 80,
-          height: 80,
-          borderRadius: "20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: `linear-gradient(135deg, ${primaryRed} 0%, ${primaryDark} 100%)`,
-          boxShadow: `0 8px 24px -6px ${primaryRed}55`,
+          width: 96,
+          height: 96,
+          borderRadius: "50%",
+          objectFit: "cover",
+          boxShadow: "0 12px 32px -8px rgba(0, 96, 80, 0.4)",
         }}
-      >
-        <School sx={{ fontSize: 44, color: "#fff" }} />
-      </Box>
+      />
       <Typography
-        variant="h5"
         sx={{
           fontWeight: 800,
-          color: primaryDark,
-          fontFamily: '"Cormorant Garamond", serif',
-          letterSpacing: "0.02em",
+          color: BRAND.navy,
+          fontFamily: fontDisplay,
+          fontSize: { xs: "1.15rem", sm: "1.4rem" },
+          letterSpacing: "-0.02em",
+          textAlign: "center",
+          lineHeight: 1.25,
+          maxWidth: 420,
         }}
       >
-        Elimu Plus
+        Kendu Adventist School of Medical Sciences
       </Typography>
-      <Typography sx={{ color: primaryRed, fontWeight: 600, fontSize: "0.95rem" }}>
-        Learn • Lead • Succeed
+      <Typography
+        sx={{
+          color: BRAND.green,
+          fontWeight: 700,
+          fontSize: "0.78rem",
+          fontFamily: fontBody,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+        }}
+      >
+        Admin Portal
       </Typography>
-      <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+      <Box
+        sx={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          border: `3px solid rgba(0,96,80,0.15)`,
+          borderTopColor: BRAND.gold,
+          animation: "kenduSpin 0.85s linear infinite",
+          mt: 1,
+          "@keyframes kenduSpin": {
+            to: { transform: "rotate(360deg)" },
+          },
+        }}
+      />
+      <Typography
+        variant="body2"
+        sx={{ color: "rgba(30,40,88,0.55)", mt: 0.5, fontFamily: fontBody }}
+      >
         {message}
       </Typography>
     </Box>

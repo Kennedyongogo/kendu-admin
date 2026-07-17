@@ -11,7 +11,6 @@ import {
   Tooltip,
   Chip,
   CircularProgress,
-  Avatar,
   TextField,
   InputAdornment,
   LinearProgress,
@@ -28,32 +27,31 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Badge as BadgeIcon,
-  Home as HomeIcon,
   Shield,
-  VerifiedUser,
-  History as HistoryIcon,
+  PhotoCamera,
 } from "@mui/icons-material";
+import { RoleBadge, UserAvatar } from "../components/Users/usersUi";
 
-const primaryRed = "#DC2626";
-const primaryDark = "#B91C1C";
-const primaryLight = "#FEE2E2";
-const warmCream = "#FFFBF7";
-const textPrimary = "#1C1917";
-const textSecondary = "#78716C";
-const textMuted = "#A8A29E";
-const successGreen = "#16A34A";
+const BRAND = {
+  navy: "#1e2858",
+  navyDeep: "#141a3a",
+  green: "#006050",
+  greenDark: "#004840",
+  gold: "#c8a840",
+  goldMuted: "#d4c078",
+};
 
-const fontBody = '"Plus Jakarta Sans", "Inter", system-ui, sans-serif';
+const warmCream = "#f7faf8";
+const textPrimary = BRAND.navy;
+const textSecondary = "rgba(30, 40, 88, 0.68)";
+const textMuted = "rgba(30, 40, 88, 0.48)";
+const successGreen = "#15803d";
+
+const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 const fontDisplay = '"Fraunces", "Georgia", serif';
 
-const authHeaders = (token) => ({
-  "Content-Type": "application/json",
-  Accept: "application/json",
-  Authorization: `Bearer ${token}`,
-});
-
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 18 },
   visible: (i = 0) => ({
     opacity: 1,
     y: 0,
@@ -61,14 +59,18 @@ const fadeUp = {
   }),
 };
 
-function getInitials(name) {
-  if (!name) return "U";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+function profileSrc(userOrUrl) {
+  if (!userOrUrl) return "";
+  if (typeof userOrUrl === "string") {
+    if (userOrUrl.startsWith("http") || userOrUrl.startsWith("blob:")) return userOrUrl;
+    if (userOrUrl.startsWith("/uploads/")) return userOrUrl;
+    if (userOrUrl.startsWith("uploads/")) return `/${userOrUrl}`;
+    return `/uploads/profiles/${userOrUrl}`;
+  }
+  return profileSrc(userOrUrl.profile_image_url || userOrUrl.profile_image || "");
 }
 
-function SettingsSection({ icon, title, subtitle, accent = primaryRed, children, delay = 0, footer }) {
+function SettingsSection({ icon, title, subtitle, children, delay = 0, footer }) {
   return (
     <Box
       component={motion.div}
@@ -77,10 +79,10 @@ function SettingsSection({ icon, title, subtitle, accent = primaryRed, children,
       initial="hidden"
       animate="visible"
       sx={{
-        borderRadius: "22px",
+        borderRadius: "20px",
         bgcolor: "#fff",
-        border: "1px solid rgba(220,38,38,0.08)",
-        boxShadow: "0 16px 48px -16px rgba(28,25,23,0.1)",
+        border: "1px solid rgba(0,96,80,0.1)",
+        boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -91,7 +93,7 @@ function SettingsSection({ icon, title, subtitle, accent = primaryRed, children,
         sx={{
           px: { xs: 2, sm: 2.5 },
           py: 2,
-          borderBottom: "1px solid rgba(220,38,38,0.06)",
+          borderBottom: "1px solid rgba(0,96,80,0.08)",
           background: `linear-gradient(135deg, ${warmCream} 0%, #fff 100%)`,
         }}
       >
@@ -104,15 +106,23 @@ function SettingsSection({ icon, title, subtitle, accent = primaryRed, children,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: `linear-gradient(145deg, ${accent} 0%, ${primaryDark} 100%)`,
+              background: `linear-gradient(145deg, ${BRAND.gold} 0%, ${BRAND.green} 100%)`,
               color: "#fff",
-              boxShadow: `0 6px 16px ${accent}40`,
+              boxShadow: "0 6px 16px rgba(0,96,80,0.28)",
             }}
           >
             {icon}
           </Box>
           <Box>
-            <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.15rem", color: textPrimary, letterSpacing: "-0.02em" }}>
+            <Typography
+              sx={{
+                fontFamily: fontDisplay,
+                fontWeight: 700,
+                fontSize: "1.15rem",
+                color: textPrimary,
+                letterSpacing: "-0.02em",
+              }}
+            >
               {title}
             </Typography>
             <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem", color: textSecondary, mt: 0.15 }}>
@@ -127,7 +137,7 @@ function SettingsSection({ icon, title, subtitle, accent = primaryRed, children,
           sx={{
             px: { xs: 2, sm: 2.5 },
             py: 2,
-            borderTop: "1px solid rgba(220,38,38,0.06)",
+            borderTop: "1px solid rgba(0,96,80,0.08)",
             bgcolor: warmCream,
             display: "flex",
             justifyContent: "flex-end",
@@ -151,9 +161,9 @@ function PasswordCriterion({ met, label }) {
         fontSize: "0.72rem",
         fontWeight: 600,
         height: 28,
-        bgcolor: met ? "rgba(22,163,74,0.1)" : "rgba(28,25,23,0.05)",
+        bgcolor: met ? "rgba(21,128,61,0.1)" : "rgba(30,40,88,0.05)",
         color: met ? successGreen : textMuted,
-        border: `1px solid ${met ? "rgba(22,163,74,0.25)" : "rgba(28,25,23,0.08)"}`,
+        border: `1px solid ${met ? "rgba(21,128,61,0.22)" : "rgba(30,40,88,0.08)"}`,
         "& .MuiChip-icon": { color: met ? successGreen : textMuted },
       }}
     />
@@ -162,23 +172,23 @@ function PasswordCriterion({ met, label }) {
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
-    borderRadius: "14px",
-    bgcolor: warmCream,
+    borderRadius: "12px",
+    bgcolor: "#fff",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
-    "& fieldset": { borderColor: "rgba(220,38,38,0.15)", borderWidth: "1.5px" },
-    "&:hover fieldset": { borderColor: "#FCA5A5" },
+    "& fieldset": { borderColor: "rgba(0,96,80,0.18)", borderWidth: "1.5px" },
+    "&:hover fieldset": { borderColor: "rgba(0,96,80,0.4)" },
     "&.Mui-focused fieldset": {
-      borderColor: primaryRed,
+      borderColor: BRAND.green,
       borderWidth: "2px",
-      boxShadow: "0 0 0 4px rgba(220,38,38,0.1)",
+      boxShadow: "0 0 0 3px rgba(0,96,80,0.1)",
     },
   },
   "& .MuiInputLabel-root": {
     fontFamily: fontBody,
     fontWeight: 500,
     color: textMuted,
-    "&.Mui-focused": { color: primaryRed, fontWeight: 600 },
+    "&.Mui-focused": { color: BRAND.green, fontWeight: 600 },
   },
   "& .MuiInputBase-input": { fontWeight: 500, color: textPrimary },
 };
@@ -187,25 +197,28 @@ const primaryBtnSx = {
   fontFamily: fontBody,
   fontWeight: 700,
   textTransform: "none",
-  borderRadius: "14px",
+  borderRadius: "12px",
   px: 3,
   py: 1.25,
-  background: `linear-gradient(135deg, ${primaryRed} 0%, ${primaryDark} 100%)`,
-  color: "#fff",
-  boxShadow: "0 8px 24px -4px rgba(220,38,38,0.4)",
-  "&:hover": { background: `linear-gradient(135deg, ${primaryDark} 0%, #7F1D1D 100%)` },
+  background: `linear-gradient(135deg, ${BRAND.gold} 0%, ${BRAND.goldMuted} 100%)`,
+  color: BRAND.navyDeep,
+  boxShadow: "0 8px 24px -4px rgba(160,128,40,0.4)",
+  "&:hover": {
+    background: `linear-gradient(135deg, ${BRAND.goldMuted} 0%, ${BRAND.gold} 100%)`,
+  },
 };
 
 export default function Settings({ user }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(user);
   const [form, setForm] = useState({
-    username: "",
     full_name: "",
     email: "",
     phone: "",
-    address: "",
+    admission_number: "",
   });
+  const [profileFile, setProfileFile] = useState(null);
+  const [profilePreview, setProfilePreview] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -228,12 +241,13 @@ export default function Settings({ user }) {
   const applyUserToForm = useCallback((u) => {
     if (!u) return;
     setForm({
-      username: u.username ?? "",
       full_name: u.full_name ?? "",
       email: u.email ?? "",
       phone: u.phone ?? "",
-      address: u.address ?? "",
+      admission_number: u.admission_number ?? "",
     });
+    setProfileFile(null);
+    setProfilePreview(profileSrc(u));
   }, []);
 
   const fetchMe = useCallback(async () => {
@@ -246,13 +260,17 @@ export default function Settings({ user }) {
       const response = await fetch("/api/users/me", {
         method: "GET",
         credentials: "include",
-        headers: authHeaders(token),
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await response.json();
       if (data.success && data.data) {
         setCurrentUser(data.data);
         applyUserToForm(data.data);
         localStorage.setItem("user", JSON.stringify(data.data));
+        window.dispatchEvent(new CustomEvent("kendu:user-updated", { detail: data.data }));
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -272,18 +290,14 @@ export default function Settings({ user }) {
     }
   }, [user, currentUser?.id, applyUserToForm]);
 
-  const checkPasswordCriteria = (password) => {
-    setPasswordCriteria({
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      digit: /\d/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    });
-  };
-
   useEffect(() => {
-    checkPasswordCriteria(newPassword);
+    setPasswordCriteria({
+      length: newPassword.length >= 8,
+      uppercase: /[A-Z]/.test(newPassword),
+      lowercase: /[a-z]/.test(newPassword),
+      digit: /\d/.test(newPassword),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword),
+    });
   }, [newPassword]);
 
   const passwordStrength = useMemo(() => {
@@ -296,7 +310,7 @@ export default function Settings({ user }) {
   };
 
   const effectiveId = currentUser?.id || user?.id;
-  const roleLabel = (currentUser?.role || user?.role || "staff").replace(/_/g, " ");
+  const isStudent = (currentUser?.role || user?.role) === "student";
 
   const logoutAndRedirect = () => {
     localStorage.clear();
@@ -312,7 +326,7 @@ export default function Settings({ user }) {
         icon: "error",
         title: "Passwords do not match",
         text: "Please make sure your new password and confirmation are identical.",
-        confirmButtonColor: primaryRed,
+        confirmButtonColor: BRAND.green,
       });
       return;
     }
@@ -328,7 +342,7 @@ export default function Settings({ user }) {
         icon: "error",
         title: "Weak password",
         text: "Enter a strong password matching all requirements.",
-        confirmButtonColor: primaryRed,
+        confirmButtonColor: BRAND.green,
       });
       return;
     }
@@ -341,7 +355,7 @@ export default function Settings({ user }) {
           icon: "error",
           title: "Not authenticated",
           text: "Please sign in again.",
-          confirmButtonColor: primaryRed,
+          confirmButtonColor: BRAND.green,
         });
         setPLoading(false);
         return;
@@ -350,7 +364,11 @@ export default function Settings({ user }) {
       const response = await fetch(`/api/users/${effectiveId}/password`, {
         method: "PUT",
         credentials: "include",
-        headers: authHeaders(token),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           current_password: oldPassword,
           new_password: newPassword,
@@ -365,8 +383,8 @@ export default function Settings({ user }) {
         await Swal.fire({
           icon: "success",
           title: "Password updated",
-          html: "Your password has been changed.<br/><br/>You will be signed out in a few seconds — please sign in again with your <strong>new password</strong>.",
-          confirmButtonColor: primaryRed,
+          html: "Your password has been changed.<br/><br/>You will be signed out shortly — sign in again with your <strong>new password</strong>.",
+          confirmButtonColor: BRAND.green,
           timer: 4000,
           timerProgressBar: true,
           allowOutsideClick: false,
@@ -377,7 +395,7 @@ export default function Settings({ user }) {
           icon: "error",
           title: "Update failed",
           text: data.message || "Failed to update password.",
-          confirmButtonColor: primaryRed,
+          confirmButtonColor: BRAND.green,
         });
       }
     } catch {
@@ -385,13 +403,32 @@ export default function Settings({ user }) {
         icon: "error",
         title: "Update failed",
         text: "Something went wrong. Please try again.",
-        confirmButtonColor: primaryRed,
+        confirmButtonColor: BRAND.green,
       });
     }
     setPLoading(false);
   };
 
   const handleUserUpdate = async () => {
+    if (!form.full_name.trim() || !form.email.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Full name and email are required.",
+        confirmButtonColor: BRAND.green,
+      });
+      return;
+    }
+    if (isStudent && !form.admission_number.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Admission number required",
+        text: "Students must have an admission number.",
+        confirmButtonColor: BRAND.green,
+      });
+      return;
+    }
+
     setDLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -400,23 +437,27 @@ export default function Settings({ user }) {
           icon: "error",
           title: "Not authenticated",
           text: "Please sign in again.",
-          confirmButtonColor: primaryRed,
+          confirmButtonColor: BRAND.green,
         });
         setDLoading(false);
         return;
       }
 
+      const body = new FormData();
+      body.append("full_name", form.full_name.trim());
+      body.append("email", form.email.trim());
+      body.append("phone", form.phone?.trim() || "");
+      if (isStudent) body.append("admission_number", form.admission_number.trim());
+      if (profileFile) body.append("profile_image", profileFile);
+
       const response = await fetch(`/api/users/${effectiveId}`, {
         method: "PUT",
         credentials: "include",
-        headers: authHeaders(token),
-        body: JSON.stringify({
-          username: form.username.trim(),
-          full_name: form.full_name.trim(),
-          email: form.email.trim(),
-          phone: form.phone?.trim() || null,
-          address: form.address?.trim() || null,
-        }),
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body,
       });
       const data = await response.json();
 
@@ -424,18 +465,21 @@ export default function Settings({ user }) {
         setCurrentUser(data.data);
         applyUserToForm(data.data);
         localStorage.setItem("user", JSON.stringify(data.data));
+        window.dispatchEvent(new CustomEvent("kendu:user-updated", { detail: data.data }));
         Swal.fire({
           icon: "success",
           title: "Profile saved",
-          text: data.message || "Your profile has been updated successfully.",
-          confirmButtonColor: primaryRed,
+          text: "Your profile has been updated successfully.",
+          confirmButtonColor: BRAND.green,
+          timer: 1600,
+          showConfirmButton: false,
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Update failed",
           text: data.message || "Failed to update profile.",
-          confirmButtonColor: primaryRed,
+          confirmButtonColor: BRAND.green,
         });
       }
     } catch (error) {
@@ -444,25 +488,17 @@ export default function Settings({ user }) {
         icon: "error",
         title: "Update failed",
         text: "Failed to update profile. Please try again.",
-        confirmButtonColor: primaryRed,
+        confirmButtonColor: BRAND.green,
       });
     }
     setDLoading(false);
-  };
-
-  const buildImageUrl = (imageUrl) => {
-    if (!imageUrl) return "";
-    if (imageUrl.startsWith("http")) return imageUrl;
-    if (imageUrl.startsWith("uploads/")) return `/${imageUrl}`;
-    if (imageUrl.startsWith("/uploads/")) return imageUrl;
-    return imageUrl;
   };
 
   return (
     <Box
       sx={{
         minHeight: "100%",
-        background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 45%, rgba(254,226,226,0.2) 100%)`,
+        background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 48%, rgba(0,96,80,0.04) 100%)`,
         mx: { xs: -1.5, sm: -2, md: -3 },
         mt: { xs: -1, sm: -1.5 },
         px: { xs: 1.5, sm: 2, md: 3 },
@@ -472,91 +508,71 @@ export default function Settings({ user }) {
     >
       {fetching ? (
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 10, gap: 2 }}>
-          <CircularProgress sx={{ color: primaryRed }} />
+          <CircularProgress sx={{ color: BRAND.green }} />
           <Typography sx={{ fontFamily: fontBody, color: textSecondary }}>Loading your settings…</Typography>
         </Box>
       ) : (
         <Stack spacing={3}>
-          {/* Hero */}
           <Box
             component={motion.div}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             sx={{
-              borderRadius: "24px",
+              borderRadius: "22px",
               p: { xs: 2.5, sm: 3 },
-              background: `linear-gradient(135deg, ${primaryRed} 0%, ${primaryDark} 55%, #7F1D1D 100%)`,
+              background: `linear-gradient(135deg, ${BRAND.green} 0%, ${BRAND.navyDeep} 100%)`,
               color: "#fff",
               position: "relative",
               overflow: "hidden",
-              boxShadow: "0 20px 60px -12px rgba(220,38,38,0.45)",
+              boxShadow: "0 20px 48px -16px rgba(0,96,80,0.4)",
             }}
           >
-            <Box sx={{ position: "absolute", top: -30, right: -20, width: 180, height: 180, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.08)" }} />
+            <Box
+              sx={{
+                position: "absolute",
+                top: -40,
+                right: -20,
+                width: 200,
+                height: 200,
+                borderRadius: "50%",
+                bgcolor: "rgba(200,168,64,0.18)",
+              }}
+            />
             <Stack
               direction={{ xs: "column", sm: "row" }}
               spacing={2.5}
               alignItems={{ xs: "flex-start", sm: "center" }}
               sx={{ position: "relative", zIndex: 1 }}
             >
-              <Avatar
-                src={buildImageUrl(currentUser?.profile_image)}
-                alt={form.full_name}
-                sx={{
-                  width: 72,
-                  height: 72,
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  fontFamily: fontDisplay,
-                  border: "3px solid rgba(255,255,255,0.35)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                  bgcolor: "rgba(255,255,255,0.15)",
-                }}
-              >
-                {getInitials(form.full_name)}
-              </Avatar>
+              <UserAvatar
+                name={form.full_name}
+                role={currentUser?.role || "admin"}
+                src={profilePreview || currentUser}
+                size={76}
+              />
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Stack direction="row" flexWrap="wrap" gap={1} alignItems="center" sx={{ mb: 0.75 }}>
-                  <Chip
-                    icon={<VerifiedUser sx={{ fontSize: "16px !important", color: "rgba(255,255,255,0.9) !important" }} />}
-                    label={roleLabel}
-                    size="small"
-                    sx={{
-                      bgcolor: "rgba(255,255,255,0.15)",
-                      color: "#fff",
-                      fontFamily: fontBody,
-                      fontWeight: 700,
-                      fontSize: "0.72rem",
-                      textTransform: "capitalize",
-                      border: "1px solid rgba(255,255,255,0.22)",
-                    }}
-                  />
-                  <Chip
-                    icon={<Shield sx={{ fontSize: "16px !important", color: "rgba(255,255,255,0.9) !important" }} />}
-                    label="Secure account"
-                    size="small"
-                    sx={{
-                      bgcolor: "rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.9)",
-                      fontFamily: fontBody,
-                      fontWeight: 600,
-                      fontSize: "0.68rem",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                    }}
-                  />
-                </Stack>
-                <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: { xs: "1.5rem", sm: "1.85rem" }, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
+                <Box sx={{ mb: 1 }}>
+                  <RoleBadge role={currentUser?.role} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: fontDisplay,
+                    fontWeight: 700,
+                    fontSize: { xs: "1.45rem", sm: "1.8rem" },
+                    letterSpacing: "-0.03em",
+                    lineHeight: 1.15,
+                  }}
+                >
                   {form.full_name || "Your account"}
                 </Typography>
-                <Typography sx={{ fontFamily: fontBody, fontSize: "0.9rem", opacity: 0.85, mt: 0.5 }}>
-                  {form.email || "Manage your profile and security preferences"}
+                <Typography sx={{ fontFamily: fontBody, fontSize: "0.9rem", opacity: 0.88, mt: 0.5 }}>
+                  {form.email || "Manage your profile and security"}
                 </Typography>
               </Box>
             </Stack>
           </Box>
 
-          {/* Content grid */}
           <Box
             sx={{
               display: "grid",
@@ -565,11 +581,10 @@ export default function Settings({ user }) {
               alignItems: "start",
             }}
           >
-            {/* Profile */}
             <SettingsSection
               icon={<PersonIcon />}
               title="Profile"
-              subtitle="Your personal information and contact details"
+              subtitle="Photo, contact details, and account identity"
               delay={1}
               footer={
                 <Button
@@ -583,43 +598,63 @@ export default function Settings({ user }) {
                 </Button>
               }
             >
-              <Stack spacing={2}>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                    gap: 2,
+              <Stack spacing={2.25}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                  <UserAvatar
+                    name={form.full_name}
+                    role={currentUser?.role || "admin"}
+                    src={profilePreview || currentUser}
+                    size={80}
+                  />
+                  <Box>
+                    <Button
+                      component="label"
+                      startIcon={<PhotoCamera />}
+                      variant="outlined"
+                      sx={{
+                        fontFamily: fontBody,
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderRadius: "12px",
+                        borderColor: "rgba(0,96,80,0.3)",
+                        color: BRAND.green,
+                        "&:hover": { borderColor: BRAND.green, bgcolor: "rgba(0,96,80,0.06)" },
+                      }}
+                    >
+                      {profilePreview ? "Change photo" : "Upload photo"}
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setProfileFile(file);
+                          setProfilePreview(URL.createObjectURL(file));
+                        }}
+                      />
+                    </Button>
+                    <Typography sx={{ fontSize: "0.75rem", color: textSecondary, mt: 0.75 }}>
+                      JPEG, PNG, or WebP · max 5MB
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <TextField
+                  label="Full name"
+                  value={form.full_name}
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  fullWidth
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: BRAND.green, fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
                   }}
-                >
-                  <TextField
-                    label="Username"
-                    value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BadgeIcon sx={{ color: primaryRed, fontSize: 20 }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={inputSx}
-                  />
-                  <TextField
-                    label="Full name"
-                    value={form.full_name}
-                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonIcon sx={{ color: primaryRed, fontSize: 20 }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={inputSx}
-                  />
-                </Box>
+                  sx={inputSx}
+                />
 
                 <TextField
                   label="Email address"
@@ -627,82 +662,81 @@ export default function Settings({ user }) {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   fullWidth
+                  required
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <EmailIcon sx={{ color: primaryRed, fontSize: 20 }} />
+                        <EmailIcon sx={{ color: BRAND.green, fontSize: 20 }} />
                       </InputAdornment>
                     ),
                   }}
                   sx={inputSx}
                 />
 
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                    gap: 2,
+                <TextField
+                  label="Phone"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon sx={{ color: BRAND.green, fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
                   }}
-                >
+                  sx={inputSx}
+                />
+
+                {isStudent ? (
                   <TextField
-                    label="Phone"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    label="Admission number"
+                    value={form.admission_number}
+                    onChange={(e) => setForm({ ...form, admission_number: e.target.value })}
                     fullWidth
+                    required
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PhoneIcon sx={{ color: primaryRed, fontSize: 20 }} />
+                          <BadgeIcon sx={{ color: BRAND.green, fontSize: 20 }} />
                         </InputAdornment>
                       ),
                     }}
                     sx={inputSx}
                   />
-                  <Box
+                ) : null}
+
+                <Box
+                  sx={{
+                    p: 1.75,
+                    borderRadius: "14px",
+                    bgcolor: warmCream,
+                    border: "1px solid rgba(0,96,80,0.1)",
+                  }}
+                >
+                  <Typography
                     sx={{
-                      p: 1.75,
-                      borderRadius: "14px",
-                      bgcolor: warmCream,
-                      border: `1px solid ${primaryLight}`,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
+                      fontFamily: fontBody,
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      color: textMuted,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
                     }}
                   >
-                    <Typography sx={{ fontFamily: fontBody, fontSize: "0.7rem", fontWeight: 700, color: textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                      Role
-                    </Typography>
-                    <Typography sx={{ fontFamily: fontBody, fontWeight: 700, color: textPrimary, textTransform: "capitalize", mt: 0.25 }}>
-                      {roleLabel}
-                    </Typography>
+                    Role
+                  </Typography>
+                  <Box sx={{ mt: 0.75 }}>
+                    <RoleBadge role={currentUser?.role} />
                   </Box>
                 </Box>
-
-                <TextField
-                  label="Address"
-                  multiline
-                  minRows={2}
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start" sx={{ alignSelf: "flex-start", mt: 1.5 }}>
-                        <HomeIcon sx={{ color: primaryRed, fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputSx}
-                />
               </Stack>
             </SettingsSection>
 
-            {/* Security */}
             <SettingsSection
               icon={<SecurityIcon />}
               title="Security"
               subtitle="Update your password to keep your account safe"
-              accent="#991B1B"
               delay={2}
               footer={
                 <Button
@@ -724,15 +758,32 @@ export default function Settings({ user }) {
                       p: 2,
                       borderRadius: "16px",
                       bgcolor: warmCream,
-                      border: `1px solid ${primaryLight}`,
+                      border: "1px solid rgba(0,96,80,0.1)",
                     }}
                   >
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Typography sx={{ fontFamily: fontBody, fontWeight: 700, fontSize: "0.85rem", color: primaryDark, display: "flex", alignItems: "center", gap: 0.75 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: fontBody,
+                          fontWeight: 700,
+                          fontSize: "0.85rem",
+                          color: BRAND.greenDark,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                        }}
+                      >
                         <LockIcon sx={{ fontSize: 18 }} />
                         Password strength
                       </Typography>
-                      <Typography sx={{ fontFamily: fontBody, fontSize: "0.75rem", fontWeight: 700, color: passwordStrength === 100 ? successGreen : textSecondary }}>
+                      <Typography
+                        sx={{
+                          fontFamily: fontBody,
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          color: passwordStrength === 100 ? successGreen : textSecondary,
+                        }}
+                      >
                         {passwordStrength}%
                       </Typography>
                     </Stack>
@@ -743,13 +794,13 @@ export default function Settings({ user }) {
                         height: 8,
                         borderRadius: 4,
                         mb: 1.5,
-                        bgcolor: "rgba(28,25,23,0.06)",
+                        bgcolor: "rgba(30,40,88,0.06)",
                         "& .MuiLinearProgress-bar": {
                           borderRadius: 4,
                           background:
                             passwordStrength === 100
                               ? `linear-gradient(90deg, ${successGreen}, #22C55E)`
-                              : `linear-gradient(90deg, ${primaryRed}, ${primaryDark})`,
+                              : `linear-gradient(90deg, ${BRAND.gold}, ${BRAND.green})`,
                         },
                       }}
                     />
@@ -765,7 +816,12 @@ export default function Settings({ user }) {
                   {[
                     { key: "oldPassword", label: "Current password", value: oldPassword, setter: setOldPassword },
                     { key: "newPassword", label: "New password", value: newPassword, setter: setNewPassword },
-                    { key: "confirmPassword", label: "Confirm password", value: confirmPassword, setter: setConfirmPassword },
+                    {
+                      key: "confirmPassword",
+                      label: "Confirm password",
+                      value: confirmPassword,
+                      setter: setConfirmPassword,
+                    },
                   ].map((field) => (
                     <TextField
                       key={field.key}
@@ -777,7 +833,7 @@ export default function Settings({ user }) {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <LockIcon sx={{ color: primaryRed, fontSize: 20 }} />
+                            <LockIcon sx={{ color: BRAND.green, fontSize: 20 }} />
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -786,9 +842,13 @@ export default function Settings({ user }) {
                               <IconButton
                                 onClick={() => togglePasswordVisibility(field.key)}
                                 edge="end"
-                                sx={{ color: textMuted, "&:hover": { color: primaryRed } }}
+                                sx={{ color: textMuted, "&:hover": { color: BRAND.green } }}
                               >
-                                {showPasswords[field.key] ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                {showPasswords[field.key] ? (
+                                  <VisibilityOff fontSize="small" />
+                                ) : (
+                                  <Visibility fontSize="small" />
+                                )}
                               </IconButton>
                             </Tooltip>
                           </InputAdornment>
@@ -802,80 +862,22 @@ export default function Settings({ user }) {
                     sx={{
                       p: 1.75,
                       borderRadius: "14px",
-                      bgcolor: "rgba(37,99,235,0.06)",
-                      border: "1px solid rgba(37,99,235,0.15)",
+                      bgcolor: "rgba(0,96,80,0.06)",
+                      border: "1px solid rgba(0,96,80,0.12)",
                       display: "flex",
                       gap: 1.25,
                       alignItems: "flex-start",
                     }}
                   >
-                    <Shield sx={{ fontSize: 20, color: "#2563EB", mt: 0.1, flexShrink: 0 }} />
+                    <Shield sx={{ fontSize: 20, color: BRAND.green, mt: 0.1, flexShrink: 0 }} />
                     <Typography sx={{ fontFamily: fontBody, fontSize: "0.8rem", color: textSecondary, lineHeight: 1.55 }}>
-                      Use a unique password you don&apos;t share with other sites. You&apos;ll stay signed in on this device after updating.
+                      Use a unique password you don&apos;t reuse elsewhere. After updating, you&apos;ll be signed out
+                      and need to sign in again.
                     </Typography>
                   </Box>
                 </Stack>
               </Box>
             </SettingsSection>
-          </Box>
-
-          <Box
-            component={motion.div}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            sx={{
-              mt: 2.5,
-              p: 2.5,
-              borderRadius: "18px",
-              border: `1px solid ${primaryLight}`,
-              bgcolor: "#fff",
-              display: "flex",
-              alignItems: { xs: "flex-start", sm: "center" },
-              justifyContent: "space-between",
-              gap: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "12px",
-                  bgcolor: primaryLight,
-                  color: primaryRed,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <HistoryIcon />
-              </Box>
-              <Box>
-                <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary }}>
-                  Audit Trail
-                </Typography>
-                <Typography sx={{ fontFamily: fontBody, fontSize: "0.85rem", color: textSecondary }}>
-                  Review admin portal activity and system logs.
-                </Typography>
-              </Box>
-            </Stack>
-            <Button
-              variant="outlined"
-              onClick={() => navigate("/audit")}
-              sx={{
-                borderColor: primaryRed,
-                color: primaryRed,
-                fontFamily: fontBody,
-                fontWeight: 700,
-                borderRadius: "12px",
-                textTransform: "none",
-                "&:hover": { borderColor: primaryDark, bgcolor: primaryLight },
-              }}
-            >
-              Open audit trail
-            </Button>
           </Box>
         </Stack>
       )}

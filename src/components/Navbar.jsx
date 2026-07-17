@@ -4,15 +4,8 @@ import {
   PeopleAlt,
   Settings,
   History,
-  Event,
-  School,
-  MenuBook,
   Dashboard,
-  Badge,
-  AccountBalance,
-  Quiz,
-  AssignmentTurnedIn,
-  TransferWithinAStation,
+  MenuBook,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -33,23 +26,32 @@ import Header from "./Header/Header";
 const drawerWidth = 280;
 const drawerCollapsedWidth = 100;
 
-const navRed = "#DC2626";
-const navRedDark = "#B91C1C";
-const navRedLight = "#FEE2E2";
-const navRedHoverBg = "rgba(220, 38, 38, 0.08)";
-const navRedActiveBg = "rgba(220, 38, 38, 0.12)";
-const sidebarBg = "#FFFBF7";
-const textPrimary = "#1C1917";
-const textMuted = "#78716C";
+const BRAND = {
+  navy: "#1e2858",
+  navyDeep: "#141a3a",
+  green: "#006050",
+  greenDark: "#004840",
+  gold: "#c8a840",
+  goldMuted: "#d4c078",
+};
 
-const fontBody = '"Plus Jakarta Sans", "Inter", system-ui, sans-serif';
+const navAccent = BRAND.green;
+const navAccentDark = BRAND.greenDark;
+const navAccentLight = "rgba(0, 96, 80, 0.1)";
+const navHoverBg = "rgba(0, 96, 80, 0.08)";
+const navActiveBg = "rgba(0, 96, 80, 0.12)";
+const sidebarBg = "#f7faf8";
+const textPrimary = BRAND.navy;
+const textMuted = "rgba(30, 40, 88, 0.55)";
+
+const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 const fontDisplay = '"Fraunces", "Georgia", serif';
 
 const drawerPaperSx = (theme, open) => ({
   border: "none",
-  borderRight: `1px solid ${alpha(navRed, 0.08)}`,
-  background: `linear-gradient(180deg, ${sidebarBg} 0%, #FFFFFF 55%, ${alpha(navRedLight, 0.35)} 100%)`,
-  boxShadow: open ? "4px 0 32px rgba(28, 25, 23, 0.06)" : "2px 0 16px rgba(28, 25, 23, 0.04)",
+  borderRight: `1px solid ${alpha(navAccent, 0.1)}`,
+  background: `linear-gradient(180deg, ${sidebarBg} 0%, #FFFFFF 55%, ${alpha(BRAND.gold, 0.08)} 100%)`,
+  boxShadow: open ? "4px 0 32px rgba(20, 26, 58, 0.06)" : "2px 0 16px rgba(20, 26, 58, 0.04)",
   overflowX: "hidden",
   display: "flex",
   flexDirection: "column",
@@ -89,8 +91,8 @@ const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  background: `linear-gradient(135deg, ${navRed} 0%, ${navRedDark} 100%)`,
-  boxShadow: "0 4px 24px rgba(220, 38, 38, 0.28), inset 0 -1px 0 rgba(255,255,255,0.08)",
+  background: `linear-gradient(135deg, ${BRAND.green} 0%, ${BRAND.navyDeep} 100%)`,
+  boxShadow: "0 4px 24px rgba(0, 96, 80, 0.28), inset 0 -1px 0 rgba(255,255,255,0.08)",
   marginLeft: open ? drawerWidth : drawerCollapsedWidth,
   width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${drawerCollapsedWidth}px)`,
   transition: theme.transitions.create(["width", "margin"], {
@@ -103,7 +105,7 @@ const AppBar = styled(MuiAppBar, {
     content: '""',
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(90deg, rgba(255,255,255,0.06) 0%, transparent 40%)",
+    background: "linear-gradient(90deg, rgba(200,168,64,0.18) 0%, transparent 42%)",
     pointerEvents: "none",
   },
 }));
@@ -139,22 +141,11 @@ const MENU_SECTIONS = [
   },
   {
     label: "Operations",
-    items: [
-      { text: "HR", icon: <Badge />, path: "/hr" },
-      { text: "Accounting", icon: <AccountBalance />, path: "/accounting" },
-      { text: "Exam", icon: <Quiz />, path: "/exam" },
-      { text: "Assignments", icon: <AssignmentTurnedIn />, path: "/assignments" },
-      { text: "Curriculum", icon: <MenuBook />, path: "/curriculum" },
-      { text: "Timetable", icon: <Event />, path: "/timetable" },
-    ],
+    items: [{ text: "Programmes", icon: <MenuBook />, path: "/programmes" }],
   },
   {
     label: "Administration",
-    items: [
-      { text: "Users", icon: <PeopleAlt />, path: "/users" },
-      { text: "Class transfer", icon: <TransferWithinAStation />, path: "/class-transfer" },
-      { text: "Elimu Plus", icon: <School />, path: "/elimu-plus" },
-    ],
+    items: [{ text: "Users", icon: <PeopleAlt />, path: "/users" }],
   },
   {
     label: "System",
@@ -180,10 +171,10 @@ function NavIconBox({ selected, children, compact }) {
         flexShrink: 0,
         transition: "all 0.22s ease",
         background: selected
-          ? `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`
-          : alpha(navRed, 0.06),
+          ? `linear-gradient(145deg, ${navAccent} 0%, ${navAccentDark} 100%)`
+          : alpha(navAccent, 0.08),
         color: selected ? "#fff" : textMuted,
-        boxShadow: selected ? "0 4px 12px rgba(220, 38, 38, 0.35)" : "none",
+        boxShadow: selected ? "0 4px 12px rgba(0, 96, 80, 0.35)" : "none",
         "& .MuiSvgIcon-root": { fontSize: compact ? 20 : 21 },
       }}
     >
@@ -213,29 +204,27 @@ function NavItem({ item, open, selected, onNavigate }) {
         width: open ? "auto" : "100%",
         boxSizing: "border-box",
         transition: "all 0.2s ease",
-        bgcolor: selected ? navRedActiveBg : "transparent",
+        bgcolor: selected ? navActiveBg : "transparent",
         "&:hover": {
-          bgcolor: selected ? navRedActiveBg : navRedHoverBg,
+          bgcolor: selected ? navActiveBg : navHoverBg,
           transform: open ? "translateX(2px)" : "none",
         },
         "&.Mui-selected": {
-          bgcolor: navRedActiveBg,
-          "&:hover": { bgcolor: navRedActiveBg },
+          bgcolor: navActiveBg,
+          "&:hover": { bgcolor: navActiveBg },
         },
       }}
     >
       {open ? (
         <>
-          <NavIconBox selected={selected}>
-            {cloneElement(item.icon)}
-          </NavIconBox>
+          <NavIconBox selected={selected}>{cloneElement(item.icon)}</NavIconBox>
           <Typography
             component="span"
             sx={{
               fontFamily: fontBody,
               fontSize: "0.9rem",
               fontWeight: selected ? 700 : 500,
-              color: selected ? navRed : textPrimary,
+              color: selected ? navAccent : textPrimary,
               letterSpacing: "-0.01em",
             }}
           >
@@ -244,13 +233,7 @@ function NavItem({ item, open, selected, onNavigate }) {
         </>
       ) : (
         <>
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              justifyContent: "center",
-              mb: 0,
-            }}
-          >
+          <ListItemIcon sx={{ minWidth: 0, justifyContent: "center", mb: 0 }}>
             <NavIconBox selected={selected} compact>
               {cloneElement(item.icon)}
             </NavIconBox>
@@ -261,7 +244,7 @@ function NavItem({ item, open, selected, onNavigate }) {
               fontFamily: fontBody,
               fontSize: "0.65rem",
               fontWeight: selected ? 700 : 500,
-              color: selected ? navRed : textMuted,
+              color: selected ? navAccent : textMuted,
               lineHeight: 1.25,
               letterSpacing: 0,
               width: "100%",
@@ -292,13 +275,7 @@ const Navbar = (props) => {
   const isNavPathSelected = (path) =>
     location.pathname === path ||
     (path === "/dashboard" && location.pathname.startsWith("/dashboard")) ||
-    (path === "/hr" && location.pathname.startsWith("/hr")) ||
-    (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
-    (path === "/exam" && location.pathname.startsWith("/exam")) ||
-    (path === "/assignments" && location.pathname.startsWith("/assignments")) ||
-    (path === "/elimu-plus" && location.pathname.startsWith("/elimu-plus")) ||
-    (path === "/curriculum" && location.pathname.startsWith("/curriculum")) ||
-    (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
+    (path === "/programmes" && location.pathname.startsWith("/programmes")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
@@ -328,9 +305,7 @@ const Navbar = (props) => {
     menuItems.length > 0
       ? MENU_SECTIONS.map((section) => ({
           ...section,
-          items: section.items.filter((item) =>
-            menuItems.some((m) => m.path === item.path)
-          ),
+          items: section.items.filter((item) => menuItems.some((m) => m.path === item.path)),
         })).filter((s) => s.items.length > 0)
       : [];
 
@@ -345,11 +320,7 @@ const Navbar = (props) => {
             px: { xs: 1.5, sm: 2.5 },
           }}
         >
-          <Header
-            setUser={props.setUser}
-            handleDrawerOpen={handleDrawerOpen}
-            open={open}
-          />
+          <Header setUser={props.setUser} handleDrawerOpen={handleDrawerOpen} open={open} />
         </Toolbar>
       </AppBar>
 
@@ -358,41 +329,40 @@ const Navbar = (props) => {
           {open ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
               <Box
+                component="img"
+                src="/images/logo.png"
+                alt=""
                 sx={{
                   width: 42,
                   height: 42,
-                  borderRadius: "13px",
-                  background: `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  borderRadius: "50%",
+                  objectFit: "cover",
                   flexShrink: 0,
-                  boxShadow: "0 6px 16px rgba(220, 38, 38, 0.35)",
+                  boxShadow: "0 6px 16px rgba(0, 96, 80, 0.28)",
                 }}
-              >
-                <School sx={{ color: "#fff", fontSize: 24 }} />
-              </Box>
+              />
               <Box sx={{ minWidth: 0 }}>
                 <Typography
                   sx={{
                     fontFamily: fontDisplay,
                     fontWeight: 700,
-                    fontSize: "1.05rem",
+                    fontSize: "0.82rem",
                     color: textPrimary,
                     letterSpacing: "-0.02em",
-                    lineHeight: 1.2,
+                    lineHeight: 1.25,
                   }}
                 >
-                  Elimu Plus
+                  KASMS
                 </Typography>
                 <Typography
                   sx={{
                     fontFamily: fontBody,
                     fontSize: "0.68rem",
                     fontWeight: 700,
-                    color: navRed,
+                    color: navAccent,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
+                    mt: 0.35,
                   }}
                 >
                   Admin Portal
@@ -402,25 +372,23 @@ const Navbar = (props) => {
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.35 }}>
               <Box
+                component="img"
+                src="/images/logo.png"
+                alt=""
                 sx={{
                   width: 40,
                   height: 40,
-                  borderRadius: "12px",
-                  background: `linear-gradient(145deg, ${navRed} 0%, ${navRedDark} 100%)`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  boxShadow: "0 4px 12px rgba(0, 96, 80, 0.28)",
                 }}
-              >
-                <School sx={{ color: "#fff", fontSize: 22 }} />
-              </Box>
+              />
               <Typography
                 sx={{
                   fontFamily: fontBody,
                   fontSize: "0.6rem",
                   fontWeight: 700,
-                  color: navRed,
+                  color: navAccent,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   lineHeight: 1.1,
@@ -438,8 +406,8 @@ const Navbar = (props) => {
               aria-label="Collapse navigation"
               sx={{
                 color: textMuted,
-                bgcolor: alpha(navRed, 0.06),
-                "&:hover": { bgcolor: alpha(navRed, 0.12), color: navRed },
+                bgcolor: navAccentLight,
+                "&:hover": { bgcolor: alpha(navAccent, 0.16), color: navAccent },
               }}
             >
               {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
@@ -447,7 +415,7 @@ const Navbar = (props) => {
           )}
         </DrawerHeader>
 
-        <Divider sx={{ borderColor: alpha(navRed, 0.08), mx: open ? 2 : 1 }} />
+        <Divider sx={{ borderColor: alpha(navAccent, 0.1), mx: open ? 2 : 1 }} />
 
         <Box
           sx={{
@@ -457,58 +425,58 @@ const Navbar = (props) => {
             py: 1.5,
             "&::-webkit-scrollbar": { width: 4 },
             "&::-webkit-scrollbar-thumb": {
-              bgcolor: alpha(navRed, 0.2),
+              bgcolor: alpha(navAccent, 0.25),
               borderRadius: 4,
             },
           }}
         >
-          {open
-            ? sections.map((section) => (
-                <Box key={section.label} sx={{ mb: 1 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: fontBody,
-                      fontSize: "0.65rem",
-                      fontWeight: 700,
-                      color: textMuted,
-                      letterSpacing: "0.12em",
-                      textTransform: "uppercase",
-                      px: 2.5,
-                      pt: 1,
-                      pb: 0.75,
-                    }}
-                  >
-                    {section.label}
-                  </Typography>
-                  <List disablePadding>
-                    {section.items.map((item) => (
-                      <NavItem
-                        key={item.path}
-                        item={item}
-                        open={open}
-                        selected={isNavPathSelected(item.path)}
-                        onNavigate={navigate}
-                      />
-                    ))}
-                  </List>
-                </Box>
-              ))
-            : (
-              <List disablePadding sx={{ px: 0.5 }}>
-                {menuItems.map((item) => (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    open={open}
-                    selected={isNavPathSelected(item.path)}
-                    onNavigate={navigate}
-                  />
-                ))}
-              </List>
-            )}
+          {open ? (
+            sections.map((section) => (
+              <Box key={section.label} sx={{ mb: 1 }}>
+                <Typography
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    color: textMuted,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    px: 2.5,
+                    pt: 1,
+                    pb: 0.75,
+                  }}
+                >
+                  {section.label}
+                </Typography>
+                <List disablePadding>
+                  {section.items.map((item) => (
+                    <NavItem
+                      key={item.path}
+                      item={item}
+                      open={open}
+                      selected={isNavPathSelected(item.path)}
+                      onNavigate={navigate}
+                    />
+                  ))}
+                </List>
+              </Box>
+            ))
+          ) : (
+            <List disablePadding sx={{ px: 0.5 }}>
+              {menuItems.map((item) => (
+                <NavItem
+                  key={item.path}
+                  item={item}
+                  open={open}
+                  selected={isNavPathSelected(item.path)}
+                  onNavigate={navigate}
+                />
+              ))}
+            </List>
+          )}
         </Box>
 
-        <Divider sx={{ borderColor: alpha(navRed, 0.08), mx: open ? 2 : 1 }} />
+        <Divider sx={{ borderColor: alpha(navAccent, 0.1), mx: open ? 2 : 1 }} />
 
         <Box sx={{ py: 1.5, flexShrink: 0 }}>
           <ListItemButton
@@ -528,10 +496,10 @@ const Navbar = (props) => {
               width: open ? "auto" : "100%",
               boxSizing: "border-box",
               "&:hover": {
-                bgcolor: alpha(navRed, 0.08),
+                bgcolor: navHoverBg,
                 "& .logout-icon": {
-                  bgcolor: alpha(navRed, 0.15),
-                  color: navRed,
+                  bgcolor: alpha(navAccent, 0.15),
+                  color: navAccent,
                 },
               },
             }}

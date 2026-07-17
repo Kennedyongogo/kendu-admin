@@ -15,9 +15,12 @@ import { Close as CloseIcon } from "@mui/icons-material";
 import {
   fontBody,
   fontDisplay,
-  primaryRed,
+  primaryGreen,
   primaryDark,
   primaryLight,
+  accentGold,
+  accentGoldMuted,
+  navy,
   warmCream,
   textPrimary,
   textSecondary,
@@ -25,6 +28,7 @@ import {
   roleChipColor,
   formatRole,
   getInitials,
+  profileImageSrc,
 } from "./usersShared";
 
 export const fadeUp = {
@@ -44,17 +48,38 @@ export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
       sx={{
-        borderRadius: "24px",
+        borderRadius: "22px",
         p: { xs: 2.5, sm: 3 },
-        background: `linear-gradient(135deg, ${primaryRed} 0%, ${primaryDark} 55%, #7F1D1D 100%)`,
+        background: `linear-gradient(135deg, ${primaryGreen} 0%, ${navy} 100%)`,
         color: "#fff",
         position: "relative",
         overflow: "hidden",
-        boxShadow: "0 20px 60px -12px rgba(220,38,38,0.45)",
+        boxShadow: "0 20px 48px -16px rgba(0, 96, 80, 0.4)",
         mb: 3,
       }}
     >
-      <Box sx={{ position: "absolute", top: -40, right: -20, width: 180, height: 180, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.08)" }} />
+      <Box
+        sx={{
+          position: "absolute",
+          top: -48,
+          right: -24,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          bgcolor: "rgba(200,168,64,0.18)",
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: -60,
+          left: "30%",
+          width: 160,
+          height: 160,
+          borderRadius: "50%",
+          bgcolor: "rgba(255,255,255,0.06)",
+        }}
+      />
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -69,8 +94,8 @@ export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
                 width: 52,
                 height: 52,
                 borderRadius: "16px",
-                bgcolor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.22)",
+                bgcolor: "rgba(255,255,255,0.14)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -80,11 +105,27 @@ export function UsersHero({ title, subtitle, actions, icon, delay = 0 }) {
             </Box>
           ) : null}
           <Box>
-            <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: { xs: "1.5rem", sm: "1.85rem" }, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
+            <Typography
+              sx={{
+                fontFamily: fontDisplay,
+                fontWeight: 700,
+                fontSize: { xs: "1.45rem", sm: "1.75rem" },
+                letterSpacing: "-0.03em",
+                lineHeight: 1.15,
+              }}
+            >
               {title}
             </Typography>
             {subtitle ? (
-              <Typography sx={{ fontFamily: fontBody, fontSize: "0.9rem", opacity: 0.88, mt: 0.5, maxWidth: 520 }}>
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.9rem",
+                  opacity: 0.88,
+                  mt: 0.5,
+                  maxWidth: 480,
+                }}
+              >
                 {subtitle}
               </Typography>
             ) : null}
@@ -109,13 +150,17 @@ export function RoleTabs({ activeTab, onChange, tabs }) {
       initial="hidden"
       animate="visible"
       sx={{
-        display: "flex",
-        gap: 0.75,
-        overflowX: "auto",
-        pb: 0.5,
+        display: "inline-flex",
+        gap: 0.5,
+        p: 0.6,
         mb: 2.5,
-        "&::-webkit-scrollbar": { height: 4 },
-        "&::-webkit-scrollbar-thumb": { bgcolor: "rgba(220,38,38,0.25)", borderRadius: 4 },
+        borderRadius: "14px",
+        bgcolor: "#fff",
+        border: "1px solid rgba(0,96,80,0.1)",
+        boxShadow: "0 4px 16px rgba(20,26,58,0.04)",
+        overflowX: "auto",
+        maxWidth: "100%",
+        "&::-webkit-scrollbar": { height: 0 },
       }}
     >
       {tabs.map((tab, i) => {
@@ -128,14 +173,14 @@ export function RoleTabs({ activeTab, onChange, tabs }) {
             sx={{
               fontFamily: fontBody,
               fontWeight: selected ? 700 : 600,
-              fontSize: "0.82rem",
-              height: 36,
-              px: 0.5,
+              fontSize: "0.84rem",
+              height: 38,
+              px: 1,
               flexShrink: 0,
-              bgcolor: selected ? primaryRed : "#fff",
+              borderRadius: "10px",
+              bgcolor: selected ? primaryGreen : "transparent",
               color: selected ? "#fff" : textSecondary,
-              border: `1px solid ${selected ? primaryRed : "rgba(220,38,38,0.12)"}`,
-              boxShadow: selected ? "0 4px 14px rgba(220,38,38,0.3)" : "0 2px 8px rgba(28,25,23,0.04)",
+              border: "none",
               transition: "all 0.2s ease",
               "&:hover": {
                 bgcolor: selected ? primaryDark : warmCream,
@@ -157,14 +202,14 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
       maxWidth={maxWidth}
       fullWidth
       slotProps={{
-        backdrop: { sx: { bgcolor: "transparent" } },
+        backdrop: { sx: { bgcolor: "rgba(20, 26, 58, 0.28)", backdropFilter: "blur(4px)" } },
         paper: {
           sx: {
-            borderRadius: "24px",
+            borderRadius: "20px",
             overflow: "hidden",
             bgcolor: "#fff",
-            boxShadow: "0 24px 64px -12px rgba(28,25,23,0.22)",
-            border: "1px solid rgba(220,38,38,0.08)",
+            boxShadow: "0 24px 64px -12px rgba(20,26,58,0.22)",
+            border: "1px solid rgba(0,96,80,0.1)",
           },
         },
       }}
@@ -179,7 +224,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
             right: 12,
             bgcolor: warmCream,
             color: textSecondary,
-            "&:hover": { bgcolor: primaryLight, color: primaryRed },
+            "&:hover": { bgcolor: primaryLight, color: primaryGreen },
           }}
         >
           <CloseIcon fontSize="small" />
@@ -191,19 +236,27 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
                 width: 48,
                 height: 48,
                 borderRadius: "14px",
-                background: `linear-gradient(145deg, ${primaryRed}, ${primaryDark})`,
+                background: `linear-gradient(145deg, ${accentGold}, ${primaryGreen})`,
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 20px rgba(220,38,38,0.35)",
+                boxShadow: "0 8px 20px rgba(0,96,80,0.28)",
               }}
             >
               {icon}
             </Box>
           ) : null}
           <Box>
-            <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.3rem", color: textPrimary, letterSpacing: "-0.02em" }}>
+            <Typography
+              sx={{
+                fontFamily: fontDisplay,
+                fontWeight: 700,
+                fontSize: "1.3rem",
+                color: textPrimary,
+                letterSpacing: "-0.02em",
+              }}
+            >
               {title}
             </Typography>
             {subtitle ? (
@@ -220,7 +273,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
           sx={{
             px: 3,
             py: 2,
-            borderTop: "1px solid rgba(220,38,38,0.06)",
+            borderTop: "1px solid rgba(0,96,80,0.08)",
             bgcolor: warmCream,
             display: "flex",
             justifyContent: "flex-end",
@@ -244,12 +297,14 @@ export function DetailField({ icon, label, value, compact = false }) {
         p: compact ? 1 : 1.75,
         borderRadius: compact ? "12px" : "14px",
         bgcolor: warmCream,
-        border: "1px solid rgba(220,38,38,0.08)",
+        border: "1px solid rgba(0,96,80,0.1)",
         height: compact ? "100%" : undefined,
         minHeight: 0,
       }}
     >
-      <Box sx={{ color: primaryRed, mt: compact ? 0.1 : 0.15, "& svg": { fontSize: compact ? "1rem" : undefined } }}>{icon}</Box>
+      <Box sx={{ color: primaryGreen, mt: compact ? 0.1 : 0.15, "& svg": { fontSize: compact ? "1rem" : undefined } }}>
+        {icon}
+      </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Typography
           sx={{
@@ -273,10 +328,6 @@ export function DetailField({ icon, label, value, compact = false }) {
             mt: 0.2,
             wordBreak: "break-word",
             lineHeight: 1.35,
-            display: compact ? "-webkit-box" : "block",
-            WebkitLineClamp: compact ? 2 : undefined,
-            WebkitBoxOrient: compact ? "vertical" : undefined,
-            overflow: compact ? "hidden" : undefined,
           }}
         >
           {value || "—"}
@@ -286,10 +337,12 @@ export function DetailField({ icon, label, value, compact = false }) {
   );
 }
 
-export function UserAvatar({ name, size = 40 }) {
-  const rc = roleChipColor("admin");
+export function UserAvatar({ name, role = "admin", src, size = 40 }) {
+  const rc = roleChipColor(role);
+  const imageSrc = profileImageSrc(src);
   return (
     <Avatar
+      src={imageSrc || undefined}
       sx={{
         width: size,
         height: size,
@@ -297,11 +350,11 @@ export function UserAvatar({ name, size = 40 }) {
         fontWeight: 700,
         fontFamily: fontDisplay,
         bgcolor: rc.bg,
-        color: "#fff",
-        boxShadow: "0 4px 12px rgba(28,25,23,0.12)",
+        color: rc.color,
+        boxShadow: "0 4px 12px rgba(20,26,58,0.1)",
       }}
     >
-      {getInitials(name)}
+      {!imageSrc ? getInitials(name) : null}
     </Avatar>
   );
 }
@@ -310,14 +363,14 @@ export function FormSection({ title, children }) {
   return (
     <Box
       sx={{
-        borderRadius: "20px",
-        border: "1px solid rgba(220,38,38,0.08)",
+        borderRadius: "18px",
+        border: "1px solid rgba(0,96,80,0.1)",
         bgcolor: "#fff",
-        boxShadow: "0 12px 40px -16px rgba(28,25,23,0.1)",
+        boxShadow: "0 12px 36px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
       }}
     >
-      <Box sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(220,38,38,0.06)", bgcolor: warmCream }}>
+      <Box sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}>
         <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.05rem", color: textPrimary }}>
           {title}
         </Typography>
@@ -342,10 +395,10 @@ export function HeroActionButton({ children, variant = "outlined", ...props }) {
         whiteSpace: "nowrap",
         ...(isContained
           ? {
-              bgcolor: "rgba(255,255,255,0.95)",
-              color: primaryDark,
+              bgcolor: accentGold,
+              color: navy,
               boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
-              "&:hover": { bgcolor: "#fff", color: primaryRed },
+              "&:hover": { bgcolor: accentGoldMuted, color: navy },
             }
           : {
               borderColor: "rgba(255,255,255,0.5)",

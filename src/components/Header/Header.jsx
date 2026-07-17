@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   IconButton,
@@ -9,6 +9,7 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  Stack,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -22,30 +23,31 @@ import EditUserDetails from "./editUserDetails";
 import ChangePassword from "./changePassword";
 import { useNavigate, useLocation } from "react-router-dom";
 import BrandPageLoader from "../Util/BrandPageLoader";
-import AdminNotificationBell from "./AdminNotificationBell";
+import { RoleBadge } from "../Users/usersUi";
 
-const fontBody = '"Plus Jakarta Sans", "Inter", system-ui, sans-serif';
+const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 const fontDisplay = '"Fraunces", "Georgia", serif';
+
+const BRAND = {
+  navy: "#1e2858",
+  green: "#006050",
+  gold: "#c8a840",
+};
 
 const PAGE_TITLES = [
   { prefix: "/dashboard", title: "Dashboard", subtitle: "Overview & insights" },
-  { prefix: "/hr", title: "HR", subtitle: "Staff & people management" },
-  { prefix: "/accounting", title: "Accounting", subtitle: "Fees & finances" },
-  { prefix: "/exam", title: "Exams", subtitle: "Assessments & submissions" },
-  { prefix: "/curriculum", title: "Curriculum", subtitle: "Courses & programmes" },
-  { prefix: "/timetable", title: "Timetable", subtitle: "Schedules & classes" },
+  { prefix: "/programmes", title: "Programmes", subtitle: "Academic programmes & courses" },
   { prefix: "/users", title: "Users", subtitle: "Account management" },
-  { prefix: "/elimu-plus", title: "Elimu Plus", subtitle: "School profile & records" },
   { prefix: "/settings", title: "Settings", subtitle: "Preferences & security" },
   { prefix: "/audit", title: "Audit Trail", subtitle: "Admin activity & system logs" },
 ];
 
 const buildImageUrl = (imageUrl) => {
   if (!imageUrl) return "";
-  if (imageUrl.startsWith("http")) return imageUrl;
-  if (imageUrl.startsWith("uploads/")) return `/${imageUrl}`;
+  if (imageUrl.startsWith("http") || imageUrl.startsWith("blob:")) return imageUrl;
   if (imageUrl.startsWith("/uploads/")) return imageUrl;
-  return imageUrl;
+  if (imageUrl.startsWith("uploads/")) return `/${imageUrl}`;
+  return `/uploads/profiles/${imageUrl}`;
 };
 
 const getInitials = (name) => {
@@ -57,11 +59,18 @@ const getInitials = (name) => {
 
 function getPageContext(pathname) {
   const match = PAGE_TITLES.find(({ prefix }) => pathname.startsWith(prefix));
-  return match || { title: "Admin Portal", subtitle: "Elimu Plus Homeschool" };
+  return match || { title: "Admin Portal", subtitle: "Kendu Adventist School" };
+}
+
+function applyUser(userData, setCurrentUser, setUser) {
+  if (!userData) return;
+  setCurrentUser(userData);
+  setUser?.(userData);
+  localStorage.setItem("user", JSON.stringify(userData));
 }
 
 export default function Header(props) {
-  const [currentUser, setCurrentUser] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [toggleAccount, setToggleAccount] = useState(false);
   const [toggleEditDetails, setToggleEditDetails] = useState(false);
@@ -71,45 +80,65 @@ export default function Header(props) {
   const location = useLocation();
   const page = getPageContext(location.pathname);
 
-  useEffect(() => {
-    setLoading(true);
+  const refreshMe = useCallback(async () => {
     const token = localStorage.getItem("token");
-
-    if (token) {
-      fetch("/api/users/me", {
+    if (!token) {
+      window.location.href = "/";
+      return;
+    }
+    try {
+      const response = await fetch("/api/users/me", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         credentials: "include",
-      })
-        .then((response) => {
-          if (response.ok) return response.json();
-          throw new Error("Failed to fetch user");
-        })
-        .then((response) => {
-          const userData = response.data;
-          setCurrentUser(userData);
-          props.setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
-          setLoading(false);
-        })
-        .catch(() => {
-          const savedUser = localStorage.getItem("user");
-          if (savedUser) {
-            const userData = JSON.parse(savedUser);
-            setCurrentUser(userData);
-            props.setUser(userData);
-          } else {
-            window.location.href = "/";
-          }
-          setLoading(false);
-        });
-    } else {
-      window.location.href = "/";
+      });
+      if (!response.ok) throw new Error("Failed to fetch user");
+      const payload = await response.json();
+      applyUser(payload.data, setCurrentUser, props.setUser);
+    } catch {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        applyUser(JSON.parse(savedUser), setCurrentUser, props.setUser);
+      } else {
+        window.location.href = "/";
+      }
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [props.setUser]);
+
+  useEffect(() => {
+    refreshMe();
+  }, [refreshMe]);
+
+  useEffect(() => {
+    const onUserUpdated = (event) => {
+      const next = event?.detail;
+      if (next && typeof next === "object") {
+        applyUser(next, setCurrentUser, props.setUser);
+        return;
+      }
+      void refreshMe();
+    };
+    const onStorage = (e) => {
+      if (e.key === "user" && e.newValue) {
+        try {
+          applyUser(JSON.parse(e.newValue), setCurrentUser, props.setUser);
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener("kendu:user-updated", onUserUpdated);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("kendu:user-updated", onUserUpdated);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [props.setUser, refreshMe]);
 
   const logout = () => {
     localStorage.clear();
@@ -120,10 +149,9 @@ export default function Header(props) {
     });
   };
 
-  const roleLabel =
-    currentUser?.role
-      ? String(currentUser.role).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-      : "Staff";
+  const avatarSrc = buildImageUrl(
+    currentUser?.profile_image_url || currentUser?.profile_image || ""
+  );
 
   return (
     <>
@@ -190,8 +218,6 @@ export default function Header(props) {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 }, flexShrink: 0 }}>
-          <AdminNotificationBell />
-
           <Box
             component="button"
             type="button"
@@ -217,9 +243,10 @@ export default function Header(props) {
               },
             }}
           >
-            {currentUser?.profile_image ? (
+            {avatarSrc ? (
               <Avatar
-                src={buildImageUrl(currentUser.profile_image)}
+                key={avatarSrc}
+                src={avatarSrc}
                 alt={currentUser?.full_name}
                 sx={{
                   width: 36,
@@ -268,7 +295,9 @@ export default function Header(props) {
                   fontWeight: 500,
                 }}
               >
-                {roleLabel}
+                {currentUser?.role
+                  ? String(currentUser.role).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                  : "Staff"}
               </Typography>
             </Box>
 
@@ -294,22 +323,70 @@ export default function Header(props) {
             paper: {
               sx: {
                 mt: 1,
-                minWidth: 220,
-                borderRadius: "16px",
-                border: "1px solid rgba(220,38,38,0.08)",
-                boxShadow: "0 16px 48px rgba(28,25,23,0.14)",
+                minWidth: 280,
+                borderRadius: "18px",
+                border: "1px solid rgba(0,96,80,0.1)",
+                boxShadow: "0 16px 48px rgba(20,26,58,0.14)",
                 overflow: "hidden",
               },
             },
           }}
         >
-          <Box sx={{ px: 2, py: 1.5, bgcolor: "#FFFBF7" }}>
-            <Typography sx={{ fontFamily: fontBody, fontWeight: 700, fontSize: "0.9rem", color: "#1C1917" }}>
-              {currentUser?.full_name || "Admin"}
-            </Typography>
-            <Typography sx={{ fontFamily: fontBody, fontSize: "0.75rem", color: "#78716C" }}>
-              {currentUser?.email}
-            </Typography>
+          <Box sx={{ px: 2, py: 2, bgcolor: "#f7faf8" }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {avatarSrc ? (
+                <Avatar
+                  key={avatarSrc}
+                  src={avatarSrc}
+                  alt={currentUser?.full_name}
+                  sx={{ width: 52, height: 52 }}
+                />
+              ) : (
+                <Avatar
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    bgcolor: BRAND.green,
+                    fontFamily: fontDisplay,
+                    fontWeight: 700,
+                  }}
+                >
+                  {getInitials(currentUser?.full_name)}
+                </Avatar>
+              )}
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    fontFamily: fontDisplay,
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: BRAND.navy,
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {currentUser?.full_name || "Admin"}
+                </Typography>
+                <Box sx={{ mt: 0.75, mb: 0.5 }}>
+                  <RoleBadge role={currentUser?.role} />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: fontBody,
+                    fontSize: "0.75rem",
+                    color: "rgba(30,40,88,0.55)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {currentUser?.email}
+                </Typography>
+                <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", color: "rgba(30,40,88,0.5)", mt: 0.35 }}>
+                  {currentUser?.is_active !== false ? "Active account" : "Inactive account"}
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
           <Divider />
           <MenuItem
@@ -320,7 +397,7 @@ export default function Header(props) {
             sx={{ py: 1.25, fontFamily: fontBody, fontSize: "0.9rem" }}
           >
             <ListItemIcon>
-              <AccountCircleIcon fontSize="small" sx={{ color: "#DC2626" }} />
+              <AccountCircleIcon fontSize="small" sx={{ color: BRAND.green }} />
             </ListItemIcon>
             <ListItemText primary="My account" />
           </MenuItem>
@@ -332,7 +409,7 @@ export default function Header(props) {
             sx={{ py: 1.25, fontFamily: fontBody, fontSize: "0.9rem" }}
           >
             <ListItemIcon>
-              <LockIcon fontSize="small" sx={{ color: "#DC2626" }} />
+              <LockIcon fontSize="small" sx={{ color: BRAND.green }} />
             </ListItemIcon>
             <ListItemText primary="Change password" />
           </MenuItem>
@@ -346,12 +423,12 @@ export default function Header(props) {
               py: 1.25,
               fontFamily: fontBody,
               fontSize: "0.9rem",
-              color: "#DC2626",
-              "&:hover": { bgcolor: "rgba(220,38,38,0.08)" },
+              color: BRAND.green,
+              "&:hover": { bgcolor: "rgba(0,96,80,0.08)" },
             }}
           >
             <ListItemIcon>
-              <LogoutIcon fontSize="small" sx={{ color: "#DC2626" }} />
+              <LogoutIcon fontSize="small" sx={{ color: BRAND.green }} />
             </ListItemIcon>
             <ListItemText primary="Sign out" />
           </MenuItem>

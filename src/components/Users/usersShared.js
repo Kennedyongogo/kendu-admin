@@ -1,23 +1,21 @@
-export const primaryRed = "#DC2626";
-export const primaryDark = "#B91C1C";
-export const primaryLight = "#FEE2E2";
-export const warmCream = "#FFFBF7";
-export const textPrimary = "#1C1917";
-export const textSecondary = "#78716C";
-export const textMuted = "#A8A29E";
+export const primaryGreen = "#006050";
+export const primaryDark = "#004840";
+export const primaryLight = "rgba(0, 96, 80, 0.1)";
+export const accentGold = "#c8a840";
+export const accentGoldMuted = "#d4c078";
+export const navy = "#1e2858";
+export const warmCream = "#f7faf8";
+export const textPrimary = "#1e2858";
+export const textSecondary = "rgba(30, 40, 88, 0.68)";
+export const textMuted = "rgba(30, 40, 88, 0.48)";
 
-export const fontBody = '"Plus Jakarta Sans", "Inter", system-ui, sans-serif';
+/** @deprecated use primaryGreen */
+export const primaryRed = primaryGreen;
+
+export const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 export const fontDisplay = '"Fraunces", "Georgia", serif';
 
-export const ALL_ROLES = [
-  "super_admin",
-  "admin",
-  "teacher",
-  "student",
-  "parent",
-  "accountant",
-  "librarian",
-];
+export const ALL_ROLES = ["admin", "staff", "student"];
 
 export function getActorFromStorage() {
   try {
@@ -30,22 +28,16 @@ export function getActorFromStorage() {
 
 /** Roles the signed-in user may assign when creating or editing users. */
 export function assignableRoles(actorRole) {
-  if (actorRole === "super_admin") return [...ALL_ROLES];
-  if (["admin", "accountant", "librarian"].includes(actorRole)) {
-    return ALL_ROLES.filter((role) => role !== "super_admin");
-  }
+  if (actorRole === "admin") return [...ALL_ROLES];
+  if (actorRole === "staff") return ["staff", "student"];
   return [];
 }
 
 export const ROLE_TABS = [
   { label: "All users", value: null },
-  { label: "Super admin", value: "super_admin" },
   { label: "Admin", value: "admin" },
-  { label: "Teacher", value: "teacher" },
-  { label: "Student", value: "student" },
-  { label: "Parent", value: "parent" },
-  { label: "Accountant", value: "accountant" },
-  { label: "Librarian", value: "librarian" },
+  { label: "Staff", value: "staff" },
+  { label: "Students", value: "student" },
 ];
 
 export const authJsonHeaders = (token) => ({
@@ -61,20 +53,12 @@ export function formatRole(role) {
 
 export function roleChipColor(role) {
   switch (role) {
-    case "super_admin":
-      return { bg: "#991B1B", color: "#fff" };
     case "admin":
-      return { bg: primaryRed, color: "#fff" };
-    case "teacher":
-      return { bg: "#EA580C", color: "#fff" };
+      return { bg: primaryGreen, color: "#fff" };
+    case "staff":
+      return { bg: navy, color: "#fff" };
     case "student":
-      return { bg: "#2563EB", color: "#fff" };
-    case "parent":
-      return { bg: "#7C3AED", color: "#fff" };
-    case "accountant":
-      return { bg: "#0D9488", color: "#fff" };
-    case "librarian":
-      return { bg: "#4B5563", color: "#fff" };
+      return { bg: accentGold, color: navy };
     default:
       return { bg: primaryLight, color: primaryDark };
   }
@@ -87,25 +71,38 @@ export function getInitials(name) {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
+export function profileImageSrc(userOrUrl) {
+  if (!userOrUrl) return "";
+  if (typeof userOrUrl === "string") {
+    if (userOrUrl.startsWith("http") || userOrUrl.startsWith("blob:")) return userOrUrl;
+    if (userOrUrl.startsWith("/uploads/")) return userOrUrl;
+    if (userOrUrl.startsWith("uploads/")) return `/${userOrUrl}`;
+    return `/uploads/profiles/${userOrUrl}`;
+  }
+  if (userOrUrl.profile_image_url) return userOrUrl.profile_image_url;
+  if (userOrUrl.profile_image) return profileImageSrc(userOrUrl.profile_image);
+  return "";
+}
+
 export const inputSx = {
   "& .MuiOutlinedInput-root": {
-    borderRadius: "14px",
-    bgcolor: warmCream,
+    borderRadius: "12px",
+    bgcolor: "#fff",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
-    "& fieldset": { borderColor: "rgba(220, 38, 38, 0.15)", borderWidth: "1.5px" },
-    "&:hover fieldset": { borderColor: "#FCA5A5" },
+    "& fieldset": { borderColor: "rgba(0, 96, 80, 0.18)", borderWidth: "1.5px" },
+    "&:hover fieldset": { borderColor: "rgba(0, 96, 80, 0.4)" },
     "&.Mui-focused fieldset": {
-      borderColor: primaryRed,
+      borderColor: primaryGreen,
       borderWidth: "2px",
-      boxShadow: "0 0 0 4px rgba(220, 38, 38, 0.1)",
+      boxShadow: "0 0 0 3px rgba(0, 96, 80, 0.1)",
     },
   },
   "& .MuiInputLabel-root": {
     fontFamily: fontBody,
     fontWeight: 500,
     color: textMuted,
-    "&.Mui-focused": { color: primaryRed, fontWeight: 600 },
+    "&.Mui-focused": { color: primaryGreen, fontWeight: 600 },
   },
   "& .MuiInputBase-input": { fontWeight: 500, color: textPrimary },
   "& .MuiSelect-select": { fontFamily: fontBody },
@@ -115,27 +112,29 @@ export const primaryBtnSx = {
   fontFamily: fontBody,
   fontWeight: 700,
   textTransform: "none",
-  borderRadius: "14px",
+  borderRadius: "12px",
   px: 3,
   py: 1.25,
-  background: `linear-gradient(135deg, ${primaryRed} 0%, ${primaryDark} 100%)`,
-  color: "#fff",
-  boxShadow: "0 8px 24px -4px rgba(220, 38, 38, 0.4)",
-  "&:hover": { background: `linear-gradient(135deg, ${primaryDark} 0%, #7F1D1D 100%)` },
+  background: `linear-gradient(135deg, ${accentGold} 0%, ${accentGoldMuted} 100%)`,
+  color: navy,
+  boxShadow: "0 8px 24px -4px rgba(160, 128, 40, 0.4)",
+  "&:hover": {
+    background: `linear-gradient(135deg, ${accentGoldMuted} 0%, ${accentGold} 100%)`,
+  },
 };
 
 export const ghostBtnSx = {
   fontFamily: fontBody,
   fontWeight: 600,
   textTransform: "none",
-  borderRadius: "14px",
+  borderRadius: "12px",
   color: textSecondary,
   "&:hover": { bgcolor: warmCream, color: textPrimary },
 };
 
 export const pageShellSx = {
   minHeight: "100%",
-  background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 45%, rgba(254,226,226,0.2) 100%)`,
+  background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 48%, rgba(0,96,80,0.04) 100%)`,
   mx: { xs: -1.5, sm: -2, md: -3 },
   mt: { xs: -1, sm: -1.5 },
   px: { xs: 1.5, sm: 2, md: 3 },
