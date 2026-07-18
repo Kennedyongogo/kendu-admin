@@ -37,7 +37,10 @@ const BRAND = {
 const PAGE_TITLES = [
   { prefix: "/dashboard", title: "Dashboard", subtitle: "Overview & insights" },
   { prefix: "/programmes", title: "Programmes", subtitle: "Academic programmes & courses" },
+  { prefix: "/admissions", title: "Admissions", subtitle: "Applications & enrolment" },
+  { prefix: "/accounting", title: "Accounting", subtitle: "Fee collection & payment records" },
   { prefix: "/users", title: "Users", subtitle: "Account management" },
+  { prefix: "/music", title: "Music", subtitle: "Background audio tracks" },
   { prefix: "/settings", title: "Settings", subtitle: "Preferences & security" },
   { prefix: "/audit", title: "Audit Trail", subtitle: "Admin activity & system logs" },
 ];

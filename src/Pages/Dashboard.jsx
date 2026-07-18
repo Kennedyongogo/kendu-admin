@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Alert, Box, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { PieChart } from "@mui/x-charts/PieChart";
 import BrandPageLoader from "../components/Util/BrandPageLoader";
 import PeopleIcon from "@mui/icons-material/People";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
@@ -11,10 +12,13 @@ import SchoolIcon from "@mui/icons-material/School";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import {
   authJsonHeaders,
   pageShellSx,
   primaryGreen,
+  primaryDark,
   navy,
   textPrimary,
   textMuted,
@@ -35,6 +39,14 @@ const fadeUp = {
   }),
 };
 
+const cardSx = {
+  bgcolor: "#fff",
+  border: "1px solid rgba(0,96,80,0.1)",
+  borderRadius: "20px",
+  boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
+  overflow: "hidden",
+};
+
 const STATUS_ORDER = [
   { key: "pending", label: "Pending", color: accentGold },
   { key: "under_review", label: "Under review", color: navy },
@@ -52,138 +64,203 @@ const CARDS = [
   {
     key: "total_users",
     label: "Total users",
+    hint: "Admins, staff and students",
     icon: <PeopleIcon />,
     path: "/users",
     accent: primaryGreen,
-    tint: "rgba(0,96,80,0.1)",
   },
   {
     key: "admin",
     label: "Admins",
+    hint: "Administrator accounts",
     icon: <AdminPanelSettingsIcon />,
     path: "/users",
     accent: primaryGreen,
-    tint: "rgba(0,96,80,0.1)",
   },
   {
     key: "staff",
     label: "Staff",
+    hint: "Teaching and support staff",
     icon: <BadgeIcon />,
     path: "/users",
     accent: navy,
-    tint: "rgba(30,40,88,0.1)",
   },
   {
     key: "student",
     label: "Students",
+    hint: "Enrolled students",
     icon: <SchoolIcon />,
     path: "/users",
-    accent: accentGold,
-    tint: "rgba(200,168,64,0.18)",
+    accent: "#8a6d1c",
   },
   {
     key: "programmes",
     label: "Programmes",
+    hint: "Academic programmes offered",
     icon: <MenuBookIcon />,
     path: "/programmes",
     accent: primaryGreen,
-    tint: "rgba(0,96,80,0.1)",
   },
   {
     key: "admissions_total",
     label: "Admissions",
+    hint: "Applications received to date",
     icon: <AssignmentIndIcon />,
     path: "/admissions",
     accent: navy,
-    tint: "rgba(30,40,88,0.1)",
   },
 ];
 
-function StatCard({ icon, label, value, accent, tint, onClick, delay = 0 }) {
+function StatCard({ icon, label, value, hint, accent, onClick, index = 0 }) {
   return (
     <Box
       component={motion.div}
       variants={fadeUp}
-      custom={delay}
+      custom={index}
       initial="hidden"
       animate="visible"
       onClick={onClick}
       sx={{
-        width: "100%",
-        minWidth: 0,
-        p: { xs: 2.25, sm: 2.75 },
-        borderRadius: "20px",
-        bgcolor: "#fff",
-        border: "1px solid rgba(0,96,80,0.1)",
-        boxShadow: "0 14px 36px -16px rgba(20,26,58,0.14)",
-        cursor: onClick ? "pointer" : "default",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        ...cardSx,
+        p: 2.25,
         position: "relative",
-        overflow: "hidden",
+        cursor: onClick ? "pointer" : "default",
+        transition: "transform 0.25s ease, box-shadow 0.25s ease",
         "&:hover": onClick
           ? {
               transform: "translateY(-3px)",
-              boxShadow: "0 20px 44px -14px rgba(20,26,58,0.2)",
+              boxShadow: "0 20px 44px -18px rgba(20,26,58,0.22)",
             }
           : undefined,
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, ${accent}, ${accentGold})`,
+        },
       }}
     >
-      <Box
-        sx={{
-          position: "absolute",
-          top: -28,
-          right: -20,
-          width: 100,
-          height: 100,
-          borderRadius: "50%",
-          bgcolor: tint,
-        }}
-      />
-      <Box
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: "14px",
-          bgcolor: tint,
-          color: accent,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          mb: 2,
-          position: "relative",
-        }}
-      >
-        {icon}
-      </Box>
-      <Typography
-        sx={{
-          fontFamily: fontBody,
-          fontSize: "0.74rem",
-          fontWeight: 700,
-          color: textMuted,
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          position: "relative",
-        }}
-      >
-        {label}
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: fontDisplay,
-          fontWeight: 800,
-          fontSize: { xs: "2rem", sm: "2.35rem" },
-          color: textPrimary,
-          lineHeight: 1.1,
-          mt: 0.75,
-          position: "relative",
-        }}
-      >
-        {value}
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" spacing={1.5}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: fontBody,
+              color: textMuted,
+              fontWeight: 700,
+              fontSize: "0.7rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            {label}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: fontDisplay,
+              color: textPrimary,
+              fontWeight: 700,
+              fontSize: { xs: "1.55rem", xl: "1.85rem" },
+              letterSpacing: "-0.02em",
+              mt: 0.5,
+            }}
+          >
+            {value}
+          </Typography>
+          <Typography sx={{ fontFamily: fontBody, color: textSecondary, fontSize: "0.74rem", mt: 0.35 }}>
+            {hint}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            width: 46,
+            height: 46,
+            borderRadius: "14px",
+            display: "grid",
+            placeItems: "center",
+            color: "#fff",
+            background: `linear-gradient(145deg, ${accent} 0%, ${primaryDark} 130%)`,
+            boxShadow: `0 8px 20px -6px ${accent}66`,
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </Box>
+      </Stack>
     </Box>
   );
 }
+
+function ViewAllButton({ label = "View all", onClick }) {
+  return (
+    <Button
+      onClick={onClick}
+      endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: "1rem !important" }} />}
+      sx={{
+        textTransform: "none",
+        fontFamily: fontBody,
+        fontWeight: 700,
+        fontSize: "0.8rem",
+        color: primaryGreen,
+        borderRadius: "10px",
+        px: 1.5,
+        bgcolor: "rgba(0,96,80,0.07)",
+        flexShrink: 0,
+        "&:hover": { bgcolor: "rgba(0,96,80,0.14)" },
+      }}
+    >
+      {label}
+    </Button>
+  );
+}
+
+function ChartCard({ title, subtitle, actions, children, index = 0 }) {
+  return (
+    <Box
+      component={motion.div}
+      variants={fadeUp}
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      sx={{ ...cardSx, p: 0 }}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ sm: "center" }}
+        spacing={1.5}
+        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+      >
+        <Box>
+          <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
+            {title}
+          </Typography>
+          <Typography sx={{ fontFamily: fontBody, color: textMuted, fontSize: "0.74rem" }}>{subtitle}</Typography>
+        </Box>
+        {actions || null}
+      </Stack>
+      <Box sx={{ p: 2 }}>{children}</Box>
+    </Box>
+  );
+}
+
+function EmptyChart({ message }) {
+  return (
+    <Stack sx={{ height: 300 }} alignItems="center" justifyContent="center" spacing={1}>
+      <InsightsRoundedIcon sx={{ fontSize: 42, color: "rgba(0,96,80,0.25)" }} />
+      <Typography sx={{ fontFamily: fontBody, color: textMuted, fontSize: "0.85rem" }}>{message}</Typography>
+    </Stack>
+  );
+}
+
+const barChartBaseSx = {
+  "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.08)" },
+  "& .MuiChartsAxis-line": { stroke: "rgba(0,96,80,0.2)" },
+  "& .MuiChartsAxis-tick": { stroke: "rgba(0,96,80,0.2)" },
+  "& .MuiChartsAxis-tickLabel": { fontFamily: fontBody },
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -264,13 +341,14 @@ export default function Dashboard() {
     void loadStats();
   }, [loadStats]);
 
-  const chartDataset = useMemo(
+  const statusPieData = useMemo(
     () =>
-      STATUS_ORDER.map((s) => ({
-        status: s.label,
-        count: Number(stats.admissions_by_status[s.key] || 0),
+      STATUS_ORDER.map((s, index) => ({
+        id: index,
+        label: s.label,
+        value: Number(stats.admissions_by_status[s.key] || 0),
         color: s.color,
-      })),
+      })).filter((row) => row.value > 0),
     [stats.admissions_by_status]
   );
 
@@ -292,7 +370,6 @@ export default function Dashboard() {
     [stats.students_by_programme]
   );
 
-  const maxCount = Math.max(1, ...chartDataset.map((d) => d.count));
   const maxProgrammeCount = Math.max(1, ...programmeDataset.map((d) => d.count), 0);
   const maxStudentsProgrammeCount = Math.max(
     1,
@@ -318,361 +395,166 @@ export default function Dashboard() {
         </Alert>
       ) : null}
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mb: 3 }}>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr 1fr",
-              sm: "repeat(2, 1fr)",
-              md: "repeat(4, 1fr)",
-            },
-            gap: 2.5,
-          }}
-        >
-          {CARDS.slice(0, 4).map((card, i) => (
-            <StatCard
-              key={card.key}
-              icon={card.icon}
-              label={card.label}
-              value={Number(stats[card.key] || 0).toLocaleString()}
-              accent={card.accent}
-              tint={card.tint}
-              onClick={() => navigate(card.path)}
-              delay={i}
-            />
-          ))}
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, 1fr)",
-            },
-            gap: 2.5,
-          }}
-        >
-          {CARDS.slice(4).map((card, i) => (
-            <StatCard
-              key={card.key}
-              icon={card.icon}
-              label={card.label}
-              value={Number(stats[card.key] || 0).toLocaleString()}
-              accent={card.accent}
-              tint={card.tint}
-              onClick={() => navigate(card.path)}
-              delay={i + 4}
-            />
-          ))}
-        </Box>
-      </Box>
-
-      {/* Edge-to-edge admissions status chart */}
       <Box
-        component={motion.div}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         sx={{
-          mx: { xs: -1.5, sm: -2, md: -3 },
-          width: { xs: "calc(100% + 24px)", sm: "calc(100% + 32px)", md: "calc(100% + 48px)" },
-          bgcolor: "#fff",
-          borderTop: "1px solid rgba(0,96,80,0.1)",
-          borderBottom: "1px solid rgba(0,96,80,0.1)",
-          background: `linear-gradient(180deg, ${warmCream} 0%, #fff 40%, rgba(0,96,80,0.03) 100%)`,
-          px: { xs: 1.5, sm: 2.5, md: 3 },
-          py: { xs: 2.5, sm: 3.25 },
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            lg: "repeat(3, 1fr)",
+            xl: "repeat(6, 1fr)",
+          },
+          gap: 2,
+          mb: 2,
         }}
       >
-        <StackHeader
-          eyebrow="Admissions pipeline"
-          title="Applications by status"
-          total={stats.admissions_total}
-          onOpen={() => navigate("/admissions")}
-        />
+        {CARDS.map((card, i) => (
+          <StatCard
+            key={card.key}
+            icon={card.icon}
+            label={card.label}
+            value={Number(stats[card.key] || 0).toLocaleString()}
+            hint={card.hint}
+            accent={card.accent}
+            onClick={() => navigate(card.path)}
+            index={i}
+          />
+        ))}
+      </Box>
 
-        <Box sx={{ width: "100%", height: { xs: 280, sm: 340 }, mt: 1 }}>
-          <BarChart
-            dataset={chartDataset}
-            xAxis={[
-              {
-                dataKey: "status",
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(320px, 0.8fr) minmax(0, 1.5fr)" },
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <ChartCard
+          index={1}
+          title="Applications by status"
+          subtitle={`${Number(stats.admissions_total || 0).toLocaleString()} applications in the pipeline`}
+          actions={<ViewAllButton onClick={() => navigate("/admissions")} />}
+        >
+          {statusPieData.length ? (
+            <>
+              <PieChart
+                height={250}
+                series={[{
+                  data: statusPieData,
+                  innerRadius: 60,
+                  outerRadius: 92,
+                  paddingAngle: 3,
+                  cornerRadius: 5,
+                  highlightScope: { faded: "global", highlighted: "item" },
+                }]}
+                margin={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                slotProps={{ legend: { hidden: true } }}
+              />
+              <Stack direction="row" flexWrap="wrap" justifyContent="center" sx={{ gap: 1, mt: 1 }}>
+                {STATUS_ORDER.map((s) => (
+                  <Stack key={s.key} direction="row" spacing={0.7} alignItems="center">
+                    <Box sx={{ width: 9, height: 9, borderRadius: "3px", bgcolor: s.color }} />
+                    <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: textSecondary, fontWeight: 600 }}>
+                      {s.label} · {Number(stats.admissions_by_status[s.key] || 0)}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </>
+          ) : (
+            <EmptyChart message="No admission applications yet." />
+          )}
+        </ChartCard>
+
+        <ChartCard
+          index={2}
+          title="Applications by programme"
+          subtitle="Where applicants want to study"
+          actions={<ViewAllButton onClick={() => navigate("/admissions")} />}
+        >
+          {programmeDataset.length === 0 ? (
+            <EmptyChart message="No programme applications yet." />
+          ) : (
+            <BarChart
+              dataset={programmeDataset}
+              height={300}
+              xAxis={[{
+                dataKey: "programme",
                 scaleType: "band",
                 tickLabelStyle: {
                   fontFamily: fontBody,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 600,
                   fill: textSecondary,
                 },
-              },
-            ]}
-            yAxis={[
-              {
+              }]}
+              yAxis={[{
                 label: "Applications",
                 min: 0,
-                max: Math.ceil(maxCount * 1.15) || 1,
-                tickLabelStyle: {
-                  fontFamily: fontBody,
-                  fontSize: 11,
-                  fill: textMuted,
-                },
-                labelStyle: {
-                  fontFamily: fontBody,
-                  fontSize: 12,
-                  fill: textMuted,
-                },
-              },
-            ]}
-            series={[
-              {
+                max: Math.ceil(maxProgrammeCount * 1.15) || 1,
+                tickLabelStyle: { fontFamily: fontBody, fontSize: 11, fill: textMuted },
+                labelStyle: { fontFamily: fontBody, fontSize: 12, fill: textMuted },
+              }]}
+              series={[{
                 dataKey: "count",
                 label: "Applications",
-                color: primaryGreen,
+                color: navy,
                 valueFormatter: (v) => `${v}`,
-              },
-            ]}
-            borderRadius={10}
-            grid={{ horizontal: true }}
-            margin={{ top: 20, bottom: 40, left: 50, right: 16 }}
-            slotProps={{
-              legend: { hidden: true },
-            }}
-            sx={{
-              width: "100%",
-              height: "100%",
-              "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.1)" },
-              "& .MuiChartsAxis-line": { stroke: "rgba(0,96,80,0.2)" },
-              "& .MuiChartsAxis-tick": { stroke: "rgba(0,96,80,0.2)" },
-            }}
-          />
-        </Box>
-
-        <Box
-          sx={{
-            mt: { xs: 3.5, sm: 4 },
-            pt: { xs: 3, sm: 3.5 },
-            borderTop: "1px solid rgba(0,96,80,0.12)",
-          }}
-        >
-          <StackHeader
-            eyebrow="Admissions pipeline"
-            title="Applications by programme"
-            total={stats.admissions_total}
-            onOpen={() => navigate("/admissions")}
-          />
-
-          {programmeDataset.length === 0 ? (
-            <Typography
-              sx={{
-                mt: 2,
-                fontFamily: fontBody,
-                color: textMuted,
-                fontSize: "0.95rem",
-              }}
-            >
-              No programme applications yet.
-            </Typography>
-          ) : (
-            <Box sx={{ width: "100%", height: { xs: 300, sm: 360 }, mt: 1 }}>
-              <BarChart
-                dataset={programmeDataset}
-                xAxis={[
-                  {
-                    dataKey: "programme",
-                    scaleType: "band",
-                    tickLabelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      fill: textSecondary,
-                    },
-                  },
-                ]}
-                yAxis={[
-                  {
-                    label: "Applications",
-                    min: 0,
-                    max: Math.ceil(maxProgrammeCount * 1.15) || 1,
-                    tickLabelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 11,
-                      fill: textMuted,
-                    },
-                    labelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 12,
-                      fill: textMuted,
-                    },
-                  },
-                ]}
-                series={[
-                  {
-                    dataKey: "count",
-                    label: "Applications",
-                    color: navy,
-                    valueFormatter: (v) => `${v}`,
-                  },
-                ]}
-                borderRadius={10}
-                grid={{ horizontal: true }}
-                margin={{ top: 20, bottom: 56, left: 50, right: 16 }}
-                slotProps={{
-                  legend: { hidden: true },
-                }}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.1)" },
-                  "& .MuiChartsAxis-line": { stroke: "rgba(0,96,80,0.2)" },
-                  "& .MuiChartsAxis-tick": { stroke: "rgba(0,96,80,0.2)" },
-                }}
-              />
-            </Box>
+              }]}
+              borderRadius={8}
+              grid={{ horizontal: true }}
+              margin={{ top: 20, bottom: 50, left: 50, right: 16 }}
+              slotProps={{ legend: { hidden: true } }}
+              sx={barChartBaseSx}
+            />
           )}
-        </Box>
-
-        <Box
-          sx={{
-            mt: { xs: 3.5, sm: 4 },
-            pt: { xs: 3, sm: 3.5 },
-            borderTop: "1px solid rgba(0,96,80,0.12)",
-          }}
-        >
-          <StackHeader
-            eyebrow="Student enrolment"
-            title="Students by programme"
-            total={stats.student}
-            onOpen={() => navigate("/users")}
-          />
-
-          {studentsProgrammeDataset.length === 0 ? (
-            <Typography
-              sx={{
-                mt: 2,
-                fontFamily: fontBody,
-                color: textMuted,
-                fontSize: "0.95rem",
-              }}
-            >
-              No enrolled students with a programme yet.
-            </Typography>
-          ) : (
-            <Box sx={{ width: "100%", height: { xs: 300, sm: 360 }, mt: 1 }}>
-              <BarChart
-                dataset={studentsProgrammeDataset}
-                xAxis={[
-                  {
-                    dataKey: "programme",
-                    scaleType: "band",
-                    tickLabelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      fill: textSecondary,
-                    },
-                  },
-                ]}
-                yAxis={[
-                  {
-                    label: "Students",
-                    min: 0,
-                    max: Math.ceil(maxStudentsProgrammeCount * 1.15) || 1,
-                    tickLabelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 11,
-                      fill: textMuted,
-                    },
-                    labelStyle: {
-                      fontFamily: fontBody,
-                      fontSize: 12,
-                      fill: textMuted,
-                    },
-                  },
-                ]}
-                series={[
-                  {
-                    dataKey: "count",
-                    label: "Students",
-                    color: accentGold,
-                    valueFormatter: (v) => `${v}`,
-                  },
-                ]}
-                borderRadius={10}
-                grid={{ horizontal: true }}
-                margin={{ top: 20, bottom: 56, left: 50, right: 16 }}
-                slotProps={{
-                  legend: { hidden: true },
-                }}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.1)" },
-                  "& .MuiChartsAxis-line": { stroke: "rgba(0,96,80,0.2)" },
-                  "& .MuiChartsAxis-tick": { stroke: "rgba(0,96,80,0.2)" },
-                }}
-              />
-            </Box>
-          )}
-        </Box>
+        </ChartCard>
       </Box>
-    </Box>
-  );
-}
 
-function StackHeader({ eyebrow, title, total, onOpen }) {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        gap: 1.5,
-        mb: 1,
-      }}
-    >
-      <Box>
-        <Typography
-          sx={{
-            fontFamily: fontBody,
-            fontSize: "0.72rem",
-            fontWeight: 700,
-            color: textMuted,
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-          }}
-        >
-          {eyebrow}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: fontDisplay,
-            fontWeight: 800,
-            fontSize: { xs: "1.35rem", sm: "1.55rem" },
-            color: textPrimary,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {title}
-        </Typography>
-      </Box>
-      <Box
-        onClick={onOpen}
-        sx={{
-          cursor: "pointer",
-          px: 1.75,
-          py: 1,
-          borderRadius: "12px",
-          bgcolor: "rgba(0,96,80,0.08)",
-          border: "1px solid rgba(0,96,80,0.12)",
-          "&:hover": { bgcolor: "rgba(0,96,80,0.14)" },
-        }}
+      <ChartCard
+        index={3}
+        title="Students by programme"
+        subtitle={`${Number(stats.student || 0).toLocaleString()} enrolled students`}
+        actions={<ViewAllButton onClick={() => navigate("/users")} />}
       >
-        <Typography sx={{ fontFamily: fontBody, fontWeight: 800, color: primaryGreen, fontSize: "0.85rem" }}>
-          {Number(total || 0).toLocaleString()} total · View all
-        </Typography>
-      </Box>
+        {studentsProgrammeDataset.length === 0 ? (
+          <EmptyChart message="No enrolled students with a programme yet." />
+        ) : (
+          <BarChart
+            dataset={studentsProgrammeDataset}
+            height={320}
+            xAxis={[{
+              dataKey: "programme",
+              scaleType: "band",
+              tickLabelStyle: {
+                fontFamily: fontBody,
+                fontSize: 11,
+                fontWeight: 600,
+                fill: textSecondary,
+              },
+            }]}
+            yAxis={[{
+              label: "Students",
+              min: 0,
+              max: Math.ceil(maxStudentsProgrammeCount * 1.15) || 1,
+              tickLabelStyle: { fontFamily: fontBody, fontSize: 11, fill: textMuted },
+              labelStyle: { fontFamily: fontBody, fontSize: 12, fill: textMuted },
+            }]}
+            series={[{
+              dataKey: "count",
+              label: "Students",
+              color: primaryGreen,
+              valueFormatter: (v) => `${v}`,
+            }]}
+            borderRadius={8}
+            grid={{ horizontal: true }}
+            margin={{ top: 20, bottom: 50, left: 50, right: 16 }}
+            slotProps={{ legend: { hidden: true } }}
+            sx={barChartBaseSx}
+          />
+        )}
+      </ChartCard>
     </Box>
   );
 }

@@ -27,6 +27,8 @@ import SubjectViewPage from "./Programmes/SubjectViewPage";
 import Music from "./Music/Music";
 import Admissions from "./Admissions/Admissions";
 import AdmissionViewPage from "./Admissions/AdmissionViewPage";
+import Accounting from "./Accounting/Accounting";
+import RecordPaymentPage from "./Accounting/RecordPaymentPage";
 
 function readStoredUser() {
   try {
@@ -84,6 +86,8 @@ function PageRoutes() {
           <Route path="users" element={<UsersTable />} />
           <Route path="admissions/:id" element={<AdmissionViewPage />} />
           <Route path="admissions" element={<Admissions />} />
+          <Route path="accounting/record-payment" element={<RecordPaymentPage />} />
+          <Route path="accounting" element={<Accounting />} />
           <Route path="music" element={<Music />} />
           <Route path="audit" element={<Audit />} />
           <Route path="settings" element={<Settings user={user} />} />

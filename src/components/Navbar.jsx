@@ -8,6 +8,7 @@ import {
   MenuBook,
   LibraryMusic,
   AssignmentInd,
+  AccountBalanceWallet,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -146,6 +147,7 @@ const MENU_SECTIONS = [
     items: [
       { text: "Programmes", icon: <MenuBook />, path: "/programmes" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
+      { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
     ],
   },
   {
