@@ -662,17 +662,21 @@ export default function Music() {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               sx={inputSx}
             />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label="Sort order"
-                type="number"
-                fullWidth
-                value={form.sort_order}
-                onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
-                sx={inputSx}
-              />
-              <Box sx={{ flex: 1, px: 0.5, minWidth: 0 }}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "center" }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <TextField
+                  label="Sort order"
+                  type="number"
+                  fullWidth
+                  value={form.sort_order}
+                  onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
+                  sx={inputSx}
+                />
+              </Box>
+              {/* px keeps the slider thumb inside the dialog's overflow-hidden form wrapper */}
+              <Box sx={{ flex: 1, minWidth: 0, px: 1.25 }}>
                 <Typography
+                  noWrap
                   sx={{
                     fontFamily: fontBody,
                     fontSize: "0.75rem",
@@ -689,7 +693,7 @@ export default function Music() {
                   max={1}
                   step={0.05}
                   onChange={(_e, v) => setForm((f) => ({ ...f, volume: v }))}
-                  sx={{ color: primaryGreen }}
+                  sx={{ color: primaryGreen, display: "block" }}
                 />
               </Box>
             </Stack>

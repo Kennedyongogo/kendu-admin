@@ -24,6 +24,7 @@ import {
   Save as SaveIcon,
   Image as ImageIcon,
   DeleteOutline as DeleteOutlineIcon,
+  Grade as GradeIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
