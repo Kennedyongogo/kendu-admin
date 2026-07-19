@@ -29,6 +29,9 @@ import Admissions from "./Admissions/Admissions";
 import AdmissionViewPage from "./Admissions/AdmissionViewPage";
 import Accounting from "./Accounting/Accounting";
 import RecordPaymentPage from "./Accounting/RecordPaymentPage";
+import Timetable from "./Timetable/Timetable";
+import TimetableDayPage from "./Timetable/TimetableDayPage";
+import TimetableCreatePage from "./Timetable/TimetableCreatePage";
 
 function readStoredUser() {
   try {
@@ -88,6 +91,10 @@ function PageRoutes() {
           <Route path="admissions" element={<Admissions />} />
           <Route path="accounting/record-payment" element={<RecordPaymentPage />} />
           <Route path="accounting" element={<Accounting />} />
+          <Route path="timetable/create" element={<TimetableCreatePage />} />
+          <Route path="timetable/:id/edit" element={<TimetableCreatePage />} />
+          <Route path="timetable/day/:dateKey" element={<TimetableDayPage />} />
+          <Route path="timetable" element={<Timetable />} />
           <Route path="music" element={<Music />} />
           <Route path="audit" element={<Audit />} />
           <Route path="settings" element={<Settings user={user} />} />

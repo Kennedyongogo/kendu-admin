@@ -4,10 +4,17 @@ export const primaryLight = "rgba(0, 96, 80, 0.1)";
 export const accentGold = "#c8a840";
 export const accentGoldMuted = "#d4c078";
 export const navy = "#1e2858";
-export const warmCream = "#f7faf8";
-export const textPrimary = "#1e2858";
-export const textSecondary = "rgba(30, 40, 88, 0.68)";
-export const textMuted = "rgba(30, 40, 88, 0.48)";
+/*
+ * Theme-aware tokens: these resolve through CSS variables declared in
+ * index.css so the admin can switch between light and dark mode at runtime.
+ * `navy` above stays fixed because it doubles as an accent colour (gradients,
+ * text on gold buttons) that must not flip in dark mode.
+ */
+export const warmCream = "var(--kd-surface-soft)";
+export const surface = "var(--kd-surface)";
+export const textPrimary = "var(--kd-text-primary)";
+export const textSecondary = "var(--kd-text-secondary)";
+export const textMuted = "var(--kd-text-muted)";
 
 /** @deprecated use primaryGreen */
 export const primaryRed = primaryGreen;
@@ -87,7 +94,7 @@ export function profileImageSrc(userOrUrl) {
 export const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "12px",
-    bgcolor: "#fff",
+    bgcolor: "var(--kd-surface)",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
     "& fieldset": { borderColor: "rgba(0, 96, 80, 0.18)", borderWidth: "1.5px" },
@@ -134,7 +141,7 @@ export const ghostBtnSx = {
 
 export const pageShellSx = {
   minHeight: "100%",
-  background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 48%, rgba(0,96,80,0.04) 100%)`,
+  background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(0,96,80,0.04) 100%)`,
   mx: { xs: -1.5, sm: -2, md: -3 },
   mt: { xs: -1, sm: -1.5 },
   px: { xs: 1.5, sm: 2, md: 3 },

@@ -57,6 +57,7 @@ import {
   warmCream,
 } from "../Users/usersShared";
 import { UsersHero, RoleTabs, HeroActionButton, PremiumDialog } from "../Users/usersUi";
+import BrandPageLoader from "../Util/BrandPageLoader";
 
 const money = (value, currency = "KES") =>
   new Intl.NumberFormat("en-KE", {
@@ -102,7 +103,7 @@ const fadeUp = {
 };
 
 const cardSx = {
-  bgcolor: "#fff",
+  bgcolor: "var(--kd-surface)",
   border: "1px solid rgba(0,96,80,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
@@ -287,7 +288,7 @@ function DetailItem({ icon, label, children }) {
         p: 1.5,
         borderRadius: "14px",
         border: "1px solid rgba(0,96,80,0.1)",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         minWidth: 0,
       }}
     >
@@ -580,6 +581,10 @@ export default function Accounting() {
   );
   const hasMethodCollections = methodChart.some((row) => row.value > 0);
 
+  if (loading) {
+    return <BrandPageLoader message="Loading accounting…" />;
+  }
+
   return (
     <Box sx={pageShellSx}>
       <UsersHero
@@ -608,11 +613,7 @@ export default function Accounting() {
         </Alert>
       ) : null}
 
-      {loading ? (
-        <Box sx={{ minHeight: 360, display: "grid", placeItems: "center" }}>
-          <CircularProgress sx={{ color: primaryGreen }} />
-        </Box>
-      ) : tab === 0 && dashboard ? (
+      {tab === 0 && dashboard ? (
         <Box>
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" }, gap: 2 }}>
             <StatCard

@@ -9,6 +9,7 @@ import {
   LibraryMusic,
   AssignmentInd,
   AccountBalanceWallet,
+  CalendarMonth,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -148,6 +149,7 @@ const MENU_SECTIONS = [
       { text: "Programmes", icon: <MenuBook />, path: "/programmes" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
+      { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
     ],
   },
   {

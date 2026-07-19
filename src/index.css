@@ -1,3 +1,31 @@
+:root {
+  /* Kendu admin theme — light (default) */
+  --kd-surface: #ffffff;
+  --kd-surface-soft: #f7faf8;
+  --kd-page-a: #f7faf8;
+  --kd-page-b: #ffffff;
+  --kd-text-primary: #1e2858;
+  --kd-text-secondary: rgba(30, 40, 88, 0.68);
+  --kd-text-muted: rgba(30, 40, 88, 0.48);
+  --kd-sidebar-a: #f7faf8;
+  --kd-sidebar-b: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  /* Kendu admin theme — dark */
+  --kd-surface: #1b2232;
+  --kd-surface-soft: #161c2a;
+  --kd-page-a: #10151f;
+  --kd-page-b: #131a28;
+  --kd-text-primary: #e9edf8;
+  --kd-text-secondary: rgba(233, 237, 248, 0.72);
+  --kd-text-muted: rgba(233, 237, 248, 0.52);
+  --kd-sidebar-a: #151b29;
+  --kd-sidebar-b: #10151f;
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -6,6 +34,46 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  background-color: var(--kd-page-b);
+}
+
+/* ── Dark mode adjustments for MUI internals and portals ─────────────── */
+
+/* Menus, dialogs, popovers, autocomplete dropdowns, table papers */
+:root[data-theme="dark"] .MuiPaper-root {
+  background-color: var(--kd-surface);
+  color: var(--kd-text-primary);
+}
+
+/* Default outlined input borders are near-invisible on dark surfaces */
+:root[data-theme="dark"] .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Table row dividers */
+:root[data-theme="dark"] .MuiTableCell-root {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Chart axis / legend text (MUI X Charts renders SVG with dark fills) */
+:root[data-theme="dark"] .MuiChartsAxis-tickLabel,
+:root[data-theme="dark"] .MuiChartsAxis-label,
+:root[data-theme="dark"] .MuiChartsLegend-series text {
+  fill: rgba(233, 237, 248, 0.75) !important;
+}
+:root[data-theme="dark"] .MuiChartsAxis-line,
+:root[data-theme="dark"] .MuiChartsAxis-tick {
+  stroke: rgba(233, 237, 248, 0.3) !important;
+}
+
+/* SweetAlert popups */
+:root[data-theme="dark"] .swal2-popup {
+  background: var(--kd-surface);
+  color: var(--kd-text-primary);
+}
+:root[data-theme="dark"] .swal2-title,
+:root[data-theme="dark"] .swal2-html-container {
+  color: var(--kd-text-primary);
 }
 
 /* Ensure SweetAlert appears above Material-UI dialogs */
