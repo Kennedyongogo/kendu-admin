@@ -59,7 +59,7 @@ function PageRoutes() {
   }
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "var(--kd-page-b)" }}>
       <Navbar user={user} setUser={setUser} />
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 3, mt: 9, overflowX: "hidden" }}>
         <Routes>
