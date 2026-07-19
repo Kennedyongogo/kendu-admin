@@ -156,7 +156,7 @@ export default function HourList() {
         </Alert>
       ) : null}
 
-      <Box sx={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,96,80,0.1)", bgcolor: "#fff", boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)" }}>
+      <Box sx={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,96,80,0.1)", bgcolor: "var(--kd-surface)", boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)" }}>
         <TableContainer>
           <Table size="medium" sx={{ minWidth: 860 }}>
             <TableHead>

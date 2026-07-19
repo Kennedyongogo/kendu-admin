@@ -50,9 +50,23 @@ body {
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* Table row dividers */
+/* MUI defaults that read theme.palette.text.* (kept literal in theme.js) */
+:root[data-theme="dark"] .MuiInputBase-root {
+  color: var(--kd-text-primary);
+}
+:root[data-theme="dark"] .MuiFormLabel-root {
+  color: var(--kd-text-muted);
+}
+:root[data-theme="dark"] .MuiSelect-icon,
+:root[data-theme="dark"] .MuiTablePagination-root,
+:root[data-theme="dark"] .MuiTablePagination-actions .MuiIconButton-root:not(.Mui-disabled) {
+  color: var(--kd-text-secondary);
+}
+
+/* Table row dividers and default cell text */
 :root[data-theme="dark"] .MuiTableCell-root {
   border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: var(--kd-text-primary);
 }
 
 /* Chart axis / legend text (MUI X Charts renders SVG with dark fills) */

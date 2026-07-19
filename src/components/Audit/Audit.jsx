@@ -205,7 +205,7 @@ function StatPill({ label, value, accent = primaryGreen }) {
         minWidth: 140,
         flex: 1,
         borderRadius: "16px",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         border: "1px solid rgba(0,96,80,0.1)",
         boxShadow: "0 8px 24px -12px rgba(20,26,58,0.12)",
       }}
@@ -456,7 +456,7 @@ export default function Audit() {
           borderRadius: "20px",
           overflow: "hidden",
           border: "1px solid rgba(0,96,80,0.1)",
-          bgcolor: "#fff",
+          bgcolor: "var(--kd-surface)",
           boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         }}
       >
@@ -648,7 +648,7 @@ export default function Audit() {
               sx={{
                 p: 2,
                 borderRadius: "18px",
-                background: `linear-gradient(135deg, ${warmCream} 0%, #fff 100%)`,
+                background: `linear-gradient(135deg, ${warmCream} 0%, var(--kd-surface) 100%)`,
                 border: "1px solid rgba(0,96,80,0.1)",
               }}
             >

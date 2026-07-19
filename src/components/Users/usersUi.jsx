@@ -163,7 +163,7 @@ export function RoleTabs({ activeTab, onChange, tabs }) {
         p: 0.6,
         mb: 2.5,
         borderRadius: "14px",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         border: "1px solid rgba(0,96,80,0.1)",
         boxShadow: "0 4px 16px rgba(20,26,58,0.04)",
         overflowX: "auto",
@@ -215,7 +215,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
           sx: {
             borderRadius: "20px",
             overflow: "hidden",
-            bgcolor: "#fff",
+            bgcolor: "var(--kd-surface)",
             boxShadow: "0 24px 64px -12px rgba(20,26,58,0.22)",
             border: "1px solid rgba(0,96,80,0.1)",
           },
@@ -373,7 +373,7 @@ export function FormSection({ title, children }) {
       sx={{
         borderRadius: "18px",
         border: "1px solid rgba(0,96,80,0.1)",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         boxShadow: "0 12px 36px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
       }}

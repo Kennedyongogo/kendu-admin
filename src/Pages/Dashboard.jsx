@@ -40,7 +40,7 @@ const fadeUp = {
 };
 
 const cardSx = {
-  bgcolor: "#fff",
+  bgcolor: "var(--kd-surface)",
   border: "1px solid rgba(0,96,80,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",

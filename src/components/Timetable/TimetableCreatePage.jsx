@@ -198,7 +198,7 @@ function TimePartsPicker({ hour, minute, meridiem, onHour, onMinute, onMeridiem,
                 color: active ? "#fff" : textSecondary,
                 background: active
                   ? `linear-gradient(145deg, ${accent} 0%, ${primaryDark} 150%)`
-                  : "#fff",
+                  : "var(--kd-surface)",
                 "&:hover": {
                   background: active
                     ? `linear-gradient(145deg, ${accent} 0%, ${primaryDark} 150%)`
@@ -673,7 +673,7 @@ export default function TimetableCreatePage() {
               px: 1.5,
               py: 1.1,
               borderRadius: "12px",
-              bgcolor: `color-mix(in srgb, ${meta.accent} 8%, white)`,
+              bgcolor: `color-mix(in srgb, ${meta.accent} 8%, var(--kd-surface))`,
               border: `1px solid color-mix(in srgb, ${meta.accent} 22%, transparent)`,
             }}
           >

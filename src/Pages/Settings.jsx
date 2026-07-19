@@ -42,10 +42,10 @@ const BRAND = {
   goldMuted: "#d4c078",
 };
 
-const warmCream = "#f7faf8";
-const textPrimary = BRAND.navy;
-const textSecondary = "rgba(30, 40, 88, 0.68)";
-const textMuted = "rgba(30, 40, 88, 0.48)";
+const warmCream = "var(--kd-surface-soft)";
+const textPrimary = "var(--kd-text-primary)";
+const textSecondary = "var(--kd-text-secondary)";
+const textMuted = "var(--kd-text-muted)";
 const successGreen = "#15803d";
 
 const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
@@ -81,7 +81,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
       animate="visible"
       sx={{
         borderRadius: "20px",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         border: "1px solid rgba(0,96,80,0.1)",
         boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
@@ -95,7 +95,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
           px: { xs: 2, sm: 2.5 },
           py: 2,
           borderBottom: "1px solid rgba(0,96,80,0.08)",
-          background: `linear-gradient(135deg, ${warmCream} 0%, #fff 100%)`,
+          background: `linear-gradient(135deg, ${warmCream} 0%, var(--kd-surface) 100%)`,
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
@@ -174,7 +174,7 @@ function PasswordCriterion({ met, label }) {
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "12px",
-    bgcolor: "#fff",
+    bgcolor: "var(--kd-surface)",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
     "& fieldset": { borderColor: "rgba(0,96,80,0.18)", borderWidth: "1.5px" },
@@ -503,7 +503,7 @@ export default function Settings({ user }) {
     <Box
       sx={{
         minHeight: "100%",
-        background: `linear-gradient(180deg, ${warmCream} 0%, #FFFFFF 48%, rgba(0,96,80,0.04) 100%)`,
+        background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(0,96,80,0.04) 100%)`,
         mx: { xs: -1.5, sm: -2, md: -3 },
         mt: { xs: -1, sm: -1.5 },
         px: { xs: 1.5, sm: 2, md: 3 },

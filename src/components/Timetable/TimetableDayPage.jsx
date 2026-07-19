@@ -219,7 +219,7 @@ function EntryCard({ entry, meta, index, onEdit }) {
               px: 1.1,
               py: 0.55,
               borderRadius: "999px",
-              bgcolor: `color-mix(in srgb, ${meta.accent} 12%, white)`,
+              bgcolor: `color-mix(in srgb, ${meta.accent} 12%, var(--kd-surface))`,
               color: meta.accent,
             }}
           >
@@ -239,7 +239,7 @@ function EntryCard({ entry, meta, index, onEdit }) {
                 width: 30,
                 height: 30,
                 color: meta.accent,
-                bgcolor: `color-mix(in srgb, ${meta.accent} 10%, white)`,
+                bgcolor: `color-mix(in srgb, ${meta.accent} 10%, var(--kd-surface))`,
                 border: `1px solid color-mix(in srgb, ${meta.accent} 22%, transparent)`,
                 "&:hover": {
                   color: "#fff",
@@ -469,7 +469,7 @@ export default function TimetableDayPage() {
               display: "grid",
               placeItems: "center",
               color: meta.accent,
-              bgcolor: `color-mix(in srgb, ${meta.accent} 12%, white)`,
+              bgcolor: `color-mix(in srgb, ${meta.accent} 12%, var(--kd-surface))`,
             }}
           >
             <Icon sx={{ fontSize: 30 }} />

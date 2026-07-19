@@ -44,9 +44,8 @@ const navAccentDark = BRAND.greenDark;
 const navAccentLight = "rgba(0, 96, 80, 0.1)";
 const navHoverBg = "rgba(0, 96, 80, 0.08)";
 const navActiveBg = "rgba(0, 96, 80, 0.12)";
-const sidebarBg = "#f7faf8";
-const textPrimary = BRAND.navy;
-const textMuted = "rgba(30, 40, 88, 0.55)";
+const textPrimary = "var(--kd-text-primary)";
+const textMuted = "var(--kd-text-muted)";
 
 const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 const fontDisplay = '"Fraunces", "Georgia", serif';
@@ -54,7 +53,7 @@ const fontDisplay = '"Fraunces", "Georgia", serif';
 const drawerPaperSx = (theme, open) => ({
   border: "none",
   borderRight: `1px solid ${alpha(navAccent, 0.1)}`,
-  background: `linear-gradient(180deg, ${sidebarBg} 0%, #FFFFFF 55%, ${alpha(BRAND.gold, 0.08)} 100%)`,
+  background: `linear-gradient(180deg, var(--kd-sidebar-a) 0%, var(--kd-sidebar-b) 55%, ${alpha(BRAND.gold, 0.08)} 100%)`,
   boxShadow: open ? "4px 0 32px rgba(20, 26, 58, 0.06)" : "2px 0 16px rgba(20, 26, 58, 0.04)",
   overflowX: "hidden",
   display: "flex",
@@ -528,7 +527,7 @@ const Navbar = (props) => {
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
-                    bgcolor: alpha(textMuted, 0.1),
+                    bgcolor: "rgba(128, 134, 158, 0.14)",
                     color: textMuted,
                     transition: "all 0.2s ease",
                   }}
@@ -559,7 +558,7 @@ const Navbar = (props) => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      bgcolor: alpha(textMuted, 0.1),
+                      bgcolor: "rgba(128, 134, 158, 0.14)",
                       color: textMuted,
                       transition: "all 0.2s ease",
                     }}

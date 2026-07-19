@@ -361,7 +361,7 @@ export default function Music() {
         sx={{
           borderRadius: "18px",
           border: "1px solid rgba(0,96,80,0.12)",
-          bgcolor: "#fff",
+          bgcolor: "var(--kd-surface)",
           boxShadow: "0 12px 40px -24px rgba(20,26,58,0.18)",
           overflow: "hidden",
         }}

@@ -17,7 +17,10 @@ import {
   Lock as LockIcon,
   Logout as LogoutIcon,
   KeyboardArrowDown,
+  DarkModeRounded as DarkModeRoundedIcon,
+  LightModeRounded as LightModeRoundedIcon,
 } from "@mui/icons-material";
+import { applyThemeMode, getStoredThemeMode } from "../../theme/themeMode";
 import UserAccount from "./userAccount";
 import EditUserDetails from "./editUserDetails";
 import ChangePassword from "./changePassword";
@@ -80,9 +83,16 @@ export default function Header(props) {
   const [toggleEditDetails, setToggleEditDetails] = useState(false);
   const [toggleChangePass, setToggleChangePass] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [themeMode, setThemeMode] = useState(getStoredThemeMode);
   const navigate = useNavigate();
   const location = useLocation();
   const page = getPageContext(location.pathname);
+
+  const toggleThemeMode = () => {
+    const next = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(next);
+    applyThemeMode(next);
+  };
 
   const refreshMe = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -222,6 +232,26 @@ export default function Header(props) {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1.5 }, flexShrink: 0 }}>
+          <IconButton
+            aria-label={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={toggleThemeMode}
+            sx={{
+              color: "white",
+              bgcolor: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: "12px",
+              width: 40,
+              height: 40,
+              flexShrink: 0,
+              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+            }}
+          >
+            {themeMode === "dark" ? (
+              <LightModeRoundedIcon sx={{ fontSize: 20 }} />
+            ) : (
+              <DarkModeRoundedIcon sx={{ fontSize: 20 }} />
+            )}
+          </IconButton>
           <Box
             component="button"
             type="button"

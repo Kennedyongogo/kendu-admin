@@ -210,10 +210,10 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
                   : "1px dashed rgba(0,96,80,0.08)",
                 bgcolor: day
                   ? isToday
-                    ? "color-mix(in srgb, var(--schedule-accent) 10%, white)"
+                    ? "color-mix(in srgb, var(--schedule-accent) 10%, var(--kd-surface))"
                     : isWeekend
                       ? "rgba(200,168,64,0.1)"
-                      : "#fff"
+                      : "var(--kd-surface)"
                   : "transparent",
                 boxShadow: day
                   ? isToday
@@ -224,7 +224,7 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
                 "&:hover": day
                   ? {
                       bgcolor: isToday
-                        ? "color-mix(in srgb, var(--schedule-accent) 16%, white)"
+                        ? "color-mix(in srgb, var(--schedule-accent) 16%, var(--kd-surface))"
                         : "rgba(0,96,80,0.07)",
                       borderColor: "var(--schedule-accent)",
                     }

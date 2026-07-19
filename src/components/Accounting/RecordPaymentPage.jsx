@@ -78,7 +78,7 @@ function StudentCard({ student, selected, onSelect, index }) {
         position: "relative",
         borderRadius: "18px",
         overflow: "hidden",
-        bgcolor: "#fff",
+        bgcolor: "var(--kd-surface)",
         border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.12)",
         boxShadow: selected
           ? "0 18px 40px -14px rgba(0,96,80,0.45)"
@@ -113,7 +113,7 @@ function StudentCard({ student, selected, onSelect, index }) {
           display: "grid",
           placeItems: "center",
           border: selected ? "none" : "2px solid rgba(0,96,80,0.3)",
-          bgcolor: selected ? "#fff" : "rgba(255,255,255,0.7)",
+          bgcolor: selected ? "#fff" : "var(--kd-surface)",
           transition: "all 0.2s ease",
         }}
       >
@@ -132,7 +132,7 @@ function StudentCard({ student, selected, onSelect, index }) {
           fontSize: "1.15rem",
           bgcolor: selected ? primaryGreen : accentGold,
           color: selected ? "#fff" : navy,
-          border: "3px solid #fff",
+          border: "3px solid var(--kd-surface)",
           boxShadow: "0 8px 20px rgba(20,26,58,0.2)",
           position: "relative",
         }}
@@ -201,7 +201,7 @@ function MethodTile({ option, selected, onSelect }) {
         px: 1,
         borderRadius: "14px",
         border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.15)",
-        bgcolor: selected ? "rgba(0,96,80,0.06)" : "#fff",
+        bgcolor: selected ? "rgba(0,96,80,0.06)" : "var(--kd-surface)",
         boxShadow: selected ? "0 10px 24px -12px rgba(0,96,80,0.4)" : "none",
         cursor: "pointer",
         display: "flex",
@@ -392,7 +392,7 @@ export default function RecordPaymentPage() {
           initial="hidden"
           animate="visible"
           sx={{
-            bgcolor: "#fff",
+            bgcolor: "var(--kd-surface)",
             border: "1px solid rgba(0,96,80,0.1)",
             borderRadius: "20px",
             boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",

@@ -17,6 +17,11 @@ const theme = createTheme({
       light: "#4fa7d9", // Lighter variant
       dark: "#1b73a5", // Darker variant
     },
+    /*
+     * NOTE: keep real color values here (no CSS variables). MUI feeds these
+     * through color utilities like alpha()/darken(), which throw on var()
+     * strings. Dark-mode adjustments for MUI defaults live in index.css.
+     */
     background: {
       default: "#ffffff",
       paper: "#f9f9f9",

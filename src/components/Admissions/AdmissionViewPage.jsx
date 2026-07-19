@@ -111,7 +111,7 @@ function DocumentViewDialog({ open, doc, onClose }) {
               width: "100%",
               height: { xs: 320, sm: 480 },
               border: "none",
-              bgcolor: "#fff",
+              bgcolor: "var(--kd-surface)",
             }}
           />
         ) : (
