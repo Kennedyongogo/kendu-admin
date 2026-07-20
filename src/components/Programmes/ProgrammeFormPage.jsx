@@ -17,6 +17,10 @@ import {
   FormControlLabel,
   Switch,
   Alert,
+  Chip,
+  OutlinedInput,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -35,6 +39,7 @@ import {
   ghostBtnSx,
   pageShellSx,
   authHeaders,
+  getPortalToken,
   CATEGORY_OPTIONS,
   MODE_OPTIONS,
   emptyProgrammeForm,
@@ -53,9 +58,30 @@ export default function ProgrammeFormPage() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes");
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/departments?is_active=true&limit=100", {
+          headers: authHeaders(token),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (active && res.ok && data.success) {
+          setDepartments(Array.isArray(data.data) ? data.data : []);
+        }
+      } catch {
+        if (active) setDepartments([]);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -112,11 +138,21 @@ export default function ProgrammeFormPage() {
       Swal.fire({ icon: "warning", title: "Name required", text: "Please enter a programme name.", confirmButtonColor: primaryGreen });
       return;
     }
+    if (!form.department_ids?.length) {
+      Swal.fire({
+        icon: "warning",
+        title: "Department required",
+        text: "Select at least one department for this programme.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
       const body = new FormData();
       body.append("name", form.name.trim());
+      body.append("department_ids", JSON.stringify(form.department_ids));
       body.append("description", form.description || "");
       body.append("duration", form.duration || "");
       body.append("category", form.category || "");
@@ -207,6 +243,57 @@ export default function ProgrammeFormPage() {
               onChange={set("name")}
               sx={inputSx}
             />
+            <FormControl fullWidth required sx={inputSx}>
+              <InputLabel>Departments</InputLabel>
+              <Select
+                label="Departments"
+                multiple
+                value={form.department_ids}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    department_ids:
+                      typeof e.target.value === "string"
+                        ? e.target.value.split(",")
+                        : e.target.value,
+                  }))
+                }
+                input={<OutlinedInput label="Departments" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((id) => {
+                      const dept = departments.find((d) => d.id === id);
+                      return (
+                        <Chip
+                          key={id}
+                          size="small"
+                          label={dept ? `${dept.name}${dept.code ? ` (${dept.code})` : ""}` : id}
+                        />
+                      );
+                    })}
+                  </Box>
+                )}
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept.id} value={dept.id}>
+                    <Checkbox checked={form.department_ids.includes(dept.id)} />
+                    <ListItemText
+                      primary={dept.name}
+                      secondary={dept.code || undefined}
+                    />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {!departments.length ? (
+              <Typography sx={{ fontSize: "0.78rem", color: textSecondary }}>
+                No departments yet. Create one under Departments first.
+              </Typography>
+            ) : (
+              <Typography sx={{ fontSize: "0.78rem", color: textSecondary }}>
+                A programme can belong to more than one department.
+              </Typography>
+            )}
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
               <FormControl fullWidth sx={inputSx}>
                 <InputLabel>Category</InputLabel>

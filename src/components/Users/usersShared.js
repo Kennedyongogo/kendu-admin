@@ -24,13 +24,16 @@ export const fontDisplay = '"Fraunces", "Georgia", serif';
 
 export const ALL_ROLES = ["admin", "staff", "student"];
 
+import {
+  getPortalToken,
+  getPortalUser,
+  updatePortalUser,
+} from "../../auth/portalAuth";
+
+export { getPortalToken, getPortalUser, updatePortalUser };
+
 export function getActorFromStorage() {
-  try {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  return getPortalUser();
 }
 
 /** Roles the signed-in user may assign when creating or editing users. */
@@ -47,11 +50,14 @@ export const ROLE_TABS = [
   { label: "Students", value: "student" },
 ];
 
-export const authJsonHeaders = (token) => ({
-  "Content-Type": "application/json",
-  Accept: "application/json",
-  Authorization: `Bearer ${token}`,
-});
+export const authJsonHeaders = (token) => {
+  const resolved = token || getPortalToken();
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    Authorization: `Bearer ${resolved}`,
+  };
+};
 
 export function formatRole(role) {
   if (!role) return "—";

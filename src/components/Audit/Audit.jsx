@@ -34,6 +34,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
 import {
   authJsonHeaders,
+  getPortalToken,
   primaryGreen,
   primaryDark,
   warmCream,
@@ -258,7 +259,7 @@ export default function Audit() {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem("token");
+      const token = getPortalToken();
       if (!token) {
         setError("No authentication token found. Please sign in again.");
         return;
@@ -311,7 +312,7 @@ export default function Audit() {
   const handleViewLog = async (log) => {
     setSelectedLog(log);
     setOpenViewDialog(true);
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token || !log?.id) return;
 
     setDetailLoading(true);

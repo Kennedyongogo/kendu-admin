@@ -11,6 +11,7 @@ import {
   ghostBtnSx,
   pageShellSx,
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
 } from "../Users/usersShared";
@@ -28,6 +29,7 @@ export {
   ghostBtnSx,
   pageShellSx,
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
 };
@@ -52,9 +54,10 @@ export const MODE_OPTIONS = [
 ];
 
 export function authHeaders(token, isMultipart = false) {
+  const resolved = token || getPortalToken();
   const headers = {
     Accept: "application/json",
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${resolved}`,
   };
   if (!isMultipart) headers["Content-Type"] = "application/json";
   return headers;
@@ -93,6 +96,7 @@ export async function fetchProgrammesOptions(token) {
 
 export const emptyProgrammeForm = () => ({
   name: "",
+  department_ids: [],
   description: "",
   duration: "",
   category: "",
@@ -115,9 +119,18 @@ export const emptyProgrammeForm = () => ({
 });
 
 export function programmeToForm(row) {
+  const departmentIds = Array.isArray(row.department_ids)
+    ? row.department_ids
+    : Array.isArray(row.departments)
+      ? row.departments.map((d) => d.id)
+      : row.department_id || row.department?.id
+        ? [row.department_id || row.department.id]
+        : [];
+
   return {
     ...emptyProgrammeForm(),
     name: row.name || "",
+    department_ids: departmentIds,
     description: row.description || "",
     duration: row.duration || "",
     category: row.category || "",
@@ -150,6 +163,44 @@ export const SEMESTER_OPTIONS = [
   { value: 1, label: "Semester 1" },
   { value: 2, label: "Semester 2" },
 ];
+
+/** Year dropdown options from a programme's configured duration. */
+export function getProgrammeYearOptions(programme, currentYear) {
+  const configured = Math.max(1, Number(programme?.duration_years) || 4);
+  const years = Math.max(configured, Number(currentYear) || 1);
+  return Array.from({ length: years }, (_, i) => ({
+    value: i + 1,
+    label: `Year ${i + 1}`,
+  }));
+}
+
+/** Semester dropdown options from semester periods/weeks set on the programme. */
+export function getProgrammeSemesterOptions(programme) {
+  const s1Period = String(programme?.semester_1_period || "").trim();
+  const s2Period = String(programme?.semester_2_period || "").trim();
+  const s1Weeks = programme?.semester_1_weeks;
+  const s2Weeks = programme?.semester_2_weeks;
+
+  const labelFor = (num, period, weeks) => {
+    if (period) return `Semester ${num} · ${period}`;
+    if (weeks) return `Semester ${num} (${weeks} weeks)`;
+    return `Semester ${num}`;
+  };
+
+  return [
+    { value: 1, label: labelFor(1, s1Period, s1Weeks) },
+    { value: 2, label: labelFor(2, s2Period, s2Weeks) },
+  ];
+}
+
+/** Default year/semester when a programme is picked for a new unit offering. */
+export function defaultScheduleForProgramme(programme) {
+  const semesterOptions = getProgrammeSemesterOptions(programme);
+  return {
+    year_of_study: 1,
+    semester: semesterOptions[0]?.value ?? 1,
+  };
+}
 
 export const CURRENCY_OPTIONS = ["KES", "USD", "EUR", "GBP"];
 

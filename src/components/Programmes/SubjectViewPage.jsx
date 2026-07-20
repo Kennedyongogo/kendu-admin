@@ -10,7 +10,7 @@ import {
   MenuBook as MenuBookIcon,
   FormatListNumbered as FormatListNumberedIcon,
 } from "@mui/icons-material";
-import { primaryGreen, primaryDark, textSecondary, pageShellSx, fetchResourceOne } from "./programmesShared";
+import { primaryGreen, primaryDark, textSecondary, pageShellSx, fetchResourceOne, getPortalToken } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
 
@@ -21,7 +21,7 @@ export default function SubjectViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes/subjects");
 
   useEffect(() => {

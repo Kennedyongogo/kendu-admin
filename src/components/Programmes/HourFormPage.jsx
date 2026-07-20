@@ -30,6 +30,7 @@ import {
   saveResource,
   emptyHourForm,
   hourToForm,
+  getPortalToken,
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, fadeUp } from "../Users/usersUi";
@@ -47,7 +48,7 @@ export default function HourFormPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes/hours");
 
   useEffect(() => {

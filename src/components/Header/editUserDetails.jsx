@@ -13,6 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Close, Email, Person, Edit } from "@mui/icons-material";
+import { clearPortalSession } from "../../auth/portalAuth";
 
 export default function EditUserDetails({
   open,
@@ -69,7 +70,7 @@ export default function EditUserDetails({
           if (data.success) {
             setIsError(data.success);
             setTimeout(() => {
-              localStorage.clear();
+              clearPortalSession();
               setIsAuthenticated(false);
               window.location.href = "/";
             }, 1000);

@@ -42,6 +42,7 @@ import {
 } from "../Users/usersUi";
 import {
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   ghostBtnSx,
@@ -104,7 +105,7 @@ export default function Music() {
 
   const isEdit = Boolean(editingId);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
 
   const loadTracks = useCallback(async () => {
     setLoading(true);

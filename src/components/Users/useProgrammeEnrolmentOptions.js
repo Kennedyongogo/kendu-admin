@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getPortalToken } from "./usersShared";
 
 /**
  * Loads year/semester dropdown options for a programme from the API.
@@ -23,7 +24,7 @@ export default function useProgrammeEnrolmentOptions(programmeId) {
 
     (async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = getPortalToken();
         const res = await fetch(`/api/programmes/${programmeId}/enrolment-options`, {
           headers: {
             Accept: "application/json",

@@ -10,6 +10,10 @@ import {
   AssignmentInd,
   AccountBalanceWallet,
   CalendarMonth,
+  AccountTree,
+  School,
+  LockOpen,
+  HowToReg,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -26,6 +30,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import { Box, Typography } from "@mui/material";
 import Header from "./Header/Header";
+import { clearPortalSession } from "../auth/portalAuth";
 
 const drawerWidth = 280;
 const drawerCollapsedWidth = 100;
@@ -146,6 +151,10 @@ const MENU_SECTIONS = [
     label: "Operations",
     items: [
       { text: "Programmes", icon: <MenuBook />, path: "/programmes" },
+      { text: "Departments", icon: <AccountTree />, path: "/departments" },
+      { text: "Units", icon: <School />, path: "/units" },
+      { text: "Registrations", icon: <HowToReg />, path: "/registrations" },
+      { text: "Access", icon: <LockOpen />, path: "/access" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
@@ -285,14 +294,18 @@ const Navbar = (props) => {
     location.pathname === path ||
     (path === "/dashboard" && location.pathname.startsWith("/dashboard")) ||
     (path === "/programmes" && location.pathname.startsWith("/programmes")) ||
+    (path === "/departments" && location.pathname.startsWith("/departments")) ||
+    (path === "/units" && location.pathname.startsWith("/units")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
     (path === "/music" && location.pathname.startsWith("/music")) ||
     (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
+    (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
+    (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
   const logout = () => {
-    localStorage.clear();
+    clearPortalSession();
     navigate("/");
     fetch("/api/admin-users/logout", {
       method: "GET",
@@ -301,7 +314,22 @@ const Navbar = (props) => {
   };
 
   useEffect(() => {
-    if (user) setMenuItems(flatMenuItems);
+    if (!user) {
+      setMenuItems([]);
+      return;
+    }
+    if (user.role === "staff") {
+      setMenuItems(
+        flatMenuItems.filter(
+          (item) =>
+            item.path === "/settings" ||
+            item.path === "/units" ||
+            item.path === "/registrations"
+        )
+      );
+      return;
+    }
+    setMenuItems(flatMenuItems);
   }, [user]);
 
   useEffect(() => {

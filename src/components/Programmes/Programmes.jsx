@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Button,
-  Chip,
   IconButton,
   Stack,
   CircularProgress,
@@ -36,6 +35,7 @@ import {
   textMuted,
   pageShellSx,
   authHeaders,
+  getPortalToken,
   programmeImageSrc,
   formatCategory,
 } from "./programmesShared";
@@ -74,7 +74,7 @@ export default function Programmes() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -220,22 +220,21 @@ export default function Programmes() {
               >
                 <TableCell width={56}>#</TableCell>
                 <TableCell>Programme</TableCell>
+                <TableCell>Department</TableCell>
                 <TableCell>Category</TableCell>
-                <TableCell>Duration</TableCell>
-                <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <CircularProgress sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>
                       No programmes in this tab.
                     </Typography>
@@ -251,7 +250,6 @@ export default function Programmes() {
                 </TableRow>
               ) : (
                 items.map((row, idx) => {
-                  const active = row.is_active !== false;
                   const img = programmeImageSrc(row);
                   return (
                     <TableRow
@@ -290,26 +288,15 @@ export default function Programmes() {
                       </TableCell>
                       <TableCell>
                         <Typography sx={{ fontSize: "0.85rem", fontWeight: 600, color: textSecondary }}>
-                          {formatCategory(row.category)}
+                          {Array.isArray(row.departments) && row.departments.length
+                            ? row.departments.map((d) => d.name).join(", ")
+                            : row.department?.name || "—"}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography sx={{ fontSize: "0.85rem", fontWeight: 600, color: textSecondary }}>
-                          {row.duration || "—"}
+                          {formatCategory(row.category)}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={active ? "Active" : "Inactive"}
-                          size="small"
-                          sx={{
-                            fontWeight: 700,
-                            fontSize: "0.72rem",
-                            bgcolor: active ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.06)",
-                            color: active ? primaryDark : textSecondary,
-                            border: `1px solid ${active ? "rgba(0,96,80,0.2)" : "rgba(30,40,88,0.1)"}`,
-                          }}
-                        />
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={0.25} justifyContent="flex-end">

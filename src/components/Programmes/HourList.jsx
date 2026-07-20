@@ -30,6 +30,7 @@ import {
   pageShellSx,
   fetchResourceList,
   deleteResource,
+  getPortalToken,
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
@@ -48,7 +49,7 @@ export default function HourList() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const programmeFilterId = new URLSearchParams(location.search).get("programme_id") || "";
 
   useEffect(() => {

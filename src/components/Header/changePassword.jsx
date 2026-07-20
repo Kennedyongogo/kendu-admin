@@ -13,6 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Close, Lock, VpnKey, Security } from "@mui/icons-material";
+import { clearPortalSession } from "../../auth/portalAuth";
 
 export default function ChangePassword({
   open,
@@ -68,7 +69,7 @@ export default function ChangePassword({
           setIsLoading(false);
           if (data.success) {
             setIsError(data.success);
-            localStorage.clear();
+            clearPortalSession();
             setIsAuthenticated(false);
             window.location.href = "/";
           } else {

@@ -24,6 +24,7 @@ import {
   MarkEmailRead,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
+import { savePortalSession } from "../auth/portalAuth";
 
 const BRAND = {
   navy: "#1e2858",
@@ -350,10 +351,9 @@ export default function LoginPage() {
           timer: 1400,
           showConfirmButton: false,
         });
-        localStorage.setItem("token", data.data.token);
-        localStorage.setItem("userRole", authed.role);
-        localStorage.setItem("user", JSON.stringify(authed));
-        setTimeout(() => navigate("/dashboard"), 1400);
+        savePortalSession(authed, data.data.token);
+        const landingPath = authed.role === "staff" ? "/units" : "/dashboard";
+        setTimeout(() => navigate(landingPath), 1400);
       } else {
         Swal.fire({
           icon: "error",

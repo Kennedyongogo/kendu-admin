@@ -27,6 +27,12 @@ import ChangePassword from "./changePassword";
 import { useNavigate, useLocation } from "react-router-dom";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { RoleBadge } from "../Users/usersUi";
+import {
+  clearPortalSession,
+  getPortalToken,
+  getPortalUser,
+  updatePortalUser,
+} from "../../auth/portalAuth";
 
 const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 const fontDisplay = '"Fraunces", "Georgia", serif';
@@ -39,6 +45,10 @@ const BRAND = {
 
 const PAGE_TITLES = [
   { prefix: "/dashboard", title: "Dashboard", subtitle: "Overview & insights" },
+  { prefix: "/units", title: "Units", subtitle: "Semester offerings & approval" },
+  { prefix: "/registrations", title: "Registrations", subtitle: "Student unit enrollment by programme" },
+  { prefix: "/access", title: "Access", subtitle: "Fee gates for student services" },
+  { prefix: "/departments", title: "Departments", subtitle: "Academic departments & staff ownership" },
   { prefix: "/programmes", title: "Programmes", subtitle: "Academic programmes & courses" },
   { prefix: "/admissions", title: "Admissions", subtitle: "Applications & enrolment" },
   { prefix: "/accounting", title: "Accounting", subtitle: "Fee collection & payment records" },
@@ -73,7 +83,7 @@ function applyUser(userData, setCurrentUser, setUser) {
   if (!userData) return;
   setCurrentUser(userData);
   setUser?.(userData);
-  localStorage.setItem("user", JSON.stringify(userData));
+  updatePortalUser(userData);
 }
 
 export default function Header(props) {
@@ -95,7 +105,7 @@ export default function Header(props) {
   };
 
   const refreshMe = useCallback(async () => {
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) {
       window.location.href = "/";
       return;
@@ -113,9 +123,9 @@ export default function Header(props) {
       const payload = await response.json();
       applyUser(payload.data, setCurrentUser, props.setUser);
     } catch {
-      const savedUser = localStorage.getItem("user");
+      const savedUser = getPortalUser();
       if (savedUser) {
-        applyUser(JSON.parse(savedUser), setCurrentUser, props.setUser);
+        applyUser(savedUser, setCurrentUser, props.setUser);
       } else {
         window.location.href = "/";
       }
@@ -138,13 +148,9 @@ export default function Header(props) {
       void refreshMe();
     };
     const onStorage = (e) => {
-      if (e.key === "user" && e.newValue) {
-        try {
-          applyUser(JSON.parse(e.newValue), setCurrentUser, props.setUser);
-        } catch {
-          // ignore
-        }
-      }
+      if (!e.key || !e.key.startsWith("kendu_")) return;
+      const savedUser = getPortalUser();
+      if (savedUser) applyUser(savedUser, setCurrentUser, props.setUser);
     };
     window.addEventListener("kendu:user-updated", onUserUpdated);
     window.addEventListener("storage", onStorage);
@@ -155,7 +161,7 @@ export default function Header(props) {
   }, [props.setUser, refreshMe]);
 
   const logout = () => {
-    localStorage.clear();
+    clearPortalSession();
     navigate("/");
     fetch("/api/admin/logout", {
       method: "GET",

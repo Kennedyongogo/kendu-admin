@@ -18,6 +18,7 @@ import {
   formatMoney,
   formatSemester,
   formatYear,
+  getPortalToken,
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
@@ -29,7 +30,7 @@ export default function FeeViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes/fees");
 
   useEffect(() => {

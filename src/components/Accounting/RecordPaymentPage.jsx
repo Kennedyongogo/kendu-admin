@@ -35,6 +35,7 @@ import {
   accentGold,
   accentGoldMuted,
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   getInitials,
@@ -263,7 +264,7 @@ export default function RecordPaymentPage() {
     narrative: "",
   });
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/accounting");
 
   useEffect(() => {

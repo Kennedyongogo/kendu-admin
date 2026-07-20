@@ -43,6 +43,7 @@ import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 import {
   accentGold,
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   getInitials,
@@ -466,7 +467,7 @@ export default function Accounting() {
   const [collectionMonth, setCollectionMonth] = useState("");
   const [viewPayment, setViewPayment] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
 
   const loadDashboard = useCallback(async () => {
     const params = new URLSearchParams({ year: String(collectionYear) });

@@ -24,6 +24,7 @@ import BrandPageLoader from "../Util/BrandPageLoader";
 import {
   accentGold,
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   navy,
@@ -306,7 +307,7 @@ export default function TimetableDayPage() {
     }
 
     let active = true;
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     const dayStart = new Date(parsed.year, parsed.month, parsed.day);
     const dayEnd = new Date(parsed.year, parsed.month, parsed.day + 1);
 

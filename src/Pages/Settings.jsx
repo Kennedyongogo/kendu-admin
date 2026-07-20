@@ -32,6 +32,11 @@ import {
 } from "@mui/icons-material";
 import BrandPageLoader from "../components/Util/BrandPageLoader";
 import { RoleBadge, UserAvatar } from "../components/Users/usersUi";
+import {
+  clearPortalSession,
+  getPortalToken,
+  updatePortalUser,
+} from "../auth/portalAuth";
 
 const BRAND = {
   navy: "#1e2858",
@@ -252,7 +257,7 @@ export default function Settings({ user }) {
   }, []);
 
   const fetchMe = useCallback(async () => {
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) {
       setFetching(false);
       return;
@@ -270,7 +275,7 @@ export default function Settings({ user }) {
       if (data.success && data.data) {
         setCurrentUser(data.data);
         applyUserToForm(data.data);
-        localStorage.setItem("user", JSON.stringify(data.data));
+        updatePortalUser(data.data);
         window.dispatchEvent(new CustomEvent("kendu:user-updated", { detail: data.data }));
       }
     } catch (error) {
@@ -314,7 +319,7 @@ export default function Settings({ user }) {
   const isStudent = (currentUser?.role || user?.role) === "student";
 
   const logoutAndRedirect = () => {
-    localStorage.clear();
+    clearPortalSession();
     navigate("/");
     fetch("/api/admin/logout", { method: "GET", credentials: "include" }).catch(() => {});
   };
@@ -350,7 +355,7 @@ export default function Settings({ user }) {
 
     setPLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getPortalToken();
       if (!token || !effectiveId) {
         Swal.fire({
           icon: "error",
@@ -432,7 +437,7 @@ export default function Settings({ user }) {
 
     setDLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getPortalToken();
       if (!token || !effectiveId) {
         Swal.fire({
           icon: "error",
@@ -465,7 +470,7 @@ export default function Settings({ user }) {
       if (data.success && data.data) {
         setCurrentUser(data.data);
         applyUserToForm(data.data);
-        localStorage.setItem("user", JSON.stringify(data.data));
+        updatePortalUser(data.data);
         window.dispatchEvent(new CustomEvent("kendu:user-updated", { detail: data.data }));
         Swal.fire({
           icon: "success",

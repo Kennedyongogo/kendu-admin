@@ -46,6 +46,9 @@ import {
   ALL_ROLES,
   ROLE_TABS,
   authJsonHeaders,
+  getPortalToken,
+  getPortalUser,
+  updatePortalUser,
   formatRole,
   getActorFromStorage,
   assignableRoles,
@@ -83,6 +86,7 @@ const emptyForm = () => ({
   role: "staff",
   position: "",
   is_public: false,
+  department_id: "",
   programme_id: "",
   year_of_study: "",
   semester: "",
@@ -107,6 +111,7 @@ export default function UsersTable() {
   const [saving, setSaving] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [programmes, setProgrammes] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   const actor = getActorFromStorage();
   const editableRoles = assignableRoles(actor?.role);
@@ -140,7 +145,7 @@ export default function UsersTable() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) {
       setError("Please sign in again.");
       setLoading(false);
@@ -206,14 +211,22 @@ export default function UsersTable() {
   useEffect(() => {
     (async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("/api/programmes?is_active=true&limit=100", {
-          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok && data.success) setProgrammes(Array.isArray(data.data) ? data.data : []);
+        const token = getPortalToken();
+        const [progRes, deptRes] = await Promise.all([
+          fetch("/api/programmes?is_active=true&limit=100", {
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+          }),
+          fetch("/api/departments?is_active=true&limit=100", {
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const progData = await progRes.json().catch(() => ({}));
+        const deptData = await deptRes.json().catch(() => ({}));
+        if (progRes.ok && progData.success) setProgrammes(Array.isArray(progData.data) ? progData.data : []);
+        if (deptRes.ok && deptData.success) setDepartments(Array.isArray(deptData.data) ? deptData.data : []);
       } catch {
         setProgrammes([]);
+        setDepartments([]);
       }
     })();
   }, []);
@@ -232,6 +245,7 @@ export default function UsersTable() {
     role: u.role ?? "staff",
     position: u.position ?? "",
     is_public: Boolean(u.is_public),
+    department_id: u.department_id || u.department?.id || "",
     programme_id: u.programme_id || u.programme?.id || "",
     year_of_study: u.year_of_study != null ? String(u.year_of_study) : "",
     semester: u.semester != null ? String(u.semester) : "",
@@ -263,7 +277,7 @@ export default function UsersTable() {
     });
     if (!result.isConfirmed) return;
 
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) return;
 
     try {
@@ -290,7 +304,7 @@ export default function UsersTable() {
   };
 
   const handleToggleActive = async (user) => {
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) return;
     try {
       const res = await fetch(`/api/users/${user.id}/toggle-status`, {
@@ -317,7 +331,7 @@ export default function UsersTable() {
 
   const handleUpdate = async () => {
     if (!selectedUser) return;
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) return;
 
     if (form.role === "student" && !String(form.admission_number || "").trim()) {
@@ -358,11 +372,13 @@ export default function UsersTable() {
       );
       if (form.role !== "student") {
         body.append("position", form.position?.trim() || "");
+        body.append("department_id", form.department_id || "");
         body.append("programme_id", "");
         body.append("year_of_study", "");
         body.append("semester", "");
       } else {
         body.append("position", "");
+        body.append("department_id", "");
         body.append("programme_id", form.programme_id);
         body.append("year_of_study", form.year_of_study);
         body.append("semester", form.semester);
@@ -390,10 +406,9 @@ export default function UsersTable() {
       await fetchUsers();
 
       try {
-        const meRaw = localStorage.getItem("user");
-        const me = meRaw ? JSON.parse(meRaw) : null;
+        const me = getPortalUser();
         if (me?.id && data.data?.id && me.id === data.data.id) {
-          localStorage.setItem("user", JSON.stringify(data.data));
+          updatePortalUser(data.data);
           window.dispatchEvent(new CustomEvent("kendu:user-updated", { detail: data.data }));
         }
       } catch {
@@ -701,6 +716,11 @@ export default function UsersTable() {
                   value={selectedUser.position || "—"}
                 />
                 <DetailField
+                  icon={<BadgeIcon fontSize="small" />}
+                  label="Department"
+                  value={selectedUser.department?.name || "—"}
+                />
+                <DetailField
                   icon={<PublicIcon fontSize="small" />}
                   label="Public directory"
                   value={selectedUser.is_public ? "Visible on Meet our staff" : "Hidden from public site"}
@@ -947,21 +967,41 @@ export default function UsersTable() {
               </Stack>
             </>
           ) : (
-            <TextField
-              label="Position / title"
-              fullWidth
-              value={form.position}
-              onChange={(e) => setForm({ ...form, position: e.target.value })}
-              helperText="e.g. Principal, Clinical Instructor"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={inputSx}
-            />
+            <>
+              <TextField
+                label="Position / title"
+                fullWidth
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+                helperText="e.g. Principal, Clinical Instructor"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+              />
+              <FormControl fullWidth sx={inputSx}>
+                <InputLabel>Department</InputLabel>
+                <Select
+                  label="Department"
+                  value={form.department_id}
+                  onChange={(e) => setForm({ ...form, department_id: e.target.value })}
+                >
+                  <MenuItem value="">
+                    <em>Not assigned</em>
+                  </MenuItem>
+                  {departments.map((dept) => (
+                    <MenuItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                      {dept.code ? ` (${dept.code})` : ""}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </>
           )}
           <FormControl fullWidth sx={inputSx} disabled={!canEditRole}>
             <InputLabel>Role</InputLabel>
@@ -976,6 +1016,7 @@ export default function UsersTable() {
                   admission_number: role === "student" ? form.admission_number : "",
                   position: role === "student" ? "" : form.position,
                   is_public: role === "student" ? false : form.is_public,
+                  department_id: role === "student" ? "" : form.department_id,
                   programme_id: role === "student" ? form.programme_id : "",
                   year_of_study: role === "student" ? form.year_of_study : "",
                   semester: role === "student" ? form.semester : "",

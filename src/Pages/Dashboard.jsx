@@ -15,6 +15,10 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import {
+  getPortalToken,
+  getPortalUser,
+} from "../auth/portalAuth";
+import {
   authJsonHeaders,
   pageShellSx,
   primaryGreen,
@@ -283,16 +287,10 @@ export default function Dashboard() {
     students_by_programme: [],
   });
 
-  const user = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
-  })();
+  const user = getPortalUser();
 
   const loadStats = useCallback(async () => {
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) {
       setError("Please sign in again.");
       setLoading(false);

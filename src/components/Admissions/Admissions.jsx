@@ -31,6 +31,7 @@ import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, RoleTabs } from "../Users/usersUi";
 import {
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   inputSx,
@@ -62,7 +63,7 @@ export default function Admissions() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusTarget, setStatusTarget] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const statusFilter = ADMISSION_STATUS_TABS[activeTab]?.value;
 
   useEffect(() => {

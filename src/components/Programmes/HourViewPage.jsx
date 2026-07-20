@@ -10,7 +10,7 @@ import {
   Info as InfoIcon,
   FormatListNumbered as FormatListNumberedIcon,
 } from "@mui/icons-material";
-import { primaryGreen, pageShellSx, fetchResourceOne } from "./programmesShared";
+import { primaryGreen, pageShellSx, fetchResourceOne, getPortalToken } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
 
@@ -21,7 +21,7 @@ export default function HourViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes/hours");
 
   useEffect(() => {

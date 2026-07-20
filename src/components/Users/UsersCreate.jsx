@@ -35,6 +35,7 @@ import {
   ALL_ROLES,
   formatRole,
   getActorFromStorage,
+  getPortalToken,
   assignableRoles,
   primaryGreen,
   textSecondary,
@@ -55,6 +56,7 @@ const initialForm = () => ({
   role: "staff",
   position: "",
   is_public: false,
+  department_id: "",
   programme_id: "",
   year_of_study: "",
   semester: "",
@@ -68,6 +70,7 @@ export default function UsersCreate() {
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [programmes, setProgrammes] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   const actor = getActorFromStorage();
   const creatableRoles = assignableRoles(actor?.role);
@@ -100,14 +103,22 @@ export default function UsersCreate() {
   useEffect(() => {
     (async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("/api/programmes?is_active=true&limit=100", {
-          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok && data.success) setProgrammes(Array.isArray(data.data) ? data.data : []);
+        const token = getPortalToken();
+        const [progRes, deptRes] = await Promise.all([
+          fetch("/api/programmes?is_active=true&limit=100", {
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+          }),
+          fetch("/api/departments?is_active=true&limit=100", {
+            headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const progData = await progRes.json().catch(() => ({}));
+        const deptData = await deptRes.json().catch(() => ({}));
+        if (progRes.ok && progData.success) setProgrammes(Array.isArray(progData.data) ? progData.data : []);
+        if (deptRes.ok && deptData.success) setDepartments(Array.isArray(deptData.data) ? deptData.data : []);
       } catch {
         setProgrammes([]);
+        setDepartments([]);
       }
     })();
   }, []);
@@ -116,7 +127,7 @@ export default function UsersCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     if (!token) {
       Swal.fire({
         icon: "error",
@@ -168,6 +179,7 @@ export default function UsersCreate() {
       );
       if (form.role !== "student") {
         body.append("position", form.position?.trim() || "");
+        body.append("department_id", form.department_id || "");
       }
       if (form.role === "student") {
         body.append("admission_number", form.admission_number.trim());
@@ -487,21 +499,41 @@ export default function UsersCreate() {
                   </Stack>
                 </>
               ) : (
-                <TextField
-                  label="Position / title"
-                  fullWidth
-                  value={form.position}
-                  onChange={(e) => setForm({ ...form, position: e.target.value })}
-                  helperText="e.g. Principal, Clinical Instructor"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputSx}
-                />
+                <>
+                  <TextField
+                    label="Position / title"
+                    fullWidth
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    helperText="e.g. Principal, Clinical Instructor"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BadgeIcon sx={{ color: primaryGreen, fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={inputSx}
+                  />
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Department</InputLabel>
+                    <Select
+                      label="Department"
+                      value={form.department_id}
+                      onChange={(e) => setForm({ ...form, department_id: e.target.value })}
+                    >
+                      <MenuItem value="">
+                        <em>Not assigned</em>
+                      </MenuItem>
+                      {departments.map((dept) => (
+                        <MenuItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                          {dept.code ? ` (${dept.code})` : ""}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
               )}
               <FormControl fullWidth required sx={inputSx}>
                 <InputLabel>Role</InputLabel>
@@ -516,6 +548,7 @@ export default function UsersCreate() {
                       admission_number: role === "student" ? form.admission_number : "",
                       position: role === "student" ? "" : form.position,
                       is_public: role === "student" ? false : form.is_public,
+                      department_id: role === "student" ? "" : form.department_id,
                       programme_id: role === "student" ? form.programme_id : "",
                       year_of_study: role === "student" ? form.year_of_study : "",
                       semester: role === "student" ? form.semester : "",

@@ -12,7 +12,7 @@ import {
   CalendarMonth as CalendarMonthIcon,
   FormatListNumbered as FormatListNumberedIcon,
 } from "@mui/icons-material";
-import { primaryGreen, pageShellSx, fetchResourceOne, formatYear } from "./programmesShared";
+import { primaryGreen, pageShellSx, fetchResourceOne, formatYear, getPortalToken } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
 
@@ -23,7 +23,7 @@ export default function ModuleViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes/modules");
 
   useEffect(() => {

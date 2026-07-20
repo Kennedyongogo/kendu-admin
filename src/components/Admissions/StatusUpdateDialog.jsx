@@ -17,6 +17,7 @@ import Swal from "sweetalert2";
 import { PremiumDialog } from "../Users/usersUi";
 import {
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   ghostBtnSx,
   inputSx,
@@ -65,7 +66,7 @@ export default function StatusUpdateDialog({ open, application, onClose, onSaved
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const token = getPortalToken();
     setSaving(true);
     try {
       const payload = { status, note: note.trim() };

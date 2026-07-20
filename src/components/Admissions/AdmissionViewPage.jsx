@@ -30,6 +30,7 @@ import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp, HeroActionButton, PremiumDialog } from "../Users/usersUi";
 import {
   fontBody,
+  getPortalToken,
   fontDisplay,
   ghostBtnSx,
   pageShellSx,
@@ -142,7 +143,7 @@ export default function AdmissionViewPage() {
   const [statusOpen, setStatusOpen] = useState(false);
   const [viewDoc, setViewDoc] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
 
   const load = useCallback(async () => {
     setLoading(true);

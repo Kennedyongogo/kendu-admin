@@ -22,6 +22,7 @@ import Swal from "sweetalert2";
 import { PremiumDialog } from "./usersUi";
 import {
   fontBody,
+  getPortalToken,
   ghostBtnSx,
   inputSx,
   primaryBtnSx,
@@ -107,7 +108,7 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
 
     (async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = getPortalToken();
         const res = await fetch("/api/programmes?is_active=true&limit=100", {
           headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
         });
@@ -134,7 +135,7 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
     setFile(picked);
     setLoadingPreview(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getPortalToken();
       const body = new FormData();
       body.append("file", picked);
       const res = await fetch("/api/users/import-preview", {
@@ -174,7 +175,7 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
     setImporting(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = getPortalToken();
       const body = new FormData();
       body.append("file", file);
       body.append("mapping", JSON.stringify(mapping));

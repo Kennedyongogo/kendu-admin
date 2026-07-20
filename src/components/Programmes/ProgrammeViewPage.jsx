@@ -22,6 +22,7 @@ import {
   textSecondary,
   pageShellSx,
   authHeaders,
+  getPortalToken,
   programmeImageSrc,
   formatCategory,
 } from "./programmesShared";
@@ -35,7 +36,7 @@ export default function ProgrammeViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
   const goBack = () => navigate("/programmes");
 
   useEffect(() => {
@@ -207,6 +208,15 @@ export default function ProgrammeViewPage() {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2.5 }}>
           <FormSection title="Basics">
             <Stack spacing={1.5}>
+              <DetailField
+                icon={<SchoolIcon fontSize="small" />}
+                label="Departments"
+                value={
+                  Array.isArray(programme.departments) && programme.departments.length
+                    ? programme.departments.map((d) => d.name).join(", ")
+                    : programme.department?.name || "—"
+                }
+              />
               <DetailField icon={<SchoolIcon fontSize="small" />} label="Category" value={formatCategory(programme.category)} />
               <DetailField icon={<WorkspacePremiumIcon fontSize="small" />} label="Award" value={programme.award} />
               <DetailField icon={<AccessTimeIcon fontSize="small" />} label="Duration" value={programme.duration} />

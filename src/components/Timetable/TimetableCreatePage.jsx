@@ -31,6 +31,7 @@ import BrandPageLoader from "../Util/BrandPageLoader";
 import useProgrammeEnrolmentOptions from "../Users/useProgrammeEnrolmentOptions";
 import {
   authJsonHeaders,
+  getPortalToken,
   fontBody,
   fontDisplay,
   ghostBtnSx,
@@ -248,7 +249,7 @@ export default function TimetableCreatePage() {
   }));
 
   const enrolment = useProgrammeEnrolmentOptions(form.programme_id || null);
-  const token = localStorage.getItem("token");
+  const token = getPortalToken();
 
   const goBack = () => {
     if (location.state?.returnTo) {
