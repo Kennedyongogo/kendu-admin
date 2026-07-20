@@ -518,7 +518,6 @@ export default function Access() {
             icon={<RestaurantIcon sx={{ fontSize: 18 }} />}
             iconPosition="start"
             label="Meals"
-            disabled
           />
           <Tab
             value="exams"
@@ -577,7 +576,7 @@ export default function Access() {
             </Box>
           ) : (
             <Box
-              key="units"
+              key={tab}
               component={motion.div}
               variants={fadeUp}
               initial="hidden"
