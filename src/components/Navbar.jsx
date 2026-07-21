@@ -7,6 +7,7 @@ import {
   Dashboard,
   MenuBook,
   LibraryMusic,
+  Campaign,
   AssignmentInd,
   AccountBalanceWallet,
   CalendarMonth,
@@ -158,6 +159,7 @@ const MENU_SECTIONS = [
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
+      { text: "News & Events", icon: <Campaign />, path: "/announcements" },
     ],
   },
   {
@@ -302,6 +304,7 @@ const Navbar = (props) => {
     (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
     (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
     (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
+    (path === "/announcements" && location.pathname.startsWith("/announcements")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
   const logout = () => {
@@ -324,7 +327,9 @@ const Navbar = (props) => {
           (item) =>
             item.path === "/settings" ||
             item.path === "/units" ||
-            item.path === "/registrations"
+            item.path === "/registrations" ||
+            item.path === "/timetable" ||
+            item.path === "/announcements"
         )
       );
       return;

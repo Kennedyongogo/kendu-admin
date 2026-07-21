@@ -37,6 +37,7 @@ import DepartmentViewPage from "./Departments/DepartmentViewPage";
 import Units from "./Units/Units";
 import Registrations from "./Units/Registrations";
 import Access from "./Access/Access";
+import Announcements from "./Announcements/Announcements";
 import { readStoredPortalSession } from "../auth/portalAuth";
 
 function readStoredUser() {
@@ -68,6 +69,11 @@ function PageRoutes() {
             <>
               <Route path="units" element={<Units />} />
               <Route path="registrations" element={<Registrations />} />
+              <Route path="timetable/create" element={<TimetableCreatePage />} />
+              <Route path="timetable/:id/edit" element={<TimetableCreatePage />} />
+              <Route path="timetable/day/:dateKey" element={<TimetableDayPage />} />
+              <Route path="timetable" element={<Timetable />} />
+              <Route path="announcements" element={<Announcements />} />
               <Route path="settings" element={<Settings user={user} />} />
               <Route path="*" element={<Navigate to="/units" replace />} />
             </>
@@ -110,6 +116,7 @@ function PageRoutes() {
               <Route path="timetable/:id/edit" element={<TimetableCreatePage />} />
               <Route path="timetable/day/:dateKey" element={<TimetableDayPage />} />
               <Route path="timetable" element={<Timetable />} />
+              <Route path="announcements" element={<Announcements />} />
               <Route path="music" element={<Music />} />
               <Route path="audit" element={<Audit />} />
               <Route path="settings" element={<Settings user={user} />} />
