@@ -11,6 +11,7 @@ import {
   AssignmentInd,
   AccountBalanceWallet,
   CalendarMonth,
+  FactCheck,
   AccountTree,
   School,
   LockOpen,
@@ -159,6 +160,7 @@ const MENU_SECTIONS = [
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
+      { text: "Exam Timetables", icon: <FactCheck />, path: "/exam-timetables" },
       { text: "News & Events", icon: <Campaign />, path: "/announcements" },
     ],
   },
@@ -304,6 +306,7 @@ const Navbar = (props) => {
     (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
     (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
     (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
+    (path === "/exam-timetables" && location.pathname.startsWith("/exam-timetables")) ||
     (path === "/announcements" && location.pathname.startsWith("/announcements")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
@@ -329,6 +332,7 @@ const Navbar = (props) => {
             item.path === "/units" ||
             item.path === "/registrations" ||
             item.path === "/timetable" ||
+            item.path === "/exam-timetables" ||
             item.path === "/announcements"
         )
       );

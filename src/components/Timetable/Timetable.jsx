@@ -64,7 +64,7 @@ const SCHEDULE_TABS = [
   {
     key: "exam",
     label: "Exams",
-    createLabel: "Create exam",
+    createLabel: "Exam timetables",
     accent: navy,
     icon: <FactCheckRoundedIcon sx={{ fontSize: 16 }} />,
   },
@@ -434,7 +434,7 @@ export default function Timetable() {
               Timetable
             </Typography>
             <Typography noWrap sx={{ fontFamily: fontBody, color: "rgba(255,255,255,0.75)", fontSize: "0.76rem" }}>
-              Plan and review class sessions, CATs and examination schedules.
+              Plan and review class sessions and CATs. Exams use Exam Timetables.
             </Typography>
           </Box>
         </Stack>
@@ -442,6 +442,10 @@ export default function Timetable() {
           variant="contained"
           startIcon={<AddRoundedIcon sx={{ fontSize: "1.05rem !important" }} />}
           onClick={() => {
+            if (activeTab.key === "exam") {
+              navigate("/exam-timetables");
+              return;
+            }
             const params = new URLSearchParams({
               tab: activeTab.key,
               year: String(selectedYear),

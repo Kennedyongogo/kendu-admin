@@ -229,6 +229,13 @@ export default function TimetableCreatePage() {
   const returnYear = searchParams.get("year");
   const returnMonth = searchParams.get("month");
 
+  useEffect(() => {
+    // New exams are designed as full cohort plans, not one-off timetable entries
+    if (categoryKey === "exam" && !isEdit) {
+      navigate("/exam-timetables", { replace: true });
+    }
+  }, [categoryKey, isEdit, navigate]);
+
   const [programmes, setProgrammes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
