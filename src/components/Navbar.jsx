@@ -16,6 +16,7 @@ import {
   School,
   LockOpen,
   HowToReg,
+  TransferWithinAStation,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -157,6 +158,7 @@ const MENU_SECTIONS = [
       { text: "Units", icon: <School />, path: "/units" },
       { text: "Registrations", icon: <HowToReg />, path: "/registrations" },
       { text: "Access", icon: <LockOpen />, path: "/access" },
+      { text: "Cohort transfer", icon: <TransferWithinAStation />, path: "/cohort-transfer" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
@@ -300,6 +302,9 @@ const Navbar = (props) => {
     (path === "/programmes" && location.pathname.startsWith("/programmes")) ||
     (path === "/departments" && location.pathname.startsWith("/departments")) ||
     (path === "/units" && location.pathname.startsWith("/units")) ||
+    (path === "/registrations" && location.pathname.startsWith("/registrations")) ||
+    (path === "/access" && location.pathname.startsWith("/access")) ||
+    (path === "/cohort-transfer" && location.pathname.startsWith("/cohort-transfer")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
     (path === "/music" && location.pathname.startsWith("/music")) ||

@@ -60,9 +60,8 @@ const FEATURE_META = {
   exams: {
     label: "Exams",
     icon: FactCheckIcon,
-    title: "Exam access",
-    blurb: "Coming soon — unlock exam cards once fees reach your threshold.",
-    soon: true,
+    title: "Exam card",
+    blurb: "Gate exam card PDF download behind a minimum fee payment share.",
   },
 };
 
@@ -276,14 +275,25 @@ export default function Access() {
 
   const statusCopy = useMemo(() => {
     const unlockLabel =
-      tab === "meals" ? "meal card download" : tab === "exams" ? "exam access" : "unit enrollment";
+      tab === "meals"
+        ? "meal card download"
+        : tab === "exams"
+          ? "exam card download"
+          : "unit enrollment";
     if (!form.is_enabled) {
+      const openTitles = {
+        meals: "Meal cards are open",
+        exams: "Exam cards are open",
+        units: "Enrollment is open",
+      };
+      const openBodies = {
+        meals: "Any student can preview and download their meal card — fee progress is not checked.",
+        exams: "Any student can download their exam card — fee progress is not checked.",
+        units: "Any student in the cohort can enroll — fee progress is not checked.",
+      };
       return {
-        title: tab === "meals" ? "Meal cards are open" : "Enrollment is open",
-        body:
-          tab === "meals"
-            ? "Any student can preview and download their meal card — fee progress is not checked."
-            : "Any student in the cohort can enroll — fee progress is not checked.",
+        title: openTitles[tab] || "Feature is open",
+        body: openBodies[tab] || "Fee progress is not checked for this feature.",
         tone: "open",
       };
     }
@@ -524,7 +534,6 @@ export default function Access() {
             icon={<FactCheckIcon sx={{ fontSize: 18 }} />}
             iconPosition="start"
             label="Exams"
-            disabled
           />
         </Tabs>
       </Box>
