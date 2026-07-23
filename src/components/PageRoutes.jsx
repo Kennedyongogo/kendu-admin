@@ -38,6 +38,8 @@ import Units from "./Units/Units";
 import Registrations from "./Units/Registrations";
 import Access from "./Access/Access";
 import CohortTransferPage from "./CohortTransfer/CohortTransferPage";
+import StudentTranscriptPage from "./CohortTransfer/StudentTranscriptPage";
+import StudentTranscriptEditorPage from "./CohortTransfer/StudentTranscriptEditorPage";
 import Announcements from "./Announcements/Announcements";
 import ExamTimetables from "./ExamTimetable/ExamTimetables";
 import ExamTimetableCreate from "./ExamTimetable/ExamTimetableCreate";
@@ -113,6 +115,15 @@ function PageRoutes() {
               <Route path="units" element={<Units />} />
               <Route path="registrations" element={<Registrations />} />
               <Route path="access" element={<Access />} />
+              <Route
+                path="cohort-transfer/students/:studentId/transcripts/new"
+                element={<StudentTranscriptEditorPage />}
+              />
+              <Route
+                path="cohort-transfer/students/:studentId/transcripts/:transcriptId"
+                element={<StudentTranscriptEditorPage />}
+              />
+              <Route path="cohort-transfer/students/:studentId/transcript" element={<StudentTranscriptPage />} />
               <Route path="cohort-transfer" element={<CohortTransferPage />} />
               <Route path="users/create" element={<UsersCreate />} />
               <Route path="users" element={<UsersTable />} />

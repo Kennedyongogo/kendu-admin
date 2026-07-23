@@ -48,6 +48,7 @@ const PAGE_TITLES = [
   { prefix: "/units", title: "Units", subtitle: "Semester offerings & approval" },
   { prefix: "/registrations", title: "Registrations", subtitle: "Student unit enrollment by programme" },
   { prefix: "/access", title: "Access", subtitle: "Fee gates for student services" },
+  { prefix: "/cohort-transfer/students", title: "Transcript", subtitle: "Student academic record" },
   { prefix: "/cohort-transfer", title: "Cohort transfer", subtitle: "Move students between years & semesters" },
   { prefix: "/departments", title: "Departments", subtitle: "Academic departments & staff ownership" },
   { prefix: "/programmes", title: "Programmes", subtitle: "Academic programmes & courses" },

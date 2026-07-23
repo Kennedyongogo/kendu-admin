@@ -14,6 +14,7 @@ import {
   Snackbar,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
@@ -31,6 +32,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CohortTransferRegisterPanel from "./CohortTransferRegisterPanel";
 import {
   authJsonHeaders,
@@ -43,7 +45,9 @@ import {
   textSecondary,
   fontDisplay,
   fontBody,
+  profileImageSrc,
 } from "../Users/usersShared";
+import { useNavigate } from "react-router-dom";
 
 const DRAG_BODY_CLASS = "cohort-transfer-dragging";
 
@@ -71,6 +75,7 @@ function cloneSemesters(semesters) {
 
 function StudentCardVisual({ student }) {
   const name = student.full_name || student.admission_number || "?";
+  const photo = profileImageSrc(student);
   return (
     <>
       <DragIndicatorIcon
@@ -82,7 +87,7 @@ function StudentCardVisual({ student }) {
         }}
       />
       <Avatar
-        src={student.profile_image || undefined}
+        src={photo || undefined}
         sx={{
           width: 36,
           height: 36,
@@ -216,10 +221,11 @@ function DraggableStudentCard({
   isSelected,
   onToggleSelect,
   onPointerDragStart,
+  onViewStudent,
 }) {
   const handlePointerDown = (e) => {
     if (disabled || pickupDisabled || e.button !== 0) return;
-    if (e.target.closest("[data-select-checkbox]")) return;
+    if (e.target.closest("[data-select-checkbox]") || e.target.closest("[data-view-student]")) return;
     e.preventDefault();
     onPointerDragStart(e, {
       studentId: student.id,
@@ -279,6 +285,36 @@ function DraggableStudentCard({
       >
         <StudentCardVisual student={student} />
       </Box>
+      <Tooltip title="View transcripts" arrow placement="top">
+        <span>
+          <IconButton
+            data-view-student
+            size="small"
+            aria-label="View transcripts"
+            disabled={disabled}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewStudent?.(student, year, semester);
+            }}
+            sx={{
+              pointerEvents: "auto",
+              width: 32,
+              height: 32,
+              flexShrink: 0,
+              color: primaryGreen,
+              bgcolor: alpha(primaryGreen, 0.08),
+              border: `1px solid ${alpha(primaryGreen, 0.16)}`,
+              "&:hover": {
+                bgcolor: alpha(primaryGreen, 0.16),
+                borderColor: alpha(primaryGreen, 0.35),
+              },
+            }}
+          >
+            <VisibilityOutlinedIcon sx={{ fontSize: 17 }} />
+          </IconButton>
+        </span>
+      </Tooltip>
     </Box>
   );
 }
@@ -294,6 +330,7 @@ function SemesterColumn({
   selectedStudentIds,
   onToggleSelect,
   onPointerDragStart,
+  onViewStudent,
 }) {
   const count = semester.student_count ?? semester.students?.length ?? 0;
   const canBulkMove = selectedCount > 0 && !transferBusy;
@@ -465,6 +502,7 @@ function SemesterColumn({
                 isSelected={selectedStudentIds.has(student.id)}
                 onToggleSelect={onToggleSelect}
                 onPointerDragStart={onPointerDragStart}
+                onViewStudent={onViewStudent}
               />
             ))}
           </Stack>
@@ -475,6 +513,7 @@ function SemesterColumn({
 }
 
 export default function CohortTransferPage() {
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const pointerDragRef = useRef(null);
   const activeCardRef = useRef(null);
@@ -510,6 +549,23 @@ export default function CohortTransferPage() {
   const currentYear = years[yearIndex] || null;
   const selectedStudentIds = useMemo(() => new Set(selectedStudents.keys()), [selectedStudents]);
   const selectedCount = selectedStudents.size;
+
+  const handleViewStudent = useCallback(
+    (student, year, semester) => {
+      const payload = {
+        ...student,
+        year_of_study: student.year_of_study ?? year,
+        semester: student.semester ?? semester,
+      };
+      navigate(`/cohort-transfer/students/${student.id}/transcript`, {
+        state: {
+          student: payload,
+          programmeName: programmeMeta?.name || selectedProgramme?.name || null,
+        },
+      });
+    },
+    [navigate, programmeMeta?.name, selectedProgramme?.name]
+  );
 
   const showSnack = useCallback((message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -1899,6 +1955,7 @@ export default function CohortTransferPage() {
                                       selectedStudentIds={selectedStudentIds}
                                       onToggleSelect={toggleStudentSelection}
                                       onPointerDragStart={onPointerDragStart}
+                                      onViewStudent={handleViewStudent}
                                     />
                                   ))}
                                 </Box>
