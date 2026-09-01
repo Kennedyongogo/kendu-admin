@@ -17,6 +17,7 @@ import {
   LockOpen,
   HowToReg,
   TransferWithinAStation,
+  Groups,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -164,6 +165,7 @@ const MENU_SECTIONS = [
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
       { text: "Exam Timetables", icon: <FactCheck />, path: "/exam-timetables" },
       { text: "News & Events", icon: <Campaign />, path: "/announcements" },
+      { text: "Staff Commons", icon: <Groups />, path: "/staff-commons" },
     ],
   },
   {
@@ -313,6 +315,7 @@ const Navbar = (props) => {
     (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
     (path === "/exam-timetables" && location.pathname.startsWith("/exam-timetables")) ||
     (path === "/announcements" && location.pathname.startsWith("/announcements")) ||
+    (path === "/staff-commons" && location.pathname.startsWith("/staff-commons")) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
   const logout = () => {
@@ -338,7 +341,8 @@ const Navbar = (props) => {
             item.path === "/registrations" ||
             item.path === "/timetable" ||
             item.path === "/exam-timetables" ||
-            item.path === "/announcements"
+            item.path === "/announcements" ||
+            item.path === "/staff-commons"
         )
       );
       return;
