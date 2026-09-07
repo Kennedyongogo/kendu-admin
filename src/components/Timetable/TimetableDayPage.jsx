@@ -15,7 +15,6 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import QuizRoundedIcon from "@mui/icons-material/QuizRounded";
-import FactCheckRoundedIcon from "@mui/icons-material/FactCheckRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import EventAvailableRoundedIcon from "@mui/icons-material/EventAvailableRounded";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
@@ -53,14 +52,6 @@ const CATEGORY_META = {
     accent: "#b26a00",
     icon: QuizRoundedIcon,
     empty: "No continuous assessment tests are scheduled for this day.",
-  },
-  exam: {
-    key: "exam",
-    label: "Exams",
-    singular: "exam",
-    accent: navy,
-    icon: FactCheckRoundedIcon,
-    empty: "No examinations are scheduled for this day.",
   },
 };
 

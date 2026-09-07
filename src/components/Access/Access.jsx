@@ -60,8 +60,9 @@ const FEATURE_META = {
   exams: {
     label: "Exams",
     icon: FactCheckIcon,
-    title: "Exam card",
-    blurb: "Gate exam card PDF download behind a minimum fee payment share.",
+    title: "Exam timetable & card",
+    blurb:
+      "Gate exam timetable viewing/download and exam card PDF behind a minimum fee payment share.",
   },
 };
 
@@ -278,17 +279,18 @@ export default function Access() {
       tab === "meals"
         ? "meal card download"
         : tab === "exams"
-          ? "exam card download"
+          ? "exam timetable & card"
           : "unit enrollment";
     if (!form.is_enabled) {
       const openTitles = {
         meals: "Meal cards are open",
-        exams: "Exam cards are open",
+        exams: "Exam timetable is open",
         units: "Enrollment is open",
       };
       const openBodies = {
         meals: "Any student can preview and download their meal card — fee progress is not checked.",
-        exams: "Any student can download their exam card — fee progress is not checked.",
+        exams:
+          "Any student can view and download their exam timetable and exam card — fee progress is not checked.",
         units: "Any student in the cohort can enroll — fee progress is not checked.",
       };
       return {

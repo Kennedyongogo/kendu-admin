@@ -8,7 +8,6 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import TodayRoundedIcon from "@mui/icons-material/TodayRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import QuizRoundedIcon from "@mui/icons-material/QuizRounded";
-import FactCheckRoundedIcon from "@mui/icons-material/FactCheckRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import {
   accentGold,
@@ -60,13 +59,6 @@ const SCHEDULE_TABS = [
     createLabel: "Create CAT",
     accent: "#b26a00",
     icon: <QuizRoundedIcon sx={{ fontSize: 16 }} />,
-  },
-  {
-    key: "exam",
-    label: "Exams",
-    createLabel: "Exam timetables",
-    accent: navy,
-    icon: <FactCheckRoundedIcon sx={{ fontSize: 16 }} />,
   },
 ];
 
@@ -434,7 +426,7 @@ export default function Timetable() {
               Timetable
             </Typography>
             <Typography noWrap sx={{ fontFamily: fontBody, color: "rgba(255,255,255,0.75)", fontSize: "0.76rem" }}>
-              Plan and review class sessions and CATs. Exams use Exam Timetables.
+              Plan and review class sessions and CATs.
             </Typography>
           </Box>
         </Stack>
@@ -442,10 +434,6 @@ export default function Timetable() {
           variant="contained"
           startIcon={<AddRoundedIcon sx={{ fontSize: "1.05rem !important" }} />}
           onClick={() => {
-            if (activeTab.key === "exam") {
-              navigate("/exam-timetables");
-              return;
-            }
             const params = new URLSearchParams({
               tab: activeTab.key,
               year: String(selectedYear),

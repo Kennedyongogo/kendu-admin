@@ -6,6 +6,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Divider,
   FormControl,
   IconButton,
   InputLabel,
@@ -38,6 +39,7 @@ import {
   School as SchoolIcon,
   Send as SendIcon,
   Save as SaveIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
@@ -125,6 +127,212 @@ function StatusChip({ status }) {
   );
 }
 
+function formatWhen(value) {
+  if (!value) return null;
+  try {
+    return new Date(value).toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  } catch {
+    return String(value);
+  }
+}
+
+function DetailField({ label, value, fullWidth = false }) {
+  return (
+    <Box sx={{ gridColumn: fullWidth ? "1 / -1" : undefined, minWidth: 0 }}>
+      <Typography
+        sx={{
+          fontFamily: fontBody,
+          fontSize: "0.68rem",
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: textMuted,
+          mb: 0.4,
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: fontBody,
+          fontSize: "0.92rem",
+          fontWeight: 600,
+          color: textPrimary,
+          lineHeight: 1.45,
+          wordBreak: "break-word",
+        }}
+      >
+        {value || "—"}
+      </Typography>
+    </Box>
+  );
+}
+
+function UnitViewDialog({ open, onClose, unit, loading, error, onEdit }) {
+  const meta = STATUS_META[unit?.status] || STATUS_META.draft;
+  const registeredCount =
+    unit?.registrations_count ??
+    (Array.isArray(unit?.registrations)
+      ? unit.registrations.filter((r) => r.status === "registered").length
+      : null);
+
+  return (
+    <PremiumDialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      title={unit?.code || "Unit details"}
+      subtitle={unit?.name || (loading ? "Loading…" : "Unit offering")}
+      icon={<VisibilityIcon />}
+      footer={
+        <Stack direction="row" justifyContent="flex-end" spacing={1.25}>
+          {typeof onEdit === "function" ? (
+            <Button startIcon={<EditIcon />} onClick={onEdit} sx={ghostBtnSx}>
+              Edit
+            </Button>
+          ) : null}
+          <Button variant="contained" onClick={onClose} sx={primaryBtnSx}>
+            Close
+          </Button>
+        </Stack>
+      }
+    >
+      {loading && !unit ? (
+        <Box sx={{ py: 5, display: "flex", justifyContent: "center" }}>
+          <CircularProgress size={32} sx={{ color: primaryGreen }} />
+        </Box>
+      ) : error && !unit ? (
+        <Alert severity="error" sx={{ borderRadius: "12px" }}>
+          {error}
+        </Alert>
+      ) : unit ? (
+        <Stack spacing={2.25}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 1,
+              p: 1.5,
+              borderRadius: "14px",
+              bgcolor: meta.bg,
+              border: `1px solid ${meta.color}22`,
+            }}
+          >
+            <StatusChip status={unit.status} />
+            <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem", color: textSecondary, fontWeight: 600 }}>
+              {unit.is_active === false ? "Inactive offering" : "Active offering"}
+            </Typography>
+            {registeredCount != null ? (
+              <Typography
+                sx={{
+                  ml: { sm: "auto" },
+                  fontFamily: fontBody,
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: primaryDark,
+                }}
+              >
+                {registeredCount} registered
+              </Typography>
+            ) : null}
+          </Box>
+
+          {loading ? (
+            <LinearProgress
+              sx={{
+                height: 2,
+                borderRadius: 1,
+                bgcolor: "rgba(0,96,80,0.08)",
+                "& .MuiLinearProgress-bar": { bgcolor: primaryGreen },
+              }}
+            />
+          ) : null}
+
+          {error ? (
+            <Alert severity="warning" sx={{ borderRadius: "12px" }}>
+              {error}
+            </Alert>
+          ) : null}
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
+            <DetailField label="Programme" value={unit.programme?.name} fullWidth />
+            <DetailField label="Department" value={unit.department?.name} />
+            <DetailField
+              label="Department code"
+              value={unit.department?.code ? String(unit.department.code).toUpperCase() : null}
+            />
+            <DetailField label="Year of study" value={unit.year_of_study != null ? `Year ${unit.year_of_study}` : null} />
+            <DetailField label="Semester" value={unit.semester != null ? `Semester ${unit.semester}` : null} />
+            <DetailField label="Academic year" value={unit.academic_year} />
+            <DetailField label="Credits" value={unit.credits != null ? String(unit.credits) : null} />
+            <DetailField label="Contact hours" value={unit.hours != null ? String(unit.hours) : null} />
+          </Box>
+
+          {unit.description ? (
+            <>
+              <Divider sx={{ borderColor: "rgba(0,96,80,0.1)" }} />
+              <DetailField label="Description" value={unit.description} fullWidth />
+            </>
+          ) : null}
+
+          {unit.status === "rejected" && unit.rejection_reason ? (
+            <Alert severity="error" sx={{ borderRadius: "12px" }}>
+              <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", mb: 0.25 }}>Rejection reason</Typography>
+              <Typography sx={{ fontSize: "0.85rem" }}>{unit.rejection_reason}</Typography>
+            </Alert>
+          ) : null}
+
+          <Divider sx={{ borderColor: "rgba(0,96,80,0.1)" }} />
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
+            <DetailField
+              label="Created by"
+              value={
+                unit.creator?.full_name
+                  ? `${unit.creator.full_name}${unit.creator.role ? ` (${unit.creator.role})` : ""}`
+                  : null
+              }
+            />
+            <DetailField label="Created" value={formatWhen(unit.created_at)} />
+            {(unit.status === "approved" || unit.approver) && (
+              <>
+                <DetailField
+                  label={unit.status === "rejected" ? "Reviewed by" : "Approved by"}
+                  value={unit.approver?.full_name || null}
+                />
+                <DetailField
+                  label={unit.status === "rejected" ? "Reviewed" : "Approved"}
+                  value={formatWhen(unit.approved_at)}
+                />
+              </>
+            )}
+            {unit.status === "rejected" && !unit.approver && unit.approved_at ? (
+              <DetailField label="Reviewed" value={formatWhen(unit.approved_at)} />
+            ) : null}
+            <DetailField label="Last updated" value={formatWhen(unit.updated_at)} />
+          </Box>
+        </Stack>
+      ) : null}
+    </PremiumDialog>
+  );
+}
+
 function readActor() {
   return getPortalUser();
 }
@@ -137,6 +345,7 @@ function ProgrammeGallery({
   isStaff,
   fitViewport = false,
   onSelect,
+  onPreview,
   onAddUnit,
 }) {
   const [activeId, setActiveId] = useState(selectedId || programmes[0]?.id || null);
@@ -147,6 +356,12 @@ function ProgrammeGallery({
       setActiveId(programmes[0].id);
     }
   }, [selectedId, programmes, activeId]);
+
+  const setActiveProgramme = (prog) => {
+    if (!prog?.id) return;
+    setActiveId(prog.id);
+    if (typeof onPreview === "function") onPreview(prog);
+  };
 
   const active = programmes.find((p) => p.id === activeId) || programmes[0] || null;
   const counts = active?.unit_counts || { total: 0, pending: 0, approved: 0, draft: 0 };
@@ -459,6 +674,8 @@ function ProgrammeGallery({
               }}
             >
               {programmes.length} programme{programmes.length === 1 ? "" : "s"}
+              {" · "}
+              click to preview
             </Typography>
 
             <Stack
@@ -484,7 +701,7 @@ function ProgrammeGallery({
                     type="button"
                     whileHover={{ x: 2 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setActiveId(prog.id)}
+                    onClick={() => setActiveProgramme(prog)}
                     onDoubleClick={() => onSelect(prog)}
                     sx={{
                       all: "unset",
@@ -581,18 +798,22 @@ export default function Units() {
   const hasLoadedRef = useRef(false);
   const [programmesLoading, setProgrammesLoading] = useState(true);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
   const [programmes, setProgrammes] = useState([]);
   const [departmentMeta, setDepartmentMeta] = useState(null);
   const [departments, setDepartments] = useState([]);
+  /** Admin: scope gallery + create form to one department. Empty = all departments. */
+  const [filterDepartmentId, setFilterDepartmentId] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewUnit, setViewUnit] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState("");
 
   const statusFilter =
     tab === "draft"
@@ -606,16 +827,10 @@ export default function Units() {
             : "";
   // Draft / rejected: only the units this user created (staff or admin)
   const mineOnly = tab === "draft" || tab === "rejected" || (isStaff && tab === "pending");
-  const showUnitsTable = tab !== "programmes";
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 280);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, statusFilter, selectedProgrammeId, tab]);
+  }, [statusFilter, selectedProgrammeId, tab]);
 
   useEffect(() => {
     hasLoadedRef.current = false;
@@ -625,20 +840,29 @@ export default function Units() {
     setProgrammesLoading(true);
     try {
       const token = getPortalToken();
-      const res = await fetch("/api/units/assignable-programmes", {
+      const params = new URLSearchParams();
+      if (isAdmin && filterDepartmentId) params.set("department_id", filterDepartmentId);
+      const qs = params.toString();
+      const res = await fetch(`/api/units/assignable-programmes${qs ? `?${qs}` : ""}`, {
         headers: authJsonHeaders(token),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
         setProgrammes(Array.isArray(data.data) ? data.data : []);
         setDepartmentMeta(data.meta?.department || null);
+        // If the active programme is no longer in this department, clear selection
+        setSelectedProgrammeId((prev) => {
+          if (!prev) return prev;
+          const list = Array.isArray(data.data) ? data.data : [];
+          return list.some((p) => p.id === prev) ? prev : "";
+        });
       }
     } catch {
       /* ignore */
     } finally {
       setProgrammesLoading(false);
     }
-  }, []);
+  }, [isAdmin, filterDepartmentId]);
 
   const loadDepartments = useCallback(async () => {
     if (!isAdmin) return;
@@ -669,10 +893,14 @@ export default function Units() {
         page: String(page + 1),
         limit: String(rowsPerPage),
       });
-      if (debouncedSearch) params.set("search", debouncedSearch);
       if (statusFilter) params.set("status", statusFilter);
       if (mineOnly) params.set("mine", "true");
       if (selectedProgrammeId) params.set("programme_id", selectedProgrammeId);
+      // When a programme is selected, do not also force department — units may
+      // have been filed under another dept for a multi-linked programme.
+      if (!selectedProgrammeId && isAdmin && filterDepartmentId) {
+        params.set("department_id", filterDepartmentId);
+      }
 
       const res = await fetch(`/api/units?${params}`, {
         headers: authJsonHeaders(token),
@@ -690,7 +918,7 @@ export default function Units() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [page, rowsPerPage, debouncedSearch, statusFilter, selectedProgrammeId, tab, mineOnly]);
+  }, [page, rowsPerPage, statusFilter, selectedProgrammeId, tab, mineOnly, isAdmin, filterDepartmentId]);
 
   useEffect(() => {
     loadProgrammes();
@@ -715,18 +943,59 @@ export default function Units() {
     } else if (selectedProgrammeId) {
       base.programme_id = selectedProgrammeId;
     }
+    // Prefer linked department on the programme, else admin filter, else staff dept
+    const linkedDeptId = picked?.departments?.[0]?.id || null;
+    if (isAdmin) {
+      base.department_id = linkedDeptId || filterDepartmentId || "";
+    } else if (actor?.department_id) {
+      base.department_id = actor.department_id;
+    }
     setForm(base);
     setDialogOpen(true);
+  };
+
+  const handleDepartmentChange = (departmentId) => {
+    setForm((prev) => {
+      const stillValid = programmes.some(
+        (p) =>
+          p.id === prev.programme_id &&
+          (!departmentId ||
+            (p.departments || []).some((d) => d.id === departmentId) ||
+            // when filter already scoped list, any programme in list is valid for that dept
+            Boolean(filterDepartmentId && filterDepartmentId === departmentId))
+      );
+      // Prefer programmes linked to the chosen department from full list when available
+      const linkedToDept = programmes.filter((p) =>
+        (p.departments || []).some((d) => d.id === departmentId)
+      );
+      const keepProgramme =
+        stillValid ||
+        (filterDepartmentId && filterDepartmentId === departmentId && prev.programme_id);
+      return {
+        ...prev,
+        department_id: departmentId,
+        programme_id: keepProgramme ? prev.programme_id : linkedToDept[0]?.id || "",
+        ...(keepProgramme
+          ? {}
+          : defaultScheduleForProgramme(linkedToDept[0] || null)),
+      };
+    });
   };
 
   const handleProgrammeChange = (programmeId) => {
     const programme = programmes.find((p) => p.id === programmeId);
     const schedule = defaultScheduleForProgramme(programme);
+    const linkedDeptId = programme?.departments?.[0]?.id;
     setForm((prev) => ({
       ...prev,
       programme_id: programmeId,
       year_of_study: schedule.year_of_study,
       semester: schedule.semester,
+      // Keep admin-selected dept if it still matches; otherwise take programme's dept
+      department_id:
+        isAdmin && prev.department_id && (programme?.departments || []).some((d) => d.id === prev.department_id)
+          ? prev.department_id
+          : linkedDeptId || prev.department_id || filterDepartmentId || "",
     }));
   };
 
@@ -743,10 +1012,50 @@ export default function Units() {
     setForm(emptyForm());
   };
 
+  const openView = async (row) => {
+    if (!row?.id) return;
+    setViewUnit(row);
+    setViewError("");
+    setViewOpen(true);
+    setViewLoading(true);
+    try {
+      const token = getPortalToken();
+      const res = await fetch(`/api/units/${row.id}`, {
+        headers: authJsonHeaders(token),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "Could not load unit details");
+      setViewUnit(data.data || row);
+    } catch (err) {
+      setViewError(err.message || "Could not load unit details");
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
+  const closeView = () => {
+    setViewOpen(false);
+    setViewUnit(null);
+    setViewError("");
+    setViewLoading(false);
+  };
+
+  const editFromView = () => {
+    if (!viewUnit) return;
+    const row = viewUnit;
+    closeView();
+    openEdit(row);
+  };
+
   const goToProgrammeUnits = (programme) => {
     setSelectedProgrammeId(programme.id);
     setTab("draft");
     setPage(0);
+  };
+
+  const previewProgramme = (programme) => {
+    if (!programme?.id) return;
+    setSelectedProgrammeId(programme.id);
   };
 
   const handleSave = async () => {
@@ -915,16 +1224,26 @@ export default function Units() {
     [programmes, form.programme_id]
   );
 
+  /** Programmes shown in create/edit dialog for the chosen department. */
+  const formProgrammeOptions = useMemo(() => {
+    if (!isAdmin || !form.department_id) return programmes;
+    const linked = programmes.filter((p) =>
+      (p.departments || []).some((d) => d.id === form.department_id)
+    );
+    // If API already scoped by filterDepartmentId, list is already correct
+    if (filterDepartmentId && filterDepartmentId === form.department_id) return programmes;
+    return linked.length ? linked : programmes;
+  }, [isAdmin, form.department_id, programmes, filterDepartmentId]);
+
   const yearOptions = useMemo(
     () => getProgrammeYearOptions(formProgramme, form.year_of_study),
     [formProgramme, form.year_of_study]
   );
   const semesterOptions = useMemo(() => getProgrammeSemesterOptions(formProgramme), [formProgramme]);
 
-  const staffDepartment = departmentMeta || actor?.department || null;
-
-  const departmentLabel = staffDepartment?.name
-    || (isStaff ? "Your department" : "All programmes");
+  // Gallery header: API department when filtered; never fall back to admin's personal dept
+  // while showing an unfiltered "all programmes" list (that was the confusing Nursing + Clinical Medicine mix).
+  const galleryDepartment = departmentMeta || (isStaff ? actor?.department || null : null);
 
   const fitProgrammesViewport = isStaff && tab === "programmes";
 
@@ -970,13 +1289,13 @@ export default function Units() {
               My programmes
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-              {staffDepartment ? (
+              {galleryDepartment ? (
                 <Chip
                   icon={<AccountTreeIcon sx={{ fontSize: "16px !important" }} />}
                   label={
-                    staffDepartment.code
-                      ? `${staffDepartment.name} (${staffDepartment.code})`
-                      : staffDepartment.name
+                    galleryDepartment.code
+                      ? `${galleryDepartment.name} (${galleryDepartment.code})`
+                      : galleryDepartment.name
                   }
                   size="small"
                   sx={{
@@ -1011,9 +1330,82 @@ export default function Units() {
           }
           icon={<SchoolIcon sx={{ fontSize: 28, color: "#fff" }} />}
           actions={
-            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
-              Add unit
-            </HeroActionButton>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ sm: "center" }}>
+              {isAdmin ? (
+                <FormControl
+                  size="small"
+                  sx={{
+                    minWidth: 180,
+                    maxWidth: { xs: "100%", sm: 220 },
+                    width: { xs: "100%", sm: 220 },
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "var(--kd-surface)",
+                      borderRadius: "12px",
+                      fontFamily: fontBody,
+                      fontWeight: 600,
+                      color: "var(--kd-text-primary)",
+                      boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                      "& fieldset": { borderColor: "rgba(255,255,255,0.65)" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                      "&.Mui-focused fieldset": { borderColor: "#fff", borderWidth: 2 },
+                    },
+                    "& .MuiSelect-select": {
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      pr: "32px !important",
+                      color: "var(--kd-text-primary)",
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: "var(--kd-text-secondary)",
+                      bgcolor: "var(--kd-surface)",
+                      px: 0.75,
+                      ml: -0.25,
+                      borderRadius: "6px",
+                      "&.Mui-focused": { color: primaryGreen },
+                      "&.MuiInputLabel-shrink": {
+                        color: primaryGreen,
+                        fontWeight: 700,
+                      },
+                    },
+                    "& .MuiSelect-icon": { color: primaryGreen },
+                  }}
+                >
+                  <InputLabel id="units-dept-filter-label" shrink>
+                    Department
+                  </InputLabel>
+                  <Select
+                    labelId="units-dept-filter-label"
+                    label="Department"
+                    value={filterDepartmentId}
+                    displayEmpty
+                    notched
+                    renderValue={(selected) => {
+                      if (selected === "" || selected == null) return "All departments";
+                      const d = departments.find((x) => x.id === selected);
+                      if (!d) return "All departments";
+                      return d.code ? `${d.name} (${d.code})` : d.name;
+                    }}
+                    onChange={(e) => {
+                      setFilterDepartmentId(e.target.value);
+                      setSelectedProgrammeId("");
+                      setTab("programmes");
+                    }}
+                  >
+                    <MenuItem value="">All departments</MenuItem>
+                    {departments.map((d) => (
+                      <MenuItem key={d.id} value={d.id}>
+                        {d.name}
+                        {d.code ? ` (${d.code})` : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : null}
+              <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
+                Add unit
+              </HeroActionButton>
+            </Stack>
           }
         />
       )}
@@ -1078,15 +1470,26 @@ export default function Units() {
             <Tab value="rejected" label="Rejected" />
           </Tabs>
 
-          {showUnitsTable ? (
-            <TextField
-              size="small"
-              placeholder="Search units…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              sx={{ ...inputSx, minWidth: { sm: 220 }, mb: { xs: 1.5, lg: 1.25 }, mr: { lg: 0.5 } }}
-            />
-          ) : null}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: { xs: 1.5, lg: 1.25 }, mr: { lg: 0.5 }, flexWrap: "wrap" }} useFlexGap>
+            {selectedProgramme ? (
+              <Chip
+                size="small"
+                label={selectedProgramme.name}
+                onDelete={() => {
+                  setSelectedProgrammeId("");
+                  setPage(0);
+                }}
+                sx={{
+                  fontWeight: 700,
+                  maxWidth: 220,
+                  bgcolor: "rgba(0,96,80,0.1)",
+                  color: primaryDark,
+                  border: "1px solid rgba(0,96,80,0.2)",
+                  "& .MuiChip-label": { overflow: "hidden", textOverflow: "ellipsis" },
+                }}
+              />
+            ) : null}
+          </Stack>
         </Stack>
 
         {tab === "programmes" ? (
@@ -1094,10 +1497,11 @@ export default function Units() {
             programmes={programmes}
             loading={programmesLoading}
             selectedId={selectedProgrammeId}
-            department={staffDepartment}
+            department={galleryDepartment}
             isStaff={isStaff}
             fitViewport={fitProgrammesViewport}
             onSelect={goToProgrammeUnits}
+            onPreview={previewProgramme}
             onAddUnit={openCreate}
           />
         ) : (
@@ -1116,7 +1520,14 @@ export default function Units() {
                 }}
               >
                 <Typography sx={{ fontFamily: fontBody, fontWeight: 700, color: textPrimary, fontSize: "0.88rem" }}>
-                  Showing units for{" "}
+                  {tab === "draft"
+                    ? "Draft"
+                    : tab === "pending"
+                      ? "Pending"
+                      : tab === "approved"
+                        ? "Approved"
+                        : "Rejected"}{" "}
+                  units for{" "}
                   <Box component="span" sx={{ color: primaryGreen }}>
                     {selectedProgramme.name}
                   </Box>
@@ -1129,7 +1540,7 @@ export default function Units() {
                   }}
                   sx={{ textTransform: "none", fontWeight: 700, color: primaryGreen }}
                 >
-                  Clear filter
+                  Show all programmes
                 </Button>
               </Stack>
             ) : null}
@@ -1219,6 +1630,11 @@ export default function Units() {
                           </TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={0.25} justifyContent="flex-end">
+                              <Tooltip title="View">
+                                <IconButton size="small" onClick={() => openView(row)} sx={{ color: textSecondary }}>
+                                  <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
                               {editable ? (
                                 <Tooltip title="Edit">
                                   <IconButton size="small" onClick={() => openEdit(row)} sx={{ color: primaryGreen }}>
@@ -1310,6 +1726,21 @@ export default function Units() {
         )}
       </Box>
 
+      <UnitViewDialog
+        open={viewOpen}
+        onClose={closeView}
+        unit={viewUnit}
+        loading={viewLoading}
+        error={viewError}
+        onEdit={
+          viewUnit &&
+          ["draft", "rejected"].includes(viewUnit.status) &&
+          (viewUnit.created_by === actor?.id || viewUnit.creator?.id === actor?.id)
+            ? editFromView
+            : undefined
+        }
+      />
+
       <PremiumDialog
         open={dialogOpen}
         onClose={closeDialog}
@@ -1364,6 +1795,22 @@ export default function Units() {
             placeholder="e.g. Medical-Surgical Nursing"
             sx={inputSx}
           />
+          {isAdmin && !editing ? (
+            <FormControl fullWidth size="small" sx={inputSx}>
+              <InputLabel>Department</InputLabel>
+              <Select
+                label="Department"
+                value={form.department_id}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
+              >
+                {departments.map((d) => (
+                  <MenuItem key={d.id} value={d.id}>
+                    {d.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : null}
           <FormControl fullWidth size="small" sx={inputSx}>
             <InputLabel>Programme</InputLabel>
             <Select
@@ -1371,7 +1818,7 @@ export default function Units() {
               value={form.programme_id}
               onChange={(e) => handleProgrammeChange(e.target.value)}
             >
-              {programmes.map((p) => (
+              {formProgrammeOptions.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {p.name}
                 </MenuItem>
@@ -1399,27 +1846,13 @@ export default function Units() {
               </Typography>
             </Alert>
           ) : null}
-          {isAdmin && !editing ? (
-            <FormControl fullWidth size="small" sx={inputSx}>
-              <InputLabel>Department</InputLabel>
-              <Select
-                label="Department"
-                value={form.department_id}
-                onChange={(e) => setForm({ ...form, department_id: e.target.value })}
-              >
-                {departments.map((d) => (
-                  <MenuItem key={d.id} value={d.id}>
-                    {d.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ) : null}
-          {!programmes.length ? (
+          {!formProgrammeOptions.length ? (
             <Alert severity="warning" sx={{ borderRadius: "12px" }}>
               {isStaff
                 ? "No programmes are linked to your department yet. Ask an admin to link programmes first."
-                : "No active programmes found."}
+                : isAdmin && form.department_id
+                  ? "No programmes linked to this department. Link them under Departments first."
+                  : "No active programmes found."}
             </Alert>
           ) : null}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>

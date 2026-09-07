@@ -8,6 +8,7 @@ import {
   Chip,
   CircularProgress,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Tooltip,
@@ -17,6 +18,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
@@ -28,6 +30,8 @@ import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import DateRangeRoundedIcon from "@mui/icons-material/DateRangeRounded";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton, PremiumDialog } from "../Users/usersUi";
+import useProgrammeEnrolmentOptions from "../Users/useProgrammeEnrolmentOptions";
+import { fetchProgrammesOptions } from "../Programmes/programmesShared";
 import {
   authJsonHeaders,
   getPortalToken,
@@ -112,6 +116,26 @@ const emptySlotForm = () => {
   };
 };
 
+const toDateInputValue = (value) => {
+  if (!value) return "";
+  const s = String(value);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return localDateValue(d);
+};
+
+const periodToEditForm = (row) => ({
+  title: row?.title || "",
+  programme_id: row?.programme_id || "",
+  year_of_study: String(row?.year_of_study || 1),
+  semester: String(row?.semester || 1),
+  academic_year: row?.academic_year || "",
+  period_start: toDateInputValue(row?.period_start),
+  period_end: toDateInputValue(row?.period_end),
+  notes: row?.notes || "",
+});
+
 export default function ExamTimetablePlan() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -128,8 +152,13 @@ export default function ExamTimetablePlan() {
   const [saving, setSaving] = useState(false);
   const [acting, setActing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [planDialog, setPlanDialog] = useState(false);
+  const [planForm, setPlanForm] = useState(periodToEditForm());
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [programmes, setProgrammes] = useState([]);
 
   const editable = period && ["draft", "rejected"].includes(period.status);
+  const enrolment = useProgrammeEnrolmentOptions(planForm.programme_id);
   const slots = useMemo(
     () => (Array.isArray(period?.slots) ? period.slots : []),
     [period]
@@ -161,6 +190,88 @@ export default function ExamTimetablePlan() {
     setEditingSlotId(null);
     setSlotForm(emptySlotForm());
     setSlotDialog(true);
+  };
+
+  const openEditPlan = async () => {
+    if (!period) return;
+    setPlanForm(periodToEditForm(period));
+    setPlanDialog(true);
+    if (!programmes.length) {
+      try {
+        const list = await fetchProgrammesOptions(token);
+        setProgrammes(Array.isArray(list) ? list : []);
+      } catch {
+        setProgrammes([]);
+      }
+    }
+  };
+
+  const closePlanDialog = () => {
+    if (savingPlan) return;
+    setPlanDialog(false);
+  };
+
+  const savePlan = async (e) => {
+    e?.preventDefault?.();
+    if (!planForm.title.trim() || !planForm.programme_id || !planForm.academic_year.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Title, programme, and academic year are required.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
+    if (
+      planForm.period_start &&
+      planForm.period_end &&
+      planForm.period_end < planForm.period_start
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid dates",
+        text: "Exam period end must be on or after the start date.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
+
+    setSavingPlan(true);
+    try {
+      const res = await fetch(`/api/exam-timetables/${id}`, {
+        method: "PUT",
+        headers: authJsonHeaders(token),
+        body: JSON.stringify({
+          title: planForm.title.trim(),
+          programme_id: planForm.programme_id,
+          year_of_study: Number(planForm.year_of_study) || 1,
+          semester: Number(planForm.semester) || 1,
+          academic_year: planForm.academic_year.trim(),
+          period_start: planForm.period_start || null,
+          period_end: planForm.period_end || null,
+          notes: planForm.notes.trim() || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || "Could not update plan");
+      setPeriod(data.data);
+      setPlanDialog(false);
+      await Swal.fire({
+        icon: "success",
+        title: "Plan updated",
+        timer: 900,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could not update plan",
+        text: err.message,
+        confirmButtonColor: primaryGreen,
+      });
+    } finally {
+      setSavingPlan(false);
+    }
   };
 
   const openEditSlot = (slot) => {
@@ -467,18 +578,44 @@ export default function ExamTimetablePlan() {
             color: "#fff",
           }}
         >
-          <Typography
-            sx={{
-              fontFamily: fontDisplay,
-              fontWeight: 700,
-              fontSize: { xs: "1rem", sm: "1.1rem" },
-            }}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.25}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            justifyContent="space-between"
           >
-            Plan overview
-          </Typography>
-          <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem", opacity: 0.88, mt: 0.25 }}>
-            {cohortSubtitle}
-          </Typography>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontFamily: fontDisplay,
+                  fontWeight: 700,
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                }}
+              >
+                Plan overview
+              </Typography>
+              <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem", opacity: 0.88, mt: 0.25 }}>
+                {cohortSubtitle}
+              </Typography>
+            </Box>
+            {editable ? (
+              <Tooltip title="Edit plan" arrow>
+                <IconButton
+                  onClick={() => void openEditPlan()}
+                  aria-label="Edit plan"
+                  size="small"
+                  sx={{
+                    color: "#fff",
+                    bgcolor: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.28)",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.22)" },
+                  }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+          </Stack>
         </Box>
 
         <Box
@@ -653,6 +790,144 @@ export default function ExamTimetablePlan() {
           </Box>
         )}
       </Box>
+
+      <PremiumDialog
+        open={planDialog}
+        onClose={closePlanDialog}
+        title="Edit exam timetable"
+        subtitle="Update the cohort window and plan details while this timetable is still a draft."
+        icon={<EditIcon />}
+        maxWidth="sm"
+        footer={
+          <>
+            <Button onClick={closePlanDialog} disabled={savingPlan} sx={ghostBtnSx}>
+              Cancel
+            </Button>
+            <Button
+              onClick={savePlan}
+              disabled={savingPlan}
+              variant="contained"
+              startIcon={savingPlan ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+              sx={primaryBtnSx}
+            >
+              {savingPlan ? "Saving…" : "Save changes"}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={2} component="form" onSubmit={savePlan}>
+          <TextField
+            select
+            label="Programme"
+            required
+            fullWidth
+            value={planForm.programme_id}
+            onChange={(e) =>
+              setPlanForm((f) => ({
+                ...f,
+                programme_id: e.target.value,
+                year_of_study: "1",
+                semester: "1",
+              }))
+            }
+            sx={inputSx}
+          >
+            {programmes.map((p) => (
+              <MenuItem key={p.id} value={p.id}>
+                {p.name}
+              </MenuItem>
+            ))}
+            {planForm.programme_id && !programmes.some((p) => p.id === planForm.programme_id) ? (
+              <MenuItem value={planForm.programme_id}>
+                {period?.programme_name || "Current programme"}
+              </MenuItem>
+            ) : null}
+          </TextField>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              select
+              label="Year of study"
+              fullWidth
+              value={planForm.year_of_study}
+              onChange={(e) => setPlanForm((f) => ({ ...f, year_of_study: e.target.value }))}
+              sx={inputSx}
+              disabled={!planForm.programme_id || enrolment.loading}
+            >
+              {(enrolment.years.length ? enrolment.years : [1, 2, 3]).map((y) => (
+                <MenuItem key={y} value={String(y)}>
+                  Year {y}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Semester"
+              fullWidth
+              value={planForm.semester}
+              onChange={(e) => setPlanForm((f) => ({ ...f, semester: e.target.value }))}
+              sx={inputSx}
+              disabled={!planForm.programme_id || enrolment.loading}
+            >
+              {(enrolment.semesters.length ? enrolment.semesters : [1, 2]).map((s) => (
+                <MenuItem key={s} value={String(s)}>
+                  {enrolment.semester_labels?.[s] || `Semester ${s}`}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+
+          <TextField
+            label="Academic year"
+            required
+            fullWidth
+            value={planForm.academic_year}
+            onChange={(e) => setPlanForm((f) => ({ ...f, academic_year: e.target.value }))}
+            placeholder="2026/2027"
+            sx={inputSx}
+          />
+
+          <TextField
+            label="Title"
+            required
+            fullWidth
+            value={planForm.title}
+            onChange={(e) => setPlanForm((f) => ({ ...f, title: e.target.value }))}
+            sx={inputSx}
+          />
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              label="Exam period start"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={planForm.period_start}
+              onChange={(e) => setPlanForm((f) => ({ ...f, period_start: e.target.value }))}
+              sx={inputSx}
+            />
+            <TextField
+              label="Exam period end"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={planForm.period_end}
+              onChange={(e) => setPlanForm((f) => ({ ...f, period_end: e.target.value }))}
+              sx={inputSx}
+            />
+          </Stack>
+
+          <TextField
+            label="Notes (optional)"
+            fullWidth
+            multiline
+            minRows={2}
+            value={planForm.notes}
+            onChange={(e) => setPlanForm((f) => ({ ...f, notes: e.target.value }))}
+            sx={inputSx}
+          />
+        </Stack>
+      </PremiumDialog>
 
       <PremiumDialog
         open={slotDialog}

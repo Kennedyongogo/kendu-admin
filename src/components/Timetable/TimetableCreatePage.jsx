@@ -21,7 +21,6 @@ import {
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import QuizRoundedIcon from "@mui/icons-material/QuizRounded";
-import FactCheckRoundedIcon from "@mui/icons-material/FactCheckRounded";
 import TitleRoundedIcon from "@mui/icons-material/TitleRounded";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import EventRoundedIcon from "@mui/icons-material/EventRounded";
@@ -68,16 +67,6 @@ const CATEGORY_META = {
     accent: "#b26a00",
     icon: QuizRoundedIcon,
     namePlaceholder: "e.g. Anatomy CAT 1",
-  },
-  exam: {
-    key: "exam",
-    label: "Exams",
-    singular: "exam",
-    createTitle: "Create exam",
-    subtitle: "Schedule an examination for a programme cohort.",
-    accent: navy,
-    icon: FactCheckRoundedIcon,
-    namePlaceholder: "e.g. End of semester exam",
   },
 };
 
@@ -228,13 +217,6 @@ export default function TimetableCreatePage() {
 
   const returnYear = searchParams.get("year");
   const returnMonth = searchParams.get("month");
-
-  useEffect(() => {
-    // New exams are designed as full cohort plans, not one-off timetable entries
-    if (categoryKey === "exam" && !isEdit) {
-      navigate("/exam-timetables", { replace: true });
-    }
-  }, [categoryKey, isEdit, navigate]);
 
   const [programmes, setProgrammes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -686,7 +668,7 @@ export default function TimetableCreatePage() {
             }}
           >
             <Typography sx={{ fontFamily: fontBody, color: textSecondary, fontSize: "0.78rem", fontWeight: 600 }}>
-              Overlap check is enforced for the same programme, year and semester across classes, CATs and exams.
+              Overlap check is enforced for the same programme, year and semester across classes and CATs.
             </Typography>
           </Box>
         </Box>
