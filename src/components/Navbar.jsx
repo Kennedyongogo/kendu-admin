@@ -18,6 +18,7 @@ import {
   HowToReg,
   TransferWithinAStation,
   Groups,
+  LocalLibrary,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -162,6 +163,7 @@ const MENU_SECTIONS = [
       { text: "Cohort transfer", icon: <TransferWithinAStation />, path: "/cohort-transfer" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
+      { text: "Library", icon: <LocalLibrary />, path: "/library" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
       { text: "Exam Timetables", icon: <FactCheck />, path: "/exam-timetables" },
       { text: "News & Events", icon: <Campaign />, path: "/announcements" },
@@ -312,6 +314,7 @@ const Navbar = (props) => {
     (path === "/music" && location.pathname.startsWith("/music")) ||
     (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
     (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
+    (path === "/library" && location.pathname.startsWith("/library")) ||
     (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
     (path === "/exam-timetables" && location.pathname.startsWith("/exam-timetables")) ||
     (path === "/announcements" && location.pathname.startsWith("/announcements")) ||
@@ -342,7 +345,8 @@ const Navbar = (props) => {
             item.path === "/timetable" ||
             item.path === "/exam-timetables" ||
             item.path === "/announcements" ||
-            item.path === "/staff-commons"
+            item.path === "/staff-commons" ||
+            item.path === "/library"
         )
       );
       return;

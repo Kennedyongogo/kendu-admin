@@ -54,6 +54,8 @@ const PAGE_TITLES = [
   { prefix: "/programmes", title: "Programmes", subtitle: "Academic programmes & courses" },
   { prefix: "/admissions", title: "Admissions", subtitle: "Applications & enrolment" },
   { prefix: "/accounting", title: "Accounting", subtitle: "Fee collection & payment records" },
+  { prefix: "/library/issue", title: "Issue book", subtitle: "Charge a copy to a borrower" },
+  { prefix: "/library", title: "Library", subtitle: "Books, loans, rules & e-learning" },
   { prefix: "/timetable", title: "Timetable", subtitle: "Classes & CATs" },
   { prefix: "/exam-timetables", title: "Exam Timetables", subtitle: "Exam plans & approval" },
   { prefix: "/users", title: "Users", subtitle: "Account management" },

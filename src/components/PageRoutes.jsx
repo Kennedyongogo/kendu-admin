@@ -29,6 +29,8 @@ import Admissions from "./Admissions/Admissions";
 import AdmissionViewPage from "./Admissions/AdmissionViewPage";
 import Accounting from "./Accounting/Accounting";
 import RecordPaymentPage from "./Accounting/RecordPaymentPage";
+import Library from "./Library/Library";
+import IssueBookPage from "./Library/IssueBookPage";
 import Timetable from "./Timetable/Timetable";
 import TimetableDayPage from "./Timetable/TimetableDayPage";
 import TimetableCreatePage from "./Timetable/TimetableCreatePage";
@@ -85,6 +87,8 @@ function PageRoutes() {
               <Route path="exam-timetables" element={<ExamTimetables />} />
               <Route path="announcements" element={<Announcements />} />
               <Route path="staff-commons" element={<StaffCommons />} />
+              <Route path="library/issue" element={<IssueBookPage />} />
+              <Route path="library" element={<Library />} />
               <Route path="settings" element={<Settings user={user} />} />
               <Route path="*" element={<Navigate to="/units" replace />} />
             </>
@@ -133,6 +137,8 @@ function PageRoutes() {
               <Route path="admissions" element={<Admissions />} />
               <Route path="accounting/record-payment" element={<RecordPaymentPage />} />
               <Route path="accounting" element={<Accounting />} />
+              <Route path="library/issue" element={<IssueBookPage />} />
+              <Route path="library" element={<Library />} />
               <Route path="timetable/create" element={<TimetableCreatePage />} />
               <Route path="timetable/:id/edit" element={<TimetableCreatePage />} />
               <Route path="timetable/day/:dateKey" element={<TimetableDayPage />} />
