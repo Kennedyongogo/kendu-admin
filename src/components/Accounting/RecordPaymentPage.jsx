@@ -80,16 +80,16 @@ function StudentCard({ student, selected, onSelect, index }) {
         borderRadius: "18px",
         overflow: "hidden",
         bgcolor: "var(--kd-surface)",
-        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.12)",
+        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(27,94,168,0.12)",
         boxShadow: selected
-          ? "0 18px 40px -14px rgba(0,96,80,0.45)"
+          ? "0 18px 40px -14px rgba(27,94,168,0.45)"
           : "0 10px 28px -18px rgba(20,26,58,0.16)",
         cursor: "pointer",
         textAlign: "center",
         transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 20px 44px -16px rgba(0,96,80,0.38)",
+          boxShadow: "0 20px 44px -16px rgba(27,94,168,0.38)",
           borderColor: primaryGreen,
         },
       }}
@@ -99,7 +99,7 @@ function StudentCard({ student, selected, onSelect, index }) {
           height: 54,
           background: selected
             ? `linear-gradient(135deg, ${primaryGreen} 0%, ${primaryDark} 100%)`
-            : `linear-gradient(135deg, ${warmCream} 0%, rgba(0,96,80,0.1) 100%)`,
+            : `linear-gradient(135deg, ${warmCream} 0%, rgba(27,94,168,0.1) 100%)`,
           transition: "background 0.25s ease",
         }}
       />
@@ -113,7 +113,7 @@ function StudentCard({ student, selected, onSelect, index }) {
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
-          border: selected ? "none" : "2px solid rgba(0,96,80,0.3)",
+          border: selected ? "none" : "2px solid rgba(27,94,168,0.3)",
           bgcolor: selected ? "#fff" : "var(--kd-surface)",
           transition: "all 0.2s ease",
         }}
@@ -157,8 +157,8 @@ function StudentCard({ student, selected, onSelect, index }) {
             py: 0.35,
             maxWidth: "100%",
             borderRadius: "999px",
-            bgcolor: selected ? "rgba(0,96,80,0.1)" : warmCream,
-            border: "1px solid rgba(0,96,80,0.14)",
+            bgcolor: selected ? "rgba(27,94,168,0.1)" : warmCream,
+            border: "1px solid rgba(27,94,168,0.14)",
           }}
         >
           <BadgeRoundedIcon sx={{ fontSize: 14, color: selected ? primaryGreen : textMuted, flexShrink: 0 }} />
@@ -175,7 +175,7 @@ function StudentCard({ student, selected, onSelect, index }) {
             {student.admission_number || "No admission no."}
           </Typography>
         </Box>
-        <Box sx={{ mt: 1.25, pt: 1.1, borderTop: "1px dashed rgba(0,96,80,0.15)" }}>
+        <Box sx={{ mt: 1.25, pt: 1.1, borderTop: "1px dashed rgba(27,94,168,0.15)" }}>
           <Stack direction="row" spacing={0.6} alignItems="center" justifyContent="center" sx={{ minWidth: 0 }}>
             <SchoolRoundedIcon sx={{ fontSize: 15, color: selected ? primaryGreen : accentGold, flexShrink: 0 }} />
             <Typography noWrap sx={{ fontFamily: fontBody, fontWeight: 700, color: textSecondary, fontSize: "0.74rem" }}>
@@ -201,9 +201,9 @@ function MethodTile({ option, selected, onSelect }) {
         py: 1.25,
         px: 1,
         borderRadius: "14px",
-        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.15)",
-        bgcolor: selected ? "rgba(0,96,80,0.06)" : "var(--kd-surface)",
-        boxShadow: selected ? "0 10px 24px -12px rgba(0,96,80,0.4)" : "none",
+        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(27,94,168,0.15)",
+        bgcolor: selected ? "rgba(27,94,168,0.06)" : "var(--kd-surface)",
+        boxShadow: selected ? "0 10px 24px -12px rgba(27,94,168,0.4)" : "none",
         cursor: "pointer",
         display: "flex",
         flexDirection: "column",
@@ -212,7 +212,7 @@ function MethodTile({ option, selected, onSelect }) {
         transition: "all 0.18s ease",
         "&:hover": {
           borderColor: primaryGreen,
-          bgcolor: "rgba(0,96,80,0.04)",
+          bgcolor: "rgba(27,94,168,0.04)",
           transform: "translateY(-2px)",
         },
       }}
@@ -227,7 +227,7 @@ function MethodTile({ option, selected, onSelect }) {
           color: selected ? "#fff" : primaryGreen,
           background: selected
             ? `linear-gradient(145deg, ${primaryGreen} 0%, ${primaryDark} 130%)`
-            : "rgba(0,96,80,0.08)",
+            : "rgba(27,94,168,0.08)",
           transition: "all 0.18s ease",
           "& svg": { fontSize: 20 },
         }}
@@ -394,7 +394,7 @@ export default function RecordPaymentPage() {
           animate="visible"
           sx={{
             bgcolor: "var(--kd-surface)",
-            border: "1px solid rgba(0,96,80,0.1)",
+            border: "1px solid rgba(27,94,168,0.1)",
             borderRadius: "20px",
             boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
             overflow: "hidden",
@@ -405,7 +405,7 @@ export default function RecordPaymentPage() {
             justifyContent="space-between"
             alignItems={{ md: "center" }}
             spacing={1.5}
-            sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+            sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}
           >
             <Box>
               <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
@@ -458,7 +458,7 @@ export default function RecordPaymentPage() {
               </Box>
             ) : (
               <Stack alignItems="center" spacing={1} sx={{ py: 5 }}>
-                <PersonSearchRoundedIcon sx={{ fontSize: 46, color: "rgba(0,96,80,0.25)" }} />
+                <PersonSearchRoundedIcon sx={{ fontSize: 46, color: "rgba(27,94,168,0.25)" }} />
                 <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary }}>
                   No students match your search
                 </Typography>
@@ -487,8 +487,8 @@ export default function RecordPaymentPage() {
                   sx={{
                     p: 1.5,
                     borderRadius: "14px",
-                    bgcolor: "rgba(0,96,80,0.05)",
-                    border: "1px dashed rgba(0,96,80,0.3)",
+                    bgcolor: "rgba(27,94,168,0.05)",
+                    border: "1px dashed rgba(27,94,168,0.3)",
                   }}
                 >
                   <Avatar

@@ -45,7 +45,7 @@ const fadeUp = {
 
 const cardSx = {
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
   overflow: "hidden",
@@ -210,9 +210,9 @@ function ViewAllButton({ label = "View all", onClick }) {
         color: primaryGreen,
         borderRadius: "10px",
         px: 1.5,
-        bgcolor: "rgba(0,96,80,0.07)",
+        bgcolor: "rgba(27,94,168,0.07)",
         flexShrink: 0,
-        "&:hover": { bgcolor: "rgba(0,96,80,0.14)" },
+        "&:hover": { bgcolor: "rgba(27,94,168,0.14)" },
       }}
     >
       {label}
@@ -235,7 +235,7 @@ function ChartCard({ title, subtitle, actions, children, index = 0 }) {
         justifyContent="space-between"
         alignItems={{ sm: "center" }}
         spacing={1.5}
-        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}
       >
         <Box>
           <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
@@ -253,16 +253,16 @@ function ChartCard({ title, subtitle, actions, children, index = 0 }) {
 function EmptyChart({ message }) {
   return (
     <Stack sx={{ height: 300 }} alignItems="center" justifyContent="center" spacing={1}>
-      <InsightsRoundedIcon sx={{ fontSize: 42, color: "rgba(0,96,80,0.25)" }} />
+      <InsightsRoundedIcon sx={{ fontSize: 42, color: "rgba(27,94,168,0.25)" }} />
       <Typography sx={{ fontFamily: fontBody, color: textMuted, fontSize: "0.85rem" }}>{message}</Typography>
     </Stack>
   );
 }
 
 const barChartBaseSx = {
-  "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.08)" },
-  "& .MuiChartsAxis-line": { stroke: "rgba(0,96,80,0.2)" },
-  "& .MuiChartsAxis-tick": { stroke: "rgba(0,96,80,0.2)" },
+  "& .MuiChartsGrid-line": { stroke: "rgba(27,94,168,0.08)" },
+  "& .MuiChartsAxis-line": { stroke: "rgba(27,94,168,0.2)" },
+  "& .MuiChartsAxis-tick": { stroke: "rgba(27,94,168,0.2)" },
   "& .MuiChartsAxis-tickLabel": { fontFamily: fontBody },
 };
 

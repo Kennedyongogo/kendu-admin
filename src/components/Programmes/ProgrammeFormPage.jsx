@@ -457,12 +457,12 @@ export default function ProgrammeFormPage() {
                 aspectRatio: "4 / 3",
                 borderRadius: "20px",
                 overflow: "hidden",
-                bgcolor: "rgba(0,96,80,0.08)",
+                bgcolor: "rgba(27,94,168,0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                border: "1.5px solid rgba(0,96,80,0.14)",
+                border: "1.5px solid rgba(27,94,168,0.14)",
                 boxShadow: "0 12px 32px rgba(20,26,58,0.08)",
               }}
             >
@@ -488,11 +488,11 @@ export default function ProgrammeFormPage() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "12px",
-                    borderColor: "rgba(0,96,80,0.3)",
+                    borderColor: "rgba(27,94,168,0.3)",
                     color: primaryGreen,
                     py: 1.1,
                     px: 2.25,
-                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
+                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(27,94,168,0.06)" },
                   }}
                 >
                   {form.imagePreview ? "Change image" : "Upload image"}

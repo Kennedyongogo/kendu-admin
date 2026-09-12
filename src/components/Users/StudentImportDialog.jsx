@@ -292,9 +292,9 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
       {step === 0 ? (
         <Box
           sx={{
-            border: "1px dashed rgba(0,96,80,0.35)",
+            border: "1px dashed rgba(27,94,168,0.35)",
             borderRadius: "16px",
-            bgcolor: "rgba(0,96,80,0.04)",
+            bgcolor: "rgba(27,94,168,0.04)",
             p: 3,
             textAlign: "center",
           }}
@@ -455,9 +455,9 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
                   maxHeight: 160,
                   overflow: "auto",
                   borderRadius: "12px",
-                  border: "1px solid rgba(0,96,80,0.12)",
+                  border: "1px solid rgba(27,94,168,0.12)",
                   p: 1.25,
-                  bgcolor: "rgba(0,96,80,0.03)",
+                  bgcolor: "rgba(27,94,168,0.03)",
                   fontSize: "0.75rem",
                   fontFamily: "ui-monospace, monospace",
                   color: textSecondary,

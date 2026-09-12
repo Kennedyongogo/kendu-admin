@@ -54,7 +54,7 @@ export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }
         color: "#fff",
         position: "relative",
         overflow: "hidden",
-        boxShadow: "0 20px 48px -16px rgba(0, 96, 80, 0.4)",
+        boxShadow: "0 20px 48px -16px rgba(27, 94, 168, 0.4)",
         mb: 3,
       }}
     >
@@ -164,7 +164,7 @@ export function RoleTabs({ activeTab, onChange, tabs }) {
         mb: 2.5,
         borderRadius: "14px",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         boxShadow: "0 4px 16px rgba(20,26,58,0.04)",
         overflowX: "auto",
         maxWidth: "100%",
@@ -217,7 +217,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
             overflow: "hidden",
             bgcolor: "var(--kd-surface)",
             boxShadow: "0 24px 64px -12px rgba(20,26,58,0.22)",
-            border: "1px solid rgba(0,96,80,0.1)",
+            border: "1px solid rgba(27,94,168,0.1)",
           },
         },
       }}
@@ -249,7 +249,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 20px rgba(0,96,80,0.28)",
+                boxShadow: "0 8px 20px rgba(27,94,168,0.28)",
               }}
             >
               {icon}
@@ -281,7 +281,7 @@ export function PremiumDialog({ open, onClose, title, subtitle, icon, children, 
           sx={{
             px: 3,
             py: 2,
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             bgcolor: warmCream,
             display: "flex",
             justifyContent: "flex-end",
@@ -305,7 +305,7 @@ export function DetailField({ icon, label, value, compact = false }) {
         p: compact ? 1 : 1.75,
         borderRadius: compact ? "12px" : "14px",
         bgcolor: warmCream,
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         height: compact ? "100%" : undefined,
         minHeight: 0,
       }}
@@ -372,13 +372,13 @@ export function FormSection({ title, children }) {
     <Box
       sx={{
         borderRadius: "18px",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         bgcolor: "var(--kd-surface)",
         boxShadow: "0 12px 36px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
       }}
     >
-      <Box sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}>
+      <Box sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}>
         <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.05rem", color: textPrimary }}>
           {title}
         </Typography>

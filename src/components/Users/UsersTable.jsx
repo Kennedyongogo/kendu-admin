@@ -484,7 +484,7 @@ export default function UsersTable() {
         sx={{
           borderRadius: "20px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.1)",
+          border: "1px solid rgba(27,94,168,0.1)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         }}
@@ -501,7 +501,7 @@ export default function UsersTable() {
                     fontSize: "0.7rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    borderBottom: `1px solid rgba(0,96,80,0.1)`,
+                    borderBottom: `1px solid rgba(27,94,168,0.1)`,
                     py: 1.75,
                   },
                 }}
@@ -544,8 +544,8 @@ export default function UsersTable() {
                       hover
                       sx={{
                         transition: "background 0.15s ease",
-                        "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                        "& td": { borderColor: "rgba(0,96,80,0.06)" },
+                        "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                        "& td": { borderColor: "rgba(27,94,168,0.06)" },
                       }}
                     >
                       <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem" }}>
@@ -579,9 +579,9 @@ export default function UsersTable() {
                           sx={{
                             fontWeight: 700,
                             fontSize: "0.72rem",
-                            bgcolor: active ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.06)",
+                            bgcolor: active ? "rgba(27,94,168,0.1)" : "rgba(30,40,88,0.06)",
                             color: active ? primaryDark : textSecondary,
-                            border: `1px solid ${active ? "rgba(0,96,80,0.2)" : "rgba(30,40,88,0.1)"}`,
+                            border: `1px solid ${active ? "rgba(27,94,168,0.2)" : "rgba(30,40,88,0.1)"}`,
                           }}
                         />
                       </TableCell>
@@ -648,7 +648,7 @@ export default function UsersTable() {
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           sx={{
-            borderTop: `1px solid rgba(0,96,80,0.1)`,
+            borderTop: `1px solid rgba(27,94,168,0.1)`,
             "& .MuiTablePagination-toolbar": {
               fontFamily: '"Plus Jakarta Sans", sans-serif',
               fontWeight: 600,
@@ -727,7 +727,7 @@ export default function UsersTable() {
                 />
               </>
             )}
-            <Box sx={{ p: 1.75, borderRadius: "14px", bgcolor: warmCream, border: `1px solid rgba(0,96,80,0.1)` }}>
+            <Box sx={{ p: 1.75, borderRadius: "14px", bgcolor: warmCream, border: `1px solid rgba(27,94,168,0.1)` }}>
               <Typography sx={{ fontSize: "0.75rem", color: textSecondary }}>
                 Last login:{" "}
                 <Box component="span" sx={{ fontWeight: 700, color: textPrimary }}>
@@ -780,9 +780,9 @@ export default function UsersTable() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "12px",
-                    borderColor: "rgba(0,96,80,0.3)",
+                    borderColor: "rgba(27,94,168,0.3)",
                     color: primaryGreen,
-                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
+                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(27,94,168,0.06)" },
                   }}
                 >
                   {form.profilePreview && !form.removeProfileImage ? "Change photo" : "Upload photo"}

@@ -72,7 +72,7 @@ const fadeUp = {
 
 const cardSx = {
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
   overflow: "hidden",
@@ -253,7 +253,7 @@ function ChartCard({ title, subtitle, children, index = 0 }) {
 
 function StatusChip({ status }) {
   const map = {
-    active: { label: "On loan", bg: "rgba(0,96,80,0.12)", color: primaryGreen },
+    active: { label: "On loan", bg: "rgba(27,94,168,0.12)", color: primaryGreen },
     overdue: { label: "Overdue", bg: "rgba(185,28,28,0.12)", color: "#b91c1c" },
     returned: { label: "Returned", bg: "rgba(30,40,88,0.1)", color: navy },
   };
@@ -287,7 +287,7 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
         p: { xs: 0.85, sm: 1 },
         borderRadius: "18px",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         boxShadow: "0 10px 28px -18px rgba(20,26,58,0.18)",
       }}
     >
@@ -306,11 +306,11 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
           px: { xs: 0.35, sm: 0 },
           "&::-webkit-scrollbar": { height: 6 },
           "&::-webkit-scrollbar-thumb": {
-            bgcolor: "rgba(0,96,80,0.28)",
+            bgcolor: "rgba(27,94,168,0.28)",
             borderRadius: 999,
           },
           "&::-webkit-scrollbar-track": {
-            bgcolor: "rgba(0,96,80,0.06)",
+            bgcolor: "rgba(27,94,168,0.06)",
             borderRadius: 999,
           },
         }}
@@ -325,7 +325,7 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
               onClick={() => onChange(index)}
               sx={{
                 appearance: "none",
-                border: selected ? "1px solid rgba(0,96,80,0.22)" : "1px solid transparent",
+                border: selected ? "1px solid rgba(27,94,168,0.22)" : "1px solid transparent",
                 cursor: "pointer",
                 textAlign: "left",
                 borderRadius: "14px",
@@ -345,7 +345,7 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
                   ? `linear-gradient(145deg, ${primaryGreen} 0%, ${primaryDark} 120%)`
                   : "transparent",
                 color: selected ? "#fff" : textPrimary,
-                boxShadow: selected ? "0 10px 22px -12px rgba(0,96,80,0.55)" : "none",
+                boxShadow: selected ? "0 10px 22px -12px rgba(27,94,168,0.55)" : "none",
                 transition: "all 0.2s ease",
                 "&:hover": {
                   bgcolor: selected ? undefined : warmCream,
@@ -364,7 +364,7 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
                   display: "grid",
                   placeItems: "center",
                   flexShrink: 0,
-                  bgcolor: selected ? "rgba(255,255,255,0.16)" : "rgba(0,96,80,0.08)",
+                  bgcolor: selected ? "rgba(255,255,255,0.16)" : "rgba(27,94,168,0.08)",
                   color: selected ? "#fff" : primaryGreen,
                   "& svg": { fontSize: 20 },
                 }}
@@ -397,7 +397,7 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
                         fontFamily: fontBody,
                         fontWeight: 800,
                         fontSize: "0.68rem",
-                        bgcolor: selected ? "rgba(255,255,255,0.2)" : "rgba(0,96,80,0.1)",
+                        bgcolor: selected ? "rgba(255,255,255,0.2)" : "rgba(27,94,168,0.1)",
                         color: selected ? "#fff" : primaryGreen,
                         flexShrink: 0,
                       }}
@@ -1278,7 +1278,7 @@ export default function Library() {
                       p: 1.35,
                       borderRadius: "14px",
                       bgcolor: warmCream,
-                      border: "1px solid rgba(0,96,80,0.08)",
+                      border: "1px solid rgba(27,94,168,0.08)",
                     }}
                   >
                     <Box sx={{ minWidth: 0 }}>
@@ -1300,7 +1300,7 @@ export default function Library() {
 
       {tab === 1 ? (
         <Box sx={cardSx}>
-          <Box sx={{ p: 2, borderBottom: "1px solid rgba(0,96,80,0.08)" }}>
+          <Box sx={{ p: 2, borderBottom: "1px solid rgba(27,94,168,0.08)" }}>
             <TextField
               size="small"
               placeholder="Search books…"
@@ -1319,7 +1319,7 @@ export default function Library() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: "rgba(0,96,80,0.04)" }}>
+                <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
                   {["No", "Title", "Author", "Programme", "Stock", "Available", "Action"].map((h) => (
                     <TableCell key={h} sx={{ fontFamily: fontBody, fontWeight: 800 }}>
                       {h}
@@ -1401,7 +1401,7 @@ export default function Library() {
                       pl: 2,
                       pr: 1,
                       py: 1.25,
-                      bgcolor: row.is_active ? "rgba(0,96,80,0.03)" : "rgba(30,40,88,0.03)",
+                      bgcolor: row.is_active ? "rgba(27,94,168,0.03)" : "rgba(30,40,88,0.03)",
                       borderRadius: "0 12px 12px 0",
                     }}
                   >
@@ -1456,7 +1456,7 @@ export default function Library() {
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={1.25}
-            sx={{ p: 2, borderBottom: "1px solid rgba(0,96,80,0.08)" }}
+            sx={{ p: 2, borderBottom: "1px solid rgba(27,94,168,0.08)" }}
           >
             <TextField
               size="small"
@@ -1492,7 +1492,7 @@ export default function Library() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: "rgba(0,96,80,0.04)" }}>
+                <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
                   {["No", "Book", "Borrower", "Role", "Issued", "Due", "Returned", "Status", "Action"].map((h) => (
                     <TableCell key={h} sx={{ fontFamily: fontBody, fontWeight: 800 }}>
                       {h}
@@ -1559,7 +1559,7 @@ export default function Library() {
 
       {tab === 4 ? (
         <Box sx={cardSx}>
-          <Box sx={{ p: 2, borderBottom: "1px solid rgba(0,96,80,0.08)" }}>
+          <Box sx={{ p: 2, borderBottom: "1px solid rgba(27,94,168,0.08)" }}>
             <TextField
               size="small"
               placeholder="Search e-learning…"
@@ -1578,7 +1578,7 @@ export default function Library() {
           <TableContainer>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ bgcolor: "rgba(0,96,80,0.04)" }}>
+                <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
                   {["No", "Title", "Type", "Programme", "Link", "Status", "Action"].map((h) => (
                     <TableCell key={h} sx={{ fontFamily: fontBody, fontWeight: 800 }}>
                       {h}
@@ -1611,7 +1611,7 @@ export default function Library() {
                         sx={{
                           height: 22,
                           fontWeight: 700,
-                          bgcolor: row.is_active ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.08)",
+                          bgcolor: row.is_active ? "rgba(27,94,168,0.1)" : "rgba(30,40,88,0.08)",
                           color: row.is_active ? primaryGreen : textSecondary,
                         }}
                       />
@@ -1670,7 +1670,7 @@ export default function Library() {
                     pl: 2,
                     pr: 1,
                     py: 1.25,
-                    bgcolor: row.is_active ? "rgba(0,96,80,0.03)" : "rgba(30,40,88,0.03)",
+                    bgcolor: row.is_active ? "rgba(27,94,168,0.03)" : "rgba(30,40,88,0.03)",
                     borderRadius: "0 12px 12px 0",
                   }}
                 >
@@ -1687,7 +1687,7 @@ export default function Library() {
                             height: 20,
                             fontWeight: 700,
                             fontSize: "0.65rem",
-                            bgcolor: "rgba(0,96,80,0.1)",
+                            bgcolor: "rgba(27,94,168,0.1)",
                             color: primaryGreen,
                           }}
                         />
@@ -1846,7 +1846,7 @@ export default function Library() {
                   p: 1.25,
                   borderRadius: "12px",
                   bgcolor: warmCream,
-                  border: "1px solid rgba(0,96,80,0.08)",
+                  border: "1px solid rgba(27,94,168,0.08)",
                 }}
               >
                 <Typography sx={{ fontFamily: fontBody, fontWeight: 700, fontSize: "0.75rem", color: textMuted }}>

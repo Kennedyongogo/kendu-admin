@@ -1,13 +1,13 @@
 :root {
   /* Kendu admin theme — light (default) */
   --kd-surface: #ffffff;
-  --kd-surface-soft: #f7faf8;
-  --kd-page-a: #f7faf8;
+  --kd-surface-soft: #f5f8fc;
+  --kd-page-a: #f5f8fc;
   --kd-page-b: #ffffff;
   --kd-text-primary: #1e2858;
   --kd-text-secondary: rgba(30, 40, 88, 0.68);
   --kd-text-muted: rgba(30, 40, 88, 0.48);
-  --kd-sidebar-a: #f7faf8;
+  --kd-sidebar-a: #f5f8fc;
   --kd-sidebar-b: #ffffff;
   color-scheme: light;
 }

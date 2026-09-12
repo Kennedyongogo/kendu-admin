@@ -210,7 +210,7 @@ export default function Admissions() {
       <TableContainer
         sx={{
           borderRadius: "18px",
-          border: "1px solid rgba(0,96,80,0.12)",
+          border: "1px solid rgba(27,94,168,0.12)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 12px 40px -24px rgba(20,26,58,0.18)",
           overflow: "hidden",
@@ -228,7 +228,7 @@ export default function Admissions() {
                   fontSize: "0.7rem",
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
-                  borderBottom: "1px solid rgba(0,96,80,0.1)",
+                  borderBottom: "1px solid rgba(27,94,168,0.1)",
                   py: 1.75,
                   fontFamily: fontBody,
                 },
@@ -263,8 +263,8 @@ export default function Admissions() {
                     key={row.id}
                     hover
                     sx={{
-                      "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                      "& td": { borderColor: "rgba(0,96,80,0.06)", fontFamily: fontBody },
+                      "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                      "& td": { borderColor: "rgba(27,94,168,0.06)", fontFamily: fontBody },
                     }}
                   >
                     <TableCell sx={{ color: textMuted, fontWeight: 600 }}>
@@ -302,8 +302,8 @@ export default function Admissions() {
                             onClick={() => navigate(`/admissions/${row.id}`)}
                             sx={{
                               color: primaryGreen,
-                              bgcolor: "rgba(0,96,80,0.08)",
-                              "&:hover": { bgcolor: "rgba(0,96,80,0.16)" },
+                              bgcolor: "rgba(27,94,168,0.08)",
+                              "&:hover": { bgcolor: "rgba(27,94,168,0.16)" },
                             }}
                           >
                             <ViewIcon />
@@ -353,7 +353,7 @@ export default function Admissions() {
           }}
           rowsPerPageOptions={[5, 10, 25]}
           sx={{
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": { fontFamily: fontBody },
           }}
         />

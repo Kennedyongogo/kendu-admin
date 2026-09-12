@@ -43,17 +43,17 @@ const drawerCollapsedWidth = 100;
 const BRAND = {
   navy: "#1e2858",
   navyDeep: "#141a3a",
-  green: "#006050",
-  greenDark: "#004840",
+  green: "#1B5EA8",
+  greenDark: "#0E3D73",
   gold: "#c8a840",
   goldMuted: "#d4c078",
 };
 
 const navAccent = BRAND.green;
 const navAccentDark = BRAND.greenDark;
-const navAccentLight = "rgba(0, 96, 80, 0.1)";
-const navHoverBg = "rgba(0, 96, 80, 0.08)";
-const navActiveBg = "rgba(0, 96, 80, 0.12)";
+const navAccentLight = "rgba(27, 94, 168, 0.1)";
+const navHoverBg = "rgba(27, 94, 168, 0.08)";
+const navActiveBg = "rgba(27, 94, 168, 0.12)";
 const textPrimary = "var(--kd-text-primary)";
 const textMuted = "var(--kd-text-muted)";
 
@@ -105,7 +105,7 @@ const AppBar = styled(MuiAppBar, {
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
   background: `linear-gradient(135deg, ${BRAND.green} 0%, ${BRAND.navyDeep} 100%)`,
-  boxShadow: "0 4px 24px rgba(0, 96, 80, 0.28), inset 0 -1px 0 rgba(255,255,255,0.08)",
+  boxShadow: "0 4px 24px rgba(27, 94, 168, 0.28), inset 0 -1px 0 rgba(255,255,255,0.08)",
   marginLeft: open ? drawerWidth : drawerCollapsedWidth,
   width: open ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${drawerCollapsedWidth}px)`,
   transition: theme.transitions.create(["width", "margin"], {
@@ -202,7 +202,7 @@ function NavIconBox({ selected, children, compact }) {
           ? `linear-gradient(145deg, ${navAccent} 0%, ${navAccentDark} 100%)`
           : alpha(navAccent, 0.08),
         color: selected ? "#fff" : textMuted,
-        boxShadow: selected ? "0 4px 12px rgba(0, 96, 80, 0.35)" : "none",
+        boxShadow: selected ? "0 4px 12px rgba(27, 94, 168, 0.35)" : "none",
         "& .MuiSvgIcon-root": { fontSize: compact ? 20 : 21 },
       }}
     >
@@ -399,7 +399,7 @@ const Navbar = (props) => {
                   borderRadius: "50%",
                   objectFit: "cover",
                   flexShrink: 0,
-                  boxShadow: "0 6px 16px rgba(0, 96, 80, 0.28)",
+                  boxShadow: "0 6px 16px rgba(27, 94, 168, 0.28)",
                 }}
               />
               <Box sx={{ minWidth: 0 }}>
@@ -441,7 +441,7 @@ const Navbar = (props) => {
                   height: 40,
                   borderRadius: "50%",
                   objectFit: "cover",
-                  boxShadow: "0 4px 12px rgba(0, 96, 80, 0.28)",
+                  boxShadow: "0 4px 12px rgba(27, 94, 168, 0.28)",
                 }}
               />
               <Typography

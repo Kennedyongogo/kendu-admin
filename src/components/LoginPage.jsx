@@ -29,9 +29,9 @@ import { savePortalSession } from "../auth/portalAuth";
 const BRAND = {
   navy: "#1e2858",
   navyDeep: "#141a3a",
-  green: "#006050",
-  greenDark: "#004840",
-  greenLight: "#3d9e78",
+  green: "#1B5EA8",
+  greenDark: "#0E3D73",
+  greenLight: "#4A8AD4",
   gold: "#c8a840",
   goldSoft: "#e8d9a0",
   goldMuted: "#d4c078",
@@ -46,7 +46,7 @@ const C = {
   inkSoft: "rgba(30, 40, 88, 0.68)",
   inkMute: "rgba(30, 40, 88, 0.48)",
   line: "rgba(30, 40, 88, 0.1)",
-  greenWash: "rgba(0, 96, 80, 0.08)",
+  greenWash: "rgba(27, 94, 168, 0.08)",
   goldWash: "rgba(200, 168, 64, 0.14)",
 };
 
@@ -453,7 +453,7 @@ export default function LoginPage() {
         borderColor: C.line,
         borderWidth: "1.5px",
       },
-      "&:hover fieldset": { borderColor: "rgba(0, 96, 80, 0.45)" },
+      "&:hover fieldset": { borderColor: "rgba(27, 94, 168, 0.45)" },
       "&.Mui-focused fieldset": {
         borderColor: BRAND.green,
         borderWidth: "2px",
@@ -506,7 +506,7 @@ export default function LoginPage() {
           background: `
             radial-gradient(ellipse 90% 70% at 12% 88%, ${C.greenWash} 0%, transparent 55%),
             radial-gradient(ellipse 60% 50% at 78% 8%, ${C.goldWash} 0%, transparent 50%),
-            linear-gradient(165deg, #ffffff 0%, #f7faf8 48%, #f3f7f5 100%)
+            linear-gradient(165deg, #ffffff 0%, #f5f8fc 48%, #f3f7f5 100%)
           `,
           overflow: "hidden",
         }}
@@ -537,7 +537,7 @@ export default function LoginPage() {
             width: 120,
             height: 120,
             borderRadius: "50%",
-            border: `1px solid rgba(0, 96, 80, 0.12)`,
+            border: `1px solid rgba(27, 94, 168, 0.12)`,
             pointerEvents: "none",
           }}
         />

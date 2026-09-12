@@ -111,14 +111,14 @@ function EntryCard({ entry, meta, index, onEdit }) {
       sx={{
         position: "relative",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         borderRadius: "18px",
         overflow: "hidden",
         boxShadow: "0 12px 32px -18px rgba(20,26,58,0.18)",
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         "&:hover": {
           transform: "translateY(-3px)",
-          boxShadow: "0 18px 40px -16px rgba(0,96,80,0.28)",
+          boxShadow: "0 18px 40px -16px rgba(27,94,168,0.28)",
         },
         "&::before": {
           content: '""',
@@ -176,7 +176,7 @@ function EntryCard({ entry, meta, index, onEdit }) {
                   fontFamily: fontBody,
                   fontWeight: 700,
                   fontSize: "0.72rem",
-                  bgcolor: "rgba(0,96,80,0.07)",
+                  bgcolor: "rgba(27,94,168,0.07)",
                   color: primaryGreen,
                   "& .MuiChip-icon": { color: primaryGreen },
                 }}
@@ -447,7 +447,7 @@ export default function TimetableDayPage() {
             px: 3,
             borderRadius: "20px",
             bgcolor: "var(--kd-surface)",
-            border: "1px dashed rgba(0,96,80,0.22)",
+            border: "1px dashed rgba(27,94,168,0.22)",
             boxShadow: "0 10px 28px -18px rgba(20,26,58,0.12)",
           }}
         >

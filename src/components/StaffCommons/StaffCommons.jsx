@@ -97,8 +97,8 @@ function StatChip({ label, value, accent }) {
         px: 1.5,
         py: 1,
         borderRadius: "12px",
-        bgcolor: "rgba(0,96,80,0.05)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        bgcolor: "rgba(27,94,168,0.05)",
+        border: "1px solid rgba(27,94,168,0.1)",
         minWidth: 100,
       }}
     >
@@ -534,11 +534,11 @@ export default function StaffCommons() {
                   sx={{
                     p: 1.75,
                     borderRadius: "16px",
-                    border: `1px solid ${selectedBriefing?.id === item.id ? primaryGreen : "rgba(0,96,80,0.12)"}`,
-                    bgcolor: selectedBriefing?.id === item.id ? "rgba(0,96,80,0.04)" : "var(--kd-surface)",
+                    border: `1px solid ${selectedBriefing?.id === item.id ? primaryGreen : "rgba(27,94,168,0.12)"}`,
+                    bgcolor: selectedBriefing?.id === item.id ? "rgba(27,94,168,0.04)" : "var(--kd-surface)",
                     cursor: "pointer",
                     transition: "border-color 0.15s, background-color 0.15s",
-                    "&:hover": { bgcolor: "rgba(0,96,80,0.03)" },
+                    "&:hover": { bgcolor: "rgba(27,94,168,0.03)" },
                   }}
                 >
                   <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between">
@@ -553,7 +553,7 @@ export default function StaffCommons() {
                         <Chip
                           size="small"
                           label={item.department_name || "School-wide"}
-                          sx={{ fontWeight: 700, height: 22, bgcolor: "rgba(0,96,80,0.08)", color: primaryGreen }}
+                          sx={{ fontWeight: 700, height: 22, bgcolor: "rgba(27,94,168,0.08)", color: primaryGreen }}
                         />
                       </Stack>
                       <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.05rem" }}>
@@ -581,7 +581,7 @@ export default function StaffCommons() {
                 </Box>
               ))}
               {!briefingsLoading && !briefings.length ? (
-                <Box sx={{ py: 6, textAlign: "center", borderRadius: "16px", border: "1px dashed rgba(0,96,80,0.2)", bgcolor: warmCream }}>
+                <Box sx={{ py: 6, textAlign: "center", borderRadius: "16px", border: "1px dashed rgba(27,94,168,0.2)", bgcolor: warmCream }}>
                   <Typography sx={{ fontFamily: fontBody, color: textSecondary }}>No briefings yet.</Typography>
                 </Box>
               ) : null}
@@ -593,7 +593,7 @@ export default function StaffCommons() {
               width: { xs: "100%", lg: 380 },
               flexShrink: 0,
               borderRadius: "18px",
-              border: "1px solid rgba(0,96,80,0.12)",
+              border: "1px solid rgba(27,94,168,0.12)",
               bgcolor: "var(--kd-surface)",
               p: 2,
               minHeight: 320,
@@ -665,7 +665,7 @@ export default function StaffCommons() {
               width: { xs: "100%", md: 260 },
               flexShrink: 0,
               borderRadius: "16px",
-              border: "1px solid rgba(0,96,80,0.12)",
+              border: "1px solid rgba(27,94,168,0.12)",
               bgcolor: "var(--kd-surface)",
               overflow: "hidden",
             }}
@@ -680,9 +680,9 @@ export default function StaffCommons() {
                     px: 1.5,
                     py: 1.25,
                     cursor: "pointer",
-                    bgcolor: activeChannelId === ch.id ? "rgba(0,96,80,0.08)" : "transparent",
+                    bgcolor: activeChannelId === ch.id ? "rgba(27,94,168,0.08)" : "transparent",
                     borderLeft: activeChannelId === ch.id ? `3px solid ${primaryGreen}` : "3px solid transparent",
-                    "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
+                    "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
                   }}
                 >
                   <Typography sx={{ fontFamily: fontBody, fontWeight: 800, fontSize: "0.88rem", color: textPrimary }}>
@@ -701,14 +701,14 @@ export default function StaffCommons() {
               flex: 1,
               minWidth: 0,
               borderRadius: "16px",
-              border: "1px solid rgba(0,96,80,0.12)",
+              border: "1px solid rgba(27,94,168,0.12)",
               bgcolor: "var(--kd-surface)",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
             }}
           >
-            <Box sx={{ px: 2, py: 1.25, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}>
+            <Box sx={{ px: 2, py: 1.25, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}>
               <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary }}>
                 {activeChannel?.name || "Select a channel"}
               </Typography>
@@ -745,7 +745,7 @@ export default function StaffCommons() {
                             px: 1.25,
                             py: 0.85,
                             borderRadius: mine ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                            bgcolor: mine ? primaryGreen : "rgba(0,96,80,0.06)",
+                            bgcolor: mine ? primaryGreen : "rgba(27,94,168,0.06)",
                             color: mine ? "#fff" : textPrimary,
                           }}
                         >
@@ -770,7 +770,7 @@ export default function StaffCommons() {
             </Box>
 
             {activeChannel?.can_post !== false ? (
-              <Stack direction="row" spacing={1} sx={{ p: 1.5, borderTop: "1px solid rgba(0,96,80,0.08)" }}>
+              <Stack direction="row" spacing={1} sx={{ p: 1.5, borderTop: "1px solid rgba(27,94,168,0.08)" }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -790,13 +790,13 @@ export default function StaffCommons() {
                 <IconButton
                   onClick={postMessage}
                   disabled={posting || !messageDraft.trim()}
-                  sx={{ bgcolor: primaryGreen, color: "#fff", "&:hover": { bgcolor: navy }, "&.Mui-disabled": { bgcolor: "rgba(0,96,80,0.2)" } }}
+                  sx={{ bgcolor: primaryGreen, color: "#fff", "&:hover": { bgcolor: navy }, "&.Mui-disabled": { bgcolor: "rgba(27,94,168,0.2)" } }}
                 >
                   {posting ? <CircularProgress size={20} color="inherit" /> : <SendRoundedIcon />}
                 </IconButton>
               </Stack>
             ) : (
-              <Box sx={{ p: 1.5, borderTop: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}>
+              <Box sx={{ p: 1.5, borderTop: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}>
                 <Typography sx={{ fontFamily: fontBody, fontSize: "0.8rem", color: textMuted, textAlign: "center" }}>
                   You can read this channel but cannot post here.
                 </Typography>
@@ -828,7 +828,7 @@ export default function StaffCommons() {
                   gap: 2,
                   p: 1.5,
                   borderRadius: "14px",
-                  border: "1px solid rgba(0,96,80,0.1)",
+                  border: "1px solid rgba(27,94,168,0.1)",
                   bgcolor: "var(--kd-surface)",
                   flexWrap: "wrap",
                 }}
@@ -858,7 +858,7 @@ export default function StaffCommons() {
               </Box>
             ))}
             {!resourcesLoading && !resources.length ? (
-              <Box sx={{ py: 6, textAlign: "center", borderRadius: "16px", border: "1px dashed rgba(0,96,80,0.2)", bgcolor: warmCream }}>
+              <Box sx={{ py: 6, textAlign: "center", borderRadius: "16px", border: "1px dashed rgba(27,94,168,0.2)", bgcolor: warmCream }}>
                 <Typography sx={{ fontFamily: fontBody, color: textSecondary }}>No downloadable files yet.</Typography>
               </Box>
             ) : null}

@@ -41,8 +41,8 @@ import {
 const BRAND = {
   navy: "#1e2858",
   navyDeep: "#141a3a",
-  green: "#006050",
-  greenDark: "#004840",
+  green: "#1B5EA8",
+  greenDark: "#0E3D73",
   gold: "#c8a840",
   goldMuted: "#d4c078",
 };
@@ -87,7 +87,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
       sx={{
         borderRadius: "20px",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         overflow: "hidden",
         display: "flex",
@@ -99,7 +99,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
         sx={{
           px: { xs: 2, sm: 2.5 },
           py: 2,
-          borderBottom: "1px solid rgba(0,96,80,0.08)",
+          borderBottom: "1px solid rgba(27,94,168,0.08)",
           background: `linear-gradient(135deg, ${warmCream} 0%, var(--kd-surface) 100%)`,
         }}
       >
@@ -114,7 +114,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
               justifyContent: "center",
               background: `linear-gradient(145deg, ${BRAND.gold} 0%, ${BRAND.green} 100%)`,
               color: "#fff",
-              boxShadow: "0 6px 16px rgba(0,96,80,0.28)",
+              boxShadow: "0 6px 16px rgba(27,94,168,0.28)",
             }}
           >
             {icon}
@@ -143,7 +143,7 @@ function SettingsSection({ icon, title, subtitle, children, delay = 0, footer })
           sx={{
             px: { xs: 2, sm: 2.5 },
             py: 2,
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             bgcolor: warmCream,
             display: "flex",
             justifyContent: "flex-end",
@@ -182,12 +182,12 @@ const inputSx = {
     bgcolor: "var(--kd-surface)",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
-    "& fieldset": { borderColor: "rgba(0,96,80,0.18)", borderWidth: "1.5px" },
-    "&:hover fieldset": { borderColor: "rgba(0,96,80,0.4)" },
+    "& fieldset": { borderColor: "rgba(27,94,168,0.18)", borderWidth: "1.5px" },
+    "&:hover fieldset": { borderColor: "rgba(27,94,168,0.4)" },
     "&.Mui-focused fieldset": {
       borderColor: BRAND.green,
       borderWidth: "2px",
-      boxShadow: "0 0 0 3px rgba(0,96,80,0.1)",
+      boxShadow: "0 0 0 3px rgba(27,94,168,0.1)",
     },
   },
   "& .MuiInputLabel-root": {
@@ -508,7 +508,7 @@ export default function Settings({ user }) {
     <Box
       sx={{
         minHeight: "100%",
-        background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(0,96,80,0.04) 100%)`,
+        background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(27,94,168,0.04) 100%)`,
         mx: { xs: -1.5, sm: -2, md: -3 },
         mt: { xs: -1, sm: -1.5 },
         px: { xs: 1.5, sm: 2, md: 3 },
@@ -529,7 +529,7 @@ export default function Settings({ user }) {
               color: "#fff",
               position: "relative",
               overflow: "hidden",
-              boxShadow: "0 20px 48px -16px rgba(0,96,80,0.4)",
+              boxShadow: "0 20px 48px -16px rgba(27,94,168,0.4)",
             }}
           >
             <Box
@@ -620,9 +620,9 @@ export default function Settings({ user }) {
                         textTransform: "none",
                         fontWeight: 600,
                         borderRadius: "12px",
-                        borderColor: "rgba(0,96,80,0.3)",
+                        borderColor: "rgba(27,94,168,0.3)",
                         color: BRAND.green,
-                        "&:hover": { borderColor: BRAND.green, bgcolor: "rgba(0,96,80,0.06)" },
+                        "&:hover": { borderColor: BRAND.green, bgcolor: "rgba(27,94,168,0.06)" },
                       }}
                     >
                       {profilePreview ? "Change photo" : "Upload photo"}
@@ -715,7 +715,7 @@ export default function Settings({ user }) {
                     p: 1.75,
                     borderRadius: "14px",
                     bgcolor: warmCream,
-                    border: "1px solid rgba(0,96,80,0.1)",
+                    border: "1px solid rgba(27,94,168,0.1)",
                   }}
                 >
                   <Typography
@@ -762,7 +762,7 @@ export default function Settings({ user }) {
                       p: 2,
                       borderRadius: "16px",
                       bgcolor: warmCream,
-                      border: "1px solid rgba(0,96,80,0.1)",
+                      border: "1px solid rgba(27,94,168,0.1)",
                     }}
                   >
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -866,8 +866,8 @@ export default function Settings({ user }) {
                     sx={{
                       p: 1.75,
                       borderRadius: "14px",
-                      bgcolor: "rgba(0,96,80,0.06)",
-                      border: "1px solid rgba(0,96,80,0.12)",
+                      bgcolor: "rgba(27,94,168,0.06)",
+                      border: "1px solid rgba(27,94,168,0.12)",
                       display: "flex",
                       gap: 1.25,
                       alignItems: "flex-start",

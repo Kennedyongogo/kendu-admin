@@ -148,7 +148,7 @@ export default function ModuleList() {
           label="Filtered by programme · clear"
           onClick={() => navigate("/programmes/modules")}
           onDelete={() => navigate("/programmes/modules")}
-          sx={{ mb: 2, fontWeight: 600, bgcolor: "rgba(0,96,80,0.08)", color: primaryDark }}
+          sx={{ mb: 2, fontWeight: 600, bgcolor: "rgba(27,94,168,0.08)", color: primaryDark }}
         />
       ) : null}
 
@@ -158,7 +158,7 @@ export default function ModuleList() {
         </Alert>
       ) : null}
 
-      <Box sx={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(0,96,80,0.1)", bgcolor: "var(--kd-surface)", boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)" }}>
+      <Box sx={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(27,94,168,0.1)", bgcolor: "var(--kd-surface)", boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)" }}>
         <TableContainer>
           <Table size="medium" sx={{ minWidth: 860 }}>
             <TableHead>
@@ -171,7 +171,7 @@ export default function ModuleList() {
                     fontSize: "0.7rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    borderBottom: "1px solid rgba(0,96,80,0.1)",
+                    borderBottom: "1px solid rgba(27,94,168,0.1)",
                     py: 1.75,
                   },
                 }}
@@ -213,7 +213,7 @@ export default function ModuleList() {
                   <TableRow
                     key={row.id}
                     hover
-                    sx={{ "&:hover": { bgcolor: "rgba(0,96,80,0.04)" }, "& td": { borderColor: "rgba(0,96,80,0.06)" } }}
+                    sx={{ "&:hover": { bgcolor: "rgba(27,94,168,0.04)" }, "& td": { borderColor: "rgba(27,94,168,0.06)" } }}
                   >
                     <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem" }}>
                       {page * rowsPerPage + idx + 1}
@@ -263,7 +263,7 @@ export default function ModuleList() {
             setPage(0);
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
-          sx={{ borderTop: "1px solid rgba(0,96,80,0.1)", "& .MuiTablePagination-toolbar": { fontFamily: '"Plus Jakarta Sans", sans-serif', fontWeight: 600 } }}
+          sx={{ borderTop: "1px solid rgba(27,94,168,0.1)", "& .MuiTablePagination-toolbar": { fontFamily: '"Plus Jakarta Sans", sans-serif', fontWeight: 600 } }}
         />
       </Box>
     </Box>

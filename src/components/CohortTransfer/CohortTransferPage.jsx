@@ -453,7 +453,7 @@ function SemesterColumn({
           py: 1,
           background: `
             radial-gradient(ellipse 80% 50% at 50% 0%, ${alpha(primaryGreen, 0.05)} 0%, transparent 60%),
-            ${alpha("#f7faf8", 0.9)}
+            ${alpha("#f5f8fc", 0.9)}
           `,
         }}
       >

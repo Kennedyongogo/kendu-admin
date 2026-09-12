@@ -237,7 +237,7 @@ export default function Departments() {
           mt: 2.5,
           borderRadius: "20px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.1)",
+          border: "1px solid rgba(27,94,168,0.1)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         }}
@@ -247,7 +247,7 @@ export default function Departments() {
           spacing={1.5}
           alignItems={{ sm: "center" }}
           justifyContent="space-between"
-          sx={{ px: 2, py: 1.75, bgcolor: warmCream, borderBottom: "1px solid rgba(0,96,80,0.08)" }}
+          sx={{ px: 2, py: 1.75, bgcolor: warmCream, borderBottom: "1px solid rgba(27,94,168,0.08)" }}
         >
           <Typography sx={{ fontFamily: '"Fraunces", serif', fontWeight: 700, color: textPrimary }}>
             All departments
@@ -273,7 +273,7 @@ export default function Departments() {
         <TableContainer>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: "rgba(0,96,80,0.04)" }}>
+              <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
                 {["No", "Name", "Code", "Programmes", "Staff", "Actions"].map((h) => (
                   <TableCell
                     key={h}

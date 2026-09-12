@@ -60,7 +60,7 @@ export default function UserAccount({ open, onClose, currentUser }) {
             value={currentUser.admission_number}
           />
         ) : null}
-        <Box sx={{ p: 1.75, borderRadius: "14px", bgcolor: warmCream, border: "1px solid rgba(0,96,80,0.1)" }}>
+        <Box sx={{ p: 1.75, borderRadius: "14px", bgcolor: warmCream, border: "1px solid rgba(27,94,168,0.1)" }}>
           <Typography sx={{ fontSize: "0.75rem", color: textSecondary }}>
             Last login:{" "}
             <Box component="span" sx={{ fontWeight: 700, color: textPrimary }}>

@@ -57,7 +57,7 @@ export default function Registrations() {
         sx={{
           borderRadius: "20px",
           bgcolor: "var(--kd-surface)",
-          border: "1px solid rgba(0,96,80,0.1)",
+          border: "1px solid rgba(27,94,168,0.1)",
           boxShadow: "0 20px 48px -18px rgba(20,26,58,0.14)",
           overflow: "hidden",
           minHeight: 280,

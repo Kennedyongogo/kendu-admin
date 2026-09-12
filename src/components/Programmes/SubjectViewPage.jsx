@@ -121,7 +121,7 @@ export default function SubjectViewPage() {
               label={required ? "Required" : "Optional"}
               sx={{
                 fontWeight: 700,
-                bgcolor: required ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.06)",
+                bgcolor: required ? "rgba(27,94,168,0.1)" : "rgba(30,40,88,0.06)",
                 color: required ? primaryDark : textSecondary,
               }}
             />

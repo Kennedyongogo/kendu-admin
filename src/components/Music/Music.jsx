@@ -361,7 +361,7 @@ export default function Music() {
       <TableContainer
         sx={{
           borderRadius: "18px",
-          border: "1px solid rgba(0,96,80,0.12)",
+          border: "1px solid rgba(27,94,168,0.12)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 12px 40px -24px rgba(20,26,58,0.18)",
           overflow: "hidden",
@@ -379,7 +379,7 @@ export default function Music() {
                   fontSize: "0.7rem",
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
-                  borderBottom: "1px solid rgba(0,96,80,0.1)",
+                  borderBottom: "1px solid rgba(27,94,168,0.1)",
                   py: 1.75,
                   fontFamily: fontBody,
                 },
@@ -446,10 +446,10 @@ export default function Music() {
                     key={row.id}
                     hover
                     sx={{
-                      bgcolor: isPlaying ? "rgba(0,96,80,0.04)" : undefined,
+                      bgcolor: isPlaying ? "rgba(27,94,168,0.04)" : undefined,
                       transition: "background 0.15s ease",
-                      "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                      "& td": { borderColor: "rgba(0,96,80,0.06)", fontFamily: fontBody },
+                      "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                      "& td": { borderColor: "rgba(27,94,168,0.06)", fontFamily: fontBody },
                     }}
                   >
                     <TableCell sx={{ color: textMuted, fontWeight: 600 }}>
@@ -467,11 +467,11 @@ export default function Music() {
                             alignItems: "center",
                             justifyContent: "center",
                             background: isPlaying
-                              ? `linear-gradient(145deg, ${primaryGreen}, #004840)`
+                              ? `linear-gradient(145deg, ${primaryGreen}, #0E3D73)`
                               : warmCream,
                             color: isPlaying ? "#fff" : primaryGreen,
-                            border: "1px solid rgba(0,96,80,0.12)",
-                            boxShadow: isPlaying ? "0 8px 18px -8px rgba(0,96,80,0.55)" : "none",
+                            border: "1px solid rgba(27,94,168,0.12)",
+                            boxShadow: isPlaying ? "0 8px 18px -8px rgba(27,94,168,0.55)" : "none",
                           }}
                         >
                           <MusicNoteIcon fontSize="small" />
@@ -510,7 +510,7 @@ export default function Music() {
                                 sx={{
                                   height: 4,
                                   borderRadius: 2,
-                                  bgcolor: "rgba(0,96,80,0.12)",
+                                  bgcolor: "rgba(27,94,168,0.12)",
                                   "& .MuiLinearProgress-bar": { bgcolor: primaryGreen, borderRadius: 2 },
                                 }}
                               />
@@ -526,7 +526,7 @@ export default function Music() {
                         sx={{
                           fontWeight: 700,
                           fontSize: "0.7rem",
-                          bgcolor: row.is_active !== false ? "rgba(0,96,80,0.12)" : "rgba(30,40,88,0.08)",
+                          bgcolor: row.is_active !== false ? "rgba(27,94,168,0.12)" : "rgba(30,40,88,0.08)",
                           color: row.is_active !== false ? primaryGreen : textMuted,
                           borderRadius: "8px",
                         }}
@@ -546,9 +546,9 @@ export default function Music() {
                             aria-label={isPlaying ? "Stop" : "Play"}
                             sx={{
                               color: isPlaying ? "#fff" : primaryGreen,
-                              bgcolor: isPlaying ? primaryGreen : "rgba(0,96,80,0.08)",
+                              bgcolor: isPlaying ? primaryGreen : "rgba(27,94,168,0.08)",
                               "&:hover": {
-                                bgcolor: isPlaying ? "#004840" : "rgba(0,96,80,0.16)",
+                                bgcolor: isPlaying ? "#0E3D73" : "rgba(27,94,168,0.16)",
                               },
                             }}
                           >
@@ -601,7 +601,7 @@ export default function Music() {
           }}
           rowsPerPageOptions={[5, 10, 25]}
           sx={{
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
               fontFamily: fontBody,
             },
@@ -730,7 +730,7 @@ export default function Music() {
             <Box
               onClick={() => fileInputRef.current?.click()}
               sx={{
-                border: "1.5px dashed rgba(0,96,80,0.35)",
+                border: "1.5px dashed rgba(27,94,168,0.35)",
                 borderRadius: "16px",
                 bgcolor: warmCream,
                 px: 2.5,
@@ -742,7 +742,7 @@ export default function Music() {
                 overflow: "hidden",
                 "&:hover": {
                   borderColor: primaryGreen,
-                  bgcolor: "rgba(0,96,80,0.06)",
+                  bgcolor: "rgba(27,94,168,0.06)",
                 },
               }}
             >

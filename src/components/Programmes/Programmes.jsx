@@ -53,7 +53,7 @@ function ProgrammeThumb({ src, size = 42 }) {
         width: size,
         height: size,
         borderRadius: "12px",
-        bgcolor: "rgba(0,96,80,0.1)",
+        bgcolor: "rgba(27,94,168,0.1)",
         color: primaryGreen,
         boxShadow: "0 4px 12px rgba(20,26,58,0.08)",
       }}
@@ -196,7 +196,7 @@ export default function Programmes() {
         sx={{
           borderRadius: "20px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.1)",
+          border: "1px solid rgba(27,94,168,0.1)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         }}
@@ -213,7 +213,7 @@ export default function Programmes() {
                     fontSize: "0.7rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    borderBottom: "1px solid rgba(0,96,80,0.1)",
+                    borderBottom: "1px solid rgba(27,94,168,0.1)",
                     py: 1.75,
                   },
                 }}
@@ -257,8 +257,8 @@ export default function Programmes() {
                       hover
                       sx={{
                         transition: "background 0.15s ease",
-                        "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                        "& td": { borderColor: "rgba(0,96,80,0.06)" },
+                        "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                        "& td": { borderColor: "rgba(27,94,168,0.06)" },
                       }}
                     >
                       <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem" }}>
@@ -355,7 +355,7 @@ export default function Programmes() {
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           sx={{
-            borderTop: "1px solid rgba(0,96,80,0.1)",
+            borderTop: "1px solid rgba(27,94,168,0.1)",
             "& .MuiTablePagination-toolbar": {
               fontFamily: '"Plus Jakarta Sans", sans-serif',
               fontWeight: 600,

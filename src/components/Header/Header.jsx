@@ -39,7 +39,7 @@ const fontDisplay = '"Fraunces", "Georgia", serif';
 
 const BRAND = {
   navy: "#1e2858",
-  green: "#006050",
+  green: "#1B5EA8",
   gold: "#c8a840",
 };
 
@@ -370,14 +370,14 @@ export default function Header(props) {
                 mt: 1,
                 minWidth: 280,
                 borderRadius: "18px",
-                border: "1px solid rgba(0,96,80,0.1)",
+                border: "1px solid rgba(27,94,168,0.1)",
                 boxShadow: "0 16px 48px rgba(20,26,58,0.14)",
                 overflow: "hidden",
               },
             },
           }}
         >
-          <Box sx={{ px: 2, py: 2, bgcolor: "#f7faf8" }}>
+          <Box sx={{ px: 2, py: 2, bgcolor: "#f5f8fc" }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               {avatarSrc ? (
                 <Avatar
@@ -469,7 +469,7 @@ export default function Header(props) {
               fontFamily: fontBody,
               fontSize: "0.9rem",
               color: BRAND.green,
-              "&:hover": { bgcolor: "rgba(0,96,80,0.08)" },
+              "&:hover": { bgcolor: "rgba(27,94,168,0.08)" },
             }}
           >
             <ListItemIcon>

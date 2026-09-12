@@ -105,14 +105,14 @@ const fadeUp = {
 
 const cardSx = {
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
   overflow: "hidden",
 };
 
 const METHOD_TONES = {
-  mpesa: { bg: "rgba(0,96,80,0.1)", color: primaryGreen },
+  mpesa: { bg: "rgba(27,94,168,0.1)", color: primaryGreen },
   bank: { bg: "rgba(30,40,88,0.1)", color: navy },
   cash: { bg: "rgba(200,168,64,0.2)", color: "#8a6d1c" },
   card: { bg: "rgba(106,76,147,0.12)", color: "#6a4c93" },
@@ -227,7 +227,7 @@ function ChartCard({ title, subtitle, actions, children, index = 0 }) {
         justifyContent="space-between"
         alignItems={{ sm: "center" }}
         spacing={1.5}
-        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}
       >
         <Box>
           <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
@@ -278,7 +278,7 @@ const headCellSx = {
   textTransform: "uppercase",
   letterSpacing: "0.07em",
   bgcolor: warmCream,
-  borderBottom: "1px solid rgba(0,96,80,0.12)",
+  borderBottom: "1px solid rgba(27,94,168,0.12)",
   whiteSpace: "nowrap",
 };
 
@@ -288,7 +288,7 @@ function DetailItem({ icon, label, children }) {
       sx={{
         p: 1.5,
         borderRadius: "14px",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         bgcolor: "var(--kd-surface)",
         minWidth: 0,
       }}
@@ -347,8 +347,8 @@ function PaymentDetailsDialog({ payment, onClose }) {
           sx={{
             p: 2,
             borderRadius: "16px",
-            background: `linear-gradient(135deg, ${warmCream} 0%, rgba(0,96,80,0.07) 100%)`,
-            border: "1px solid rgba(0,96,80,0.12)",
+            background: `linear-gradient(135deg, ${warmCream} 0%, rgba(27,94,168,0.07) 100%)`,
+            border: "1px solid rgba(27,94,168,0.12)",
           }}
         >
           <Stack
@@ -422,7 +422,7 @@ function PaymentDetailsDialog({ payment, onClose }) {
               p: 1.5,
               borderRadius: "14px",
               bgcolor: warmCream,
-              border: "1px dashed rgba(0,96,80,0.25)",
+              border: "1px dashed rgba(27,94,168,0.25)",
             }}
           >
             <Stack direction="row" spacing={0.7} alignItems="center" sx={{ mb: 0.5 }}>
@@ -707,7 +707,7 @@ export default function Accounting() {
                   grid={{ horizontal: true }}
                   margin={{ top: 35, right: 20, bottom: 25, left: 70 }}
                   sx={{
-                    "& .MuiChartsGrid-line": { stroke: "rgba(0,96,80,0.08)" },
+                    "& .MuiChartsGrid-line": { stroke: "rgba(27,94,168,0.08)" },
                     "& .MuiChartsAxis-tickLabel": { fontFamily: fontBody },
                   }}
                 />
@@ -742,7 +742,7 @@ export default function Accounting() {
                   />
                 ) : (
                   <Stack sx={{ height: 230 }} alignItems="center" justifyContent="center" spacing={1}>
-                    <InsightsRoundedIcon sx={{ fontSize: 42, color: "rgba(0,96,80,0.25)" }} />
+                    <InsightsRoundedIcon sx={{ fontSize: 42, color: "rgba(27,94,168,0.25)" }} />
                     <Typography sx={{ fontFamily: fontBody, color: textMuted, fontSize: "0.85rem" }}>
                       No confirmed payments in this period.
                     </Typography>
@@ -754,7 +754,7 @@ export default function Accounting() {
                     gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
                     gap: 1,
                     pt: 1.25,
-                    borderTop: "1px solid rgba(0,96,80,0.08)",
+                    borderTop: "1px solid rgba(27,94,168,0.08)",
                   }}
                 >
                   {methodChart.map((method) => (
@@ -786,7 +786,7 @@ export default function Accounting() {
               justifyContent="space-between"
               alignItems={{ md: "center" }}
               spacing={1.5}
-              sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+              sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}
             >
               <Box>
                 <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
@@ -849,8 +849,8 @@ export default function Accounting() {
                         hover
                         sx={{
                           transition: "background 0.15s ease",
-                          "&:hover": { bgcolor: "rgba(0,96,80,0.035)" },
-                          "& td": { borderColor: "rgba(0,96,80,0.07)" },
+                          "&:hover": { bgcolor: "rgba(27,94,168,0.035)" },
+                          "& td": { borderColor: "rgba(27,94,168,0.07)" },
                         }}
                       >
                         <TableCell sx={{ fontFamily: fontBody, fontWeight: 700, color: textMuted, fontSize: "0.82rem" }}>
@@ -896,8 +896,8 @@ export default function Accounting() {
                               onClick={() => setViewPayment(payment)}
                               sx={{
                                 color: primaryGreen,
-                                bgcolor: "rgba(0,96,80,0.07)",
-                                "&:hover": { bgcolor: "rgba(0,96,80,0.16)" },
+                                bgcolor: "rgba(27,94,168,0.07)",
+                                "&:hover": { bgcolor: "rgba(27,94,168,0.16)" },
                               }}
                             >
                               <VisibilityRoundedIcon sx={{ fontSize: 19 }} />
@@ -910,7 +910,7 @@ export default function Accounting() {
                     <TableRow>
                       <TableCell colSpan={7} sx={{ border: "none" }}>
                         <Stack alignItems="center" spacing={1} sx={{ py: 5 }}>
-                          <ReceiptLongRoundedIcon sx={{ fontSize: 44, color: "rgba(0,96,80,0.22)" }} />
+                          <ReceiptLongRoundedIcon sx={{ fontSize: 44, color: "rgba(27,94,168,0.22)" }} />
                           <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary }}>
                             No payment records found
                           </Typography>
@@ -937,7 +937,7 @@ export default function Accounting() {
               }}
               rowsPerPageOptions={[5, 10, 25, 50]}
               sx={{
-                borderTop: "1px solid rgba(0,96,80,0.1)",
+                borderTop: "1px solid rgba(27,94,168,0.1)",
                 "& .MuiTablePagination-toolbar": {
                   fontFamily: fontBody,
                   fontWeight: 600,

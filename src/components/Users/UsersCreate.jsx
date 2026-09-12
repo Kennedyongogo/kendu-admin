@@ -271,9 +271,9 @@ export default function UsersCreate() {
                     textTransform: "none",
                     fontWeight: 600,
                     borderRadius: "12px",
-                    borderColor: "rgba(0,96,80,0.3)",
+                    borderColor: "rgba(27,94,168,0.3)",
                     color: primaryGreen,
-                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
+                    "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(27,94,168,0.06)" },
                   }}
                 >
                   {form.profilePreview ? "Change photo" : "Upload photo"}

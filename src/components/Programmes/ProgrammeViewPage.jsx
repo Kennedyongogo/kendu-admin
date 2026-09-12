@@ -134,12 +134,12 @@ export default function ProgrammeViewPage() {
                 aspectRatio: "4 / 3",
                 borderRadius: "20px",
                 overflow: "hidden",
-                bgcolor: "rgba(0,96,80,0.08)",
+                bgcolor: "rgba(27,94,168,0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                border: "1.5px solid rgba(0,96,80,0.14)",
+                border: "1.5px solid rgba(27,94,168,0.14)",
                 boxShadow: "0 12px 32px rgba(20,26,58,0.08)",
               }}
             >
@@ -157,7 +157,7 @@ export default function ProgrammeViewPage() {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.72rem",
-                    bgcolor: active ? "rgba(0,96,80,0.1)" : "rgba(30,40,88,0.06)",
+                    bgcolor: active ? "rgba(27,94,168,0.1)" : "rgba(30,40,88,0.06)",
                     color: active ? primaryDark : textSecondary,
                   }}
                 />

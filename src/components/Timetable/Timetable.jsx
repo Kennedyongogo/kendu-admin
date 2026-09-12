@@ -64,7 +64,7 @@ const SCHEDULE_TABS = [
 
 const cardSx = {
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
   overflow: "hidden",
@@ -96,9 +96,9 @@ function NavArrowButton({ direction, onClick, disabled }) {
             borderRadius: "10px",
             color: "#fff",
             bgcolor: primaryGreen,
-            boxShadow: "0 8px 20px -8px rgba(0,96,80,0.55)",
+            boxShadow: "0 8px 20px -8px rgba(27,94,168,0.55)",
             "&:hover": { bgcolor: primaryDark },
-            "&.Mui-disabled": { bgcolor: "rgba(0,96,80,0.18)", color: "rgba(255,255,255,0.75)" },
+            "&.Mui-disabled": { bgcolor: "rgba(27,94,168,0.18)", color: "rgba(255,255,255,0.75)" },
           }}
         >
           {direction === "prev" ? (
@@ -126,8 +126,8 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
         gap: { xs: 0.55, sm: 0.75 },
         p: { xs: 0.45, sm: 0.65 },
         borderRadius: "14px",
-        bgcolor: "rgba(0,96,80,0.035)",
-        border: "1px solid rgba(0,96,80,0.06)",
+        bgcolor: "rgba(27,94,168,0.035)",
+        border: "1px solid rgba(27,94,168,0.06)",
         boxSizing: "border-box",
       }}
     >
@@ -198,8 +198,8 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
                     ? "2px solid var(--schedule-accent)"
                     : isWeekend
                       ? "1px solid rgba(200,168,64,0.35)"
-                      : "1px solid rgba(0,96,80,0.16)"
-                  : "1px dashed rgba(0,96,80,0.08)",
+                      : "1px solid rgba(27,94,168,0.16)"
+                  : "1px dashed rgba(27,94,168,0.08)",
                 bgcolor: day
                   ? isToday
                     ? "color-mix(in srgb, var(--schedule-accent) 10%, var(--kd-surface))"
@@ -217,7 +217,7 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
                   ? {
                       bgcolor: isToday
                         ? "color-mix(in srgb, var(--schedule-accent) 16%, var(--kd-surface))"
-                        : "rgba(0,96,80,0.07)",
+                        : "rgba(27,94,168,0.07)",
                       borderColor: "var(--schedule-accent)",
                     }
                   : undefined,
@@ -241,7 +241,7 @@ const MonthGrid = React.memo(function MonthGrid({ year, monthIndex, today, onDay
                       ? `linear-gradient(145deg, var(--schedule-accent) 0%, ${primaryDark} 150%)`
                       : isWeekend
                         ? "rgba(200,168,64,0.18)"
-                        : "rgba(0,96,80,0.08)",
+                        : "rgba(27,94,168,0.08)",
                     boxShadow: isToday
                       ? "0 6px 14px -4px color-mix(in srgb, var(--schedule-accent) 55%, transparent)"
                       : "none",
@@ -398,7 +398,7 @@ export default function Timetable() {
           mb: 1.25,
           background: `linear-gradient(135deg, ${primaryGreen} 0%, ${navy} 100%)`,
           color: "#fff",
-          boxShadow: "0 14px 32px -14px rgba(0, 96, 80, 0.4)",
+          boxShadow: "0 14px 32px -14px rgba(27, 94, 168, 0.4)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -529,7 +529,7 @@ export default function Timetable() {
           justifyContent="space-between"
           alignItems="center"
           spacing={1}
-          sx={{ px: 1.75, py: 0.6, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream, flexShrink: 0 }}
+          sx={{ px: 1.75, py: 0.6, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream, flexShrink: 0 }}
         >
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
             <Box
@@ -572,8 +572,8 @@ export default function Timetable() {
                 px: 1.1,
                 py: 0.4,
                 minWidth: 0,
-                bgcolor: "rgba(0,96,80,0.07)",
-                "&:hover": { bgcolor: "rgba(0,96,80,0.14)" },
+                bgcolor: "rgba(27,94,168,0.07)",
+                "&:hover": { bgcolor: "rgba(27,94,168,0.14)" },
               }}
             >
               Today

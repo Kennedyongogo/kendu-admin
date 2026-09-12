@@ -86,7 +86,7 @@ const ACTION_STYLES = {
   read: { color: "#1e2858", bg: "rgba(30,40,88,0.1)" },
   update: { color: "#a16207", bg: "#fef3c7" },
   delete: { color: "#b91c1c", bg: "#fee2e2" },
-  login: { color: "#006050", bg: "rgba(0,96,80,0.12)" },
+  login: { color: "#1B5EA8", bg: "rgba(27,94,168,0.12)" },
   logout: { color: "#57534e", bg: "#f5f5f4" },
   other: { color: "#57534e", bg: "#f5f5f4" },
 };
@@ -151,7 +151,7 @@ function JsonBlock({ title, data, variant = "neutral" }) {
       ? { bg: "#fef2f2", border: "rgba(185,28,28,0.16)", label: "#b91c1c" }
       : variant === "new"
         ? { bg: "#f0fdf4", border: "rgba(21,128,61,0.16)", label: "#15803d" }
-        : { bg: warmCream, border: "rgba(0,96,80,0.1)", label: textSecondary };
+        : { bg: warmCream, border: "rgba(27,94,168,0.1)", label: textSecondary };
 
   return (
     <Box
@@ -207,7 +207,7 @@ function StatPill({ label, value, accent = primaryGreen }) {
         flex: 1,
         borderRadius: "16px",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         boxShadow: "0 8px 24px -12px rgba(20,26,58,0.12)",
       }}
     >
@@ -456,7 +456,7 @@ export default function Audit() {
         sx={{
           borderRadius: "20px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.1)",
+          border: "1px solid rgba(27,94,168,0.1)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 16px 40px -16px rgba(20,26,58,0.1)",
         }}
@@ -473,7 +473,7 @@ export default function Audit() {
                     fontSize: "0.7rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    borderBottom: "1px solid rgba(0,96,80,0.1)",
+                    borderBottom: "1px solid rgba(27,94,168,0.1)",
                     py: 1.75,
                   },
                 }}
@@ -500,7 +500,7 @@ export default function Audit() {
                 <TableRow>
                   <TableCell colSpan={7}>
                     <Box sx={{ py: 6, textAlign: "center" }}>
-                      <HistoryIcon sx={{ fontSize: 40, color: "rgba(0,96,80,0.25)", mb: 1 }} />
+                      <HistoryIcon sx={{ fontSize: 40, color: "rgba(27,94,168,0.25)", mb: 1 }} />
                       <Typography
                         sx={{
                           fontFamily: '"Fraunces", Georgia, serif',
@@ -526,8 +526,8 @@ export default function Audit() {
                       hover
                       sx={{
                         transition: "background 0.15s ease",
-                        "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                        "& td": { borderColor: "rgba(0,96,80,0.06)" },
+                        "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                        "& td": { borderColor: "rgba(27,94,168,0.06)" },
                       }}
                     >
                       <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem" }}>
@@ -583,8 +583,8 @@ export default function Audit() {
                             onClick={() => void handleViewLog(log)}
                             sx={{
                               color: primaryGreen,
-                              bgcolor: "rgba(0,96,80,0.08)",
-                              "&:hover": { bgcolor: "rgba(0,96,80,0.16)" },
+                              bgcolor: "rgba(27,94,168,0.08)",
+                              "&:hover": { bgcolor: "rgba(27,94,168,0.16)" },
                             }}
                           >
                             <VisibilityOutlinedIcon fontSize="small" />
@@ -610,7 +610,7 @@ export default function Audit() {
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           sx={{
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
             color: textSecondary,
           }}
@@ -650,7 +650,7 @@ export default function Audit() {
                 p: 2,
                 borderRadius: "18px",
                 background: `linear-gradient(135deg, ${warmCream} 0%, var(--kd-surface) 100%)`,
-                border: "1px solid rgba(0,96,80,0.1)",
+                border: "1px solid rgba(27,94,168,0.1)",
               }}
             >
               <Stack direction="row" spacing={1.5} alignItems="center">

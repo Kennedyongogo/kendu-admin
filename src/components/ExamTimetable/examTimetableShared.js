@@ -3,7 +3,7 @@ import { navy, primaryGreen } from "../Users/usersShared";
 export const STATUS_META = {
   draft: { label: "Draft", bg: "rgba(30,40,88,0.08)", color: navy },
   pending: { label: "Pending approval", bg: "rgba(178,106,0,0.14)", color: "#b26a00" },
-  approved: { label: "Approved", bg: "rgba(0,96,80,0.12)", color: primaryGreen },
+  approved: { label: "Approved", bg: "rgba(27,94,168,0.12)", color: primaryGreen },
   rejected: { label: "Rejected", bg: "rgba(185,28,28,0.1)", color: "#b91c1c" },
 };
 

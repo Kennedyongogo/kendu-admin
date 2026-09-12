@@ -94,7 +94,7 @@ function GaugeRing({ percent, enabled, size = 200 }) {
         style={{
           display: "block",
           transform: "rotate(-90deg)",
-          filter: enabled ? "drop-shadow(0 12px 28px rgba(0,96,80,0.28))" : "none",
+          filter: enabled ? "drop-shadow(0 12px 28px rgba(27,94,168,0.28))" : "none",
         }}
       >
         <circle
@@ -102,7 +102,7 @@ function GaugeRing({ percent, enabled, size = 200 }) {
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="rgba(0,96,80,0.1)"
+          stroke="rgba(27,94,168,0.1)"
           strokeWidth={stroke}
         />
         <circle
@@ -178,8 +178,8 @@ function JourneyPreview({ percent, enabled }) {
       sx={{
         borderRadius: "16px",
         overflow: "hidden",
-        border: "1px solid rgba(0,96,80,0.12)",
-        bgcolor: "rgba(0,96,80,0.03)",
+        border: "1px solid rgba(27,94,168,0.12)",
+        bgcolor: "rgba(27,94,168,0.03)",
       }}
     >
       {steps.map((step, i) => (
@@ -190,8 +190,8 @@ function JourneyPreview({ percent, enabled }) {
             px: 1.5,
             py: 1.25,
             textAlign: "center",
-            borderRight: i < steps.length - 1 ? "1px solid rgba(0,96,80,0.1)" : "none",
-            bgcolor: step.active ? "rgba(0,96,80,0.06)" : "transparent",
+            borderRight: i < steps.length - 1 ? "1px solid rgba(27,94,168,0.1)" : "none",
+            bgcolor: step.active ? "rgba(27,94,168,0.06)" : "transparent",
           }}
         >
           <Typography
@@ -549,7 +549,7 @@ export default function Access() {
           px: { xs: 2, sm: 3, md: 4 },
           py: { xs: 2.5, sm: 3 },
           background: `
-            radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0,96,80,0.07) 0%, transparent 55%),
+            radial-gradient(ellipse 80% 50% at 100% 0%, rgba(27,94,168,0.07) 0%, transparent 55%),
             radial-gradient(ellipse 60% 40% at 0% 100%, rgba(200,168,64,0.08) 0%, transparent 50%),
             var(--kd-page-b)
           `,
@@ -573,7 +573,7 @@ export default function Access() {
                 py: 8,
                 textAlign: "center",
                 borderRadius: "20px",
-                border: "1px dashed rgba(0,96,80,0.22)",
+                border: "1px dashed rgba(27,94,168,0.22)",
                 bgcolor: "rgba(255,255,255,0.55)",
               }}
             >
@@ -694,9 +694,9 @@ export default function Access() {
                           height: 22,
                           bgcolor: "#fff",
                           border: `3px solid ${primaryGreen}`,
-                          boxShadow: "0 4px 14px rgba(0,96,80,0.35)",
+                          boxShadow: "0 4px 14px rgba(27,94,168,0.35)",
                           "&:hover, &.Mui-focusVisible": {
-                            boxShadow: "0 0 0 8px rgba(0,96,80,0.16)",
+                            boxShadow: "0 0 0 8px rgba(27,94,168,0.16)",
                           },
                         },
                         "& .MuiSlider-rail": { opacity: 0.25 },
@@ -724,10 +724,10 @@ export default function Access() {
                               px: 1.25,
                               py: 0.55,
                               color: active ? "#fff" : primaryGreen,
-                              bgcolor: active ? primaryGreen : "rgba(0,96,80,0.06)",
-                              border: `1px solid ${active ? primaryGreen : "rgba(0,96,80,0.14)"}`,
+                              bgcolor: active ? primaryGreen : "rgba(27,94,168,0.06)",
+                              border: `1px solid ${active ? primaryGreen : "rgba(27,94,168,0.14)"}`,
                               "&:hover": {
-                                bgcolor: active ? primaryDark : "rgba(0,96,80,0.12)",
+                                bgcolor: active ? primaryDark : "rgba(27,94,168,0.12)",
                               },
                             }}
                           >
@@ -755,7 +755,7 @@ export default function Access() {
                         ? "1px solid transparent"
                         : "1px solid rgba(30,40,88,0.12)",
                       boxShadow: form.is_enabled
-                        ? "0 18px 40px -16px rgba(0,96,80,0.55)"
+                        ? "0 18px 40px -16px rgba(27,94,168,0.55)"
                         : "none",
                       transition: "transform 0.2s ease, box-shadow 0.2s ease",
                       "&:hover": { transform: "translateY(-2px)" },
@@ -772,7 +772,7 @@ export default function Access() {
                             placeItems: "center",
                             bgcolor: form.is_enabled
                               ? "rgba(255,255,255,0.14)"
-                              : "rgba(0,96,80,0.1)",
+                              : "rgba(27,94,168,0.1)",
                             color: form.is_enabled ? accentGold : primaryGreen,
                           }}
                         >
@@ -819,7 +819,7 @@ export default function Access() {
                       borderRadius: "20px",
                       p: { xs: 2, sm: 2.25 },
                       bgcolor: "var(--kd-surface)",
-                      border: "1px solid rgba(0,96,80,0.1)",
+                      border: "1px solid rgba(27,94,168,0.1)",
                       boxShadow: "0 16px 40px -20px rgba(20,26,58,0.12)",
                     }}
                   >
@@ -858,8 +858,8 @@ export default function Access() {
                         mt: 2,
                         p: 1.5,
                         borderRadius: "14px",
-                        bgcolor: "rgba(0,96,80,0.04)",
-                        border: "1px solid rgba(0,96,80,0.08)",
+                        bgcolor: "rgba(27,94,168,0.04)",
+                        border: "1px solid rgba(27,94,168,0.08)",
                       }}
                     >
                       <Typography
@@ -907,8 +907,8 @@ export default function Access() {
                         borderRadius: "14px",
                         bgcolor: "var(--kd-surface)",
                         fontFamily: fontBody,
-                        "& fieldset": { borderColor: "rgba(0,96,80,0.16)" },
-                        "&:hover fieldset": { borderColor: "rgba(0,96,80,0.35)" },
+                        "& fieldset": { borderColor: "rgba(27,94,168,0.16)" },
+                        "&:hover fieldset": { borderColor: "rgba(27,94,168,0.35)" },
                         "&.Mui-focused fieldset": { borderColor: primaryGreen },
                       },
                       "& .MuiInputLabel-root.Mui-focused": { color: primaryGreen },
@@ -944,8 +944,8 @@ export default function Access() {
                           borderRadius: "12px",
                           px: 2.25,
                           color: textSecondary,
-                          border: "1px solid rgba(0,96,80,0.16)",
-                          "&:hover": { bgcolor: "rgba(0,96,80,0.05)" },
+                          border: "1px solid rgba(27,94,168,0.16)",
+                          "&:hover": { bgcolor: "rgba(27,94,168,0.05)" },
                         }}
                       >
                         Discard changes
@@ -962,7 +962,7 @@ export default function Access() {
                           py: 1.15,
                           borderRadius: "12px",
                           boxShadow: dirty
-                            ? "0 12px 28px -10px rgba(0,96,80,0.55)"
+                            ? "0 12px 28px -10px rgba(27,94,168,0.55)"
                             : "none",
                           opacity: dirty ? 1 : 0.55,
                         }}

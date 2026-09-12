@@ -71,7 +71,7 @@ import {
 const STATUS_META = {
   draft: { label: "Draft", color: textSecondary, bg: "rgba(30,40,88,0.06)" },
   pending: { label: "Pending", color: "#9a6700", bg: "rgba(200,168,64,0.18)" },
-  approved: { label: "Approved", color: primaryDark, bg: "rgba(0,96,80,0.12)" },
+  approved: { label: "Approved", color: primaryDark, bg: "rgba(27,94,168,0.12)" },
   rejected: { label: "Rejected", color: "#9b1c1c", bg: "rgba(155,28,28,0.1)" },
 };
 
@@ -246,7 +246,7 @@ function UnitViewDialog({ open, onClose, unit, loading, error, onEdit }) {
               sx={{
                 height: 2,
                 borderRadius: 1,
-                bgcolor: "rgba(0,96,80,0.08)",
+                bgcolor: "rgba(27,94,168,0.08)",
                 "& .MuiLinearProgress-bar": { bgcolor: primaryGreen },
               }}
             />
@@ -280,7 +280,7 @@ function UnitViewDialog({ open, onClose, unit, loading, error, onEdit }) {
 
           {unit.description ? (
             <>
-              <Divider sx={{ borderColor: "rgba(0,96,80,0.1)" }} />
+              <Divider sx={{ borderColor: "rgba(27,94,168,0.1)" }} />
               <DetailField label="Description" value={unit.description} fullWidth />
             </>
           ) : null}
@@ -292,7 +292,7 @@ function UnitViewDialog({ open, onClose, unit, loading, error, onEdit }) {
             </Alert>
           ) : null}
 
-          <Divider sx={{ borderColor: "rgba(0,96,80,0.1)" }} />
+          <Divider sx={{ borderColor: "rgba(27,94,168,0.1)" }} />
 
           <Box
             sx={{
@@ -1301,9 +1301,9 @@ export default function Units() {
                   sx={{
                     fontWeight: 700,
                     fontSize: "0.72rem",
-                    bgcolor: "rgba(0,96,80,0.1)",
+                    bgcolor: "rgba(27,94,168,0.1)",
                     color: primaryDark,
-                    border: "1px solid rgba(0,96,80,0.18)",
+                    border: "1px solid rgba(27,94,168,0.18)",
                   }}
                 />
               ) : (
@@ -1419,7 +1419,7 @@ export default function Units() {
         sx={{
           borderRadius: fitProgrammesViewport ? "18px" : "22px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.12)",
+          border: "1px solid rgba(27,94,168,0.12)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 20px 48px -18px rgba(20,26,58,0.14)",
           flex: fitProgrammesViewport ? 1 : undefined,
@@ -1438,7 +1438,7 @@ export default function Units() {
             pt: fitProgrammesViewport ? 0.5 : 1.25,
             flexShrink: 0,
             bgcolor: warmCream,
-            borderBottom: "1px solid rgba(0,96,80,0.08)",
+            borderBottom: "1px solid rgba(27,94,168,0.08)",
           }}
         >
           <Tabs
@@ -1482,9 +1482,9 @@ export default function Units() {
                 sx={{
                   fontWeight: 700,
                   maxWidth: 220,
-                  bgcolor: "rgba(0,96,80,0.1)",
+                  bgcolor: "rgba(27,94,168,0.1)",
                   color: primaryDark,
-                  border: "1px solid rgba(0,96,80,0.2)",
+                  border: "1px solid rgba(27,94,168,0.2)",
                   "& .MuiChip-label": { overflow: "hidden", textOverflow: "ellipsis" },
                 }}
               />
@@ -1515,8 +1515,8 @@ export default function Units() {
                 sx={{
                   px: 2,
                   py: 1.25,
-                  bgcolor: "rgba(0,96,80,0.05)",
-                  borderBottom: "1px solid rgba(0,96,80,0.08)",
+                  bgcolor: "rgba(27,94,168,0.05)",
+                  borderBottom: "1px solid rgba(27,94,168,0.08)",
                 }}
               >
                 <Typography sx={{ fontFamily: fontBody, fontWeight: 700, color: textPrimary, fontSize: "0.88rem" }}>
@@ -1555,7 +1555,7 @@ export default function Units() {
               <LinearProgress
                 sx={{
                   height: 3,
-                  bgcolor: "rgba(0,96,80,0.08)",
+                  bgcolor: "rgba(27,94,168,0.08)",
                   "& .MuiLinearProgress-bar": { bgcolor: primaryGreen },
                 }}
               />
@@ -1564,7 +1564,7 @@ export default function Units() {
             <TableContainer>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: "rgba(0,96,80,0.04)" }}>
+                  <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
                     {["No", "Code", "Unit", "Programme", "Year / Sem", "Academic year", "Status", "Actions"].map(
                       (h) => (
                         <TableCell

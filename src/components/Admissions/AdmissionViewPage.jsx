@@ -95,7 +95,7 @@ function DocumentViewDialog({ open, doc, onClose }) {
           width: "100%",
           borderRadius: "14px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.12)",
+          border: "1px solid rgba(27,94,168,0.12)",
           bgcolor: warmCream,
           minHeight: { xs: 280, sm: 420 },
           display: "flex",
@@ -293,7 +293,7 @@ export default function AdmissionViewPage() {
                     p: 1.5,
                     borderRadius: "14px",
                     bgcolor: warmCream,
-                    border: "1px solid rgba(0,96,80,0.1)",
+                    border: "1px solid rgba(27,94,168,0.1)",
                   }}
                 >
                   <DescriptionIcon sx={{ color: primaryGreen }} />
@@ -352,7 +352,7 @@ export default function AdmissionViewPage() {
                               top: 32,
                               bottom: 0,
                               width: 2,
-                              bgcolor: "rgba(0,96,80,0.15)",
+                              bgcolor: "rgba(27,94,168,0.15)",
                             },
                     }}
                   >

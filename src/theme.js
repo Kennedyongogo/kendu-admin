@@ -3,9 +3,9 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#0e8d45", // Vihiga green as primary color
-      light: "#40a86c", // Lighter variant
-      dark: "#0a6231", // Darker variant
+      main: "#1B5EA8",
+      light: "#4A8AD4",
+      dark: "#0E3D73",
     },
     secondary: {
       main: "#f1ea32", // Vihiga yellow as secondary color
@@ -33,9 +33,9 @@ const theme = createTheme({
     },
     // Keep success color for notifications/status indicators
     success: {
-      main: "#0e8d45", // Using Vihiga green for success states
-      light: "#40a86c",
-      dark: "#0a6231",
+      main: "#1B5EA8",
+      light: "#4A8AD4",
+      dark: "#0E3D73",
     },
   },
   typography: {

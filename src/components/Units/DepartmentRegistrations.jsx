@@ -41,7 +41,7 @@ import {
 } from "../Users/usersShared";
 
 const REG_META = {
-  registered: { label: "Registered", color: primaryDark, bg: "rgba(0,96,80,0.12)" },
+  registered: { label: "Registered", color: primaryDark, bg: "rgba(27,94,168,0.12)" },
   dropped: { label: "Dropped", color: "#9b1c1c", bg: "rgba(155,28,28,0.1)" },
   not_registered: { label: "Not registered", color: textSecondary, bg: "rgba(30,40,88,0.06)" },
 };
@@ -287,7 +287,7 @@ export default function DepartmentRegistrations({
           sx={{
             mb: 2,
             borderRadius: "14px",
-            border: "1px solid rgba(0,96,80,0.12)",
+            border: "1px solid rgba(27,94,168,0.12)",
             bgcolor: "var(--kd-surface)",
             overflow: "hidden",
           }}
@@ -301,7 +301,7 @@ export default function DepartmentRegistrations({
               WebkitOverflowScrolling: "touch",
               "&::-webkit-scrollbar": { height: 4 },
               "&::-webkit-scrollbar-thumb": {
-                bgcolor: "rgba(0,96,80,0.25)",
+                bgcolor: "rgba(27,94,168,0.25)",
                 borderRadius: 4,
               },
             }}
@@ -359,9 +359,9 @@ export default function DepartmentRegistrations({
                     px: { xs: 1.25, md: 1.5 },
                     py: 1.35,
                     borderLeft: isFirstStatus
-                      ? "1px solid rgba(0,96,80,0.14)"
+                      ? "1px solid rgba(27,94,168,0.14)"
                       : index > 0
-                        ? "1px solid rgba(0,96,80,0.08)"
+                        ? "1px solid rgba(27,94,168,0.08)"
                         : "none",
                     "&::before": {
                       content: '""',
@@ -423,7 +423,7 @@ export default function DepartmentRegistrations({
             mb: 1.5,
             height: 3,
             borderRadius: 2,
-            bgcolor: "rgba(0,96,80,0.08)",
+            bgcolor: "rgba(27,94,168,0.08)",
             "& .MuiLinearProgress-bar": { bgcolor: primaryGreen },
           }}
         />
@@ -435,7 +435,7 @@ export default function DepartmentRegistrations({
             py: 6,
             textAlign: "center",
             borderRadius: "16px",
-            border: "1px dashed rgba(0,96,80,0.2)",
+            border: "1px dashed rgba(27,94,168,0.2)",
             bgcolor: warmCream,
           }}
         >
@@ -450,7 +450,7 @@ export default function DepartmentRegistrations({
             py: 6,
             textAlign: "center",
             borderRadius: "16px",
-            border: "1px dashed rgba(0,96,80,0.2)",
+            border: "1px dashed rgba(27,94,168,0.2)",
             bgcolor: warmCream,
           }}
         >
@@ -473,7 +473,7 @@ export default function DepartmentRegistrations({
               elevation={0}
               sx={{
                 borderRadius: "16px !important",
-                border: "1px solid rgba(0,96,80,0.12)",
+                border: "1px solid rgba(27,94,168,0.12)",
                 bgcolor: "var(--kd-surface)",
                 overflow: "hidden",
                 "&:before": { display: "none" },
@@ -484,7 +484,7 @@ export default function DepartmentRegistrations({
                 sx={{
                   px: 2,
                   py: 0.5,
-                  bgcolor: expandedProgramme === programme.id ? "rgba(0,96,80,0.04)" : "transparent",
+                  bgcolor: expandedProgramme === programme.id ? "rgba(27,94,168,0.04)" : "transparent",
                 }}
               >
                 <Stack
@@ -509,7 +509,7 @@ export default function DepartmentRegistrations({
                       size="small"
                       icon={<PersonIcon sx={{ fontSize: "14px !important" }} />}
                       label={`${programme.student_count || 0}`}
-                      sx={{ fontWeight: 700, bgcolor: "rgba(0,96,80,0.08)", color: primaryGreen }}
+                      sx={{ fontWeight: 700, bgcolor: "rgba(27,94,168,0.08)", color: primaryGreen }}
                     />
                     <Chip
                       size="small"
@@ -539,7 +539,7 @@ export default function DepartmentRegistrations({
                     <TableContainer
                       sx={{
                         borderRadius: "12px",
-                        border: "1px solid rgba(0,96,80,0.08)",
+                        border: "1px solid rgba(27,94,168,0.08)",
                         maxHeight: 220,
                       }}
                     >
@@ -611,8 +611,8 @@ export default function DepartmentRegistrations({
                         elevation={0}
                         sx={{
                           borderRadius: "12px !important",
-                          border: "1px solid rgba(0,96,80,0.1)",
-                          bgcolor: "rgba(0,96,80,0.02)",
+                          border: "1px solid rgba(27,94,168,0.1)",
+                          bgcolor: "rgba(27,94,168,0.02)",
                           "&:before": { display: "none" },
                         }}
                       >
@@ -657,7 +657,7 @@ export default function DepartmentRegistrations({
                                 sx={{
                                   fontWeight: 700,
                                   fontSize: "0.68rem",
-                                  bgcolor: "rgba(0,96,80,0.1)",
+                                  bgcolor: "rgba(27,94,168,0.1)",
                                   color: primaryGreen,
                                 }}
                               />
@@ -678,7 +678,7 @@ export default function DepartmentRegistrations({
                             <TableContainer
                               sx={{
                                 borderRadius: "10px",
-                                border: "1px solid rgba(0,96,80,0.08)",
+                                border: "1px solid rgba(27,94,168,0.08)",
                                 bgcolor: "#fff",
                               }}
                             >

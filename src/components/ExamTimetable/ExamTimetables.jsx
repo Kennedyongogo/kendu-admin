@@ -57,7 +57,7 @@ const filterPanelSx = {
   p: { xs: 2, sm: 2.25 },
   borderRadius: "18px",
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   boxShadow: "0 10px 36px -20px rgba(20,26,58,0.14)",
 };
 
@@ -68,16 +68,16 @@ const carouselArrowSx = {
   borderRadius: "14px",
   color: "#fff",
   bgcolor: primaryGreen,
-  boxShadow: "0 10px 28px -8px rgba(0,96,80,0.55)",
+  boxShadow: "0 10px 28px -8px rgba(27,94,168,0.55)",
   transition: "transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
   "&:hover": {
     bgcolor: primaryDark,
     transform: "scale(1.04)",
-    boxShadow: "0 14px 32px -6px rgba(0,96,80,0.6)",
+    boxShadow: "0 14px 32px -6px rgba(27,94,168,0.6)",
   },
   "&.Mui-disabled": {
     opacity: 0.35,
-    bgcolor: "rgba(0,96,80,0.15)",
+    bgcolor: "rgba(27,94,168,0.15)",
     color: "rgba(255,255,255,0.7)",
     boxShadow: "none",
     transform: "none",
@@ -107,7 +107,7 @@ function ExamPlanCard({
         flexDirection: "column",
         borderRadius: "22px",
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.12)",
+        border: "1px solid rgba(27,94,168,0.12)",
         boxShadow: "0 20px 50px -24px rgba(20,26,58,0.28)",
         overflow: "hidden",
       }}
@@ -234,7 +234,7 @@ function ExamPlanCard({
                 justifyContent: "center",
                 background: `linear-gradient(145deg, ${primaryGreen}, ${primaryDark})`,
                 color: "#fff",
-                boxShadow: "0 6px 14px -6px rgba(0,96,80,0.5)",
+                boxShadow: "0 6px 14px -6px rgba(27,94,168,0.5)",
               }}
             >
               <CalendarMonthRoundedIcon sx={{ fontSize: 19 }} />
@@ -265,11 +265,11 @@ function ExamPlanCard({
               px: 2,
               borderRadius: "16px",
               bgcolor: warmCream,
-              border: "1px dashed rgba(0,96,80,0.22)",
+              border: "1px dashed rgba(27,94,168,0.22)",
               textAlign: "center",
             }}
           >
-            <FactCheckRoundedIcon sx={{ fontSize: 36, color: "rgba(0,96,80,0.3)", mb: 1 }} />
+            <FactCheckRoundedIcon sx={{ fontSize: 36, color: "rgba(27,94,168,0.3)", mb: 1 }} />
             <Typography sx={{ fontFamily: fontBody, fontSize: "0.88rem", color: textSecondary }}>
               No papers scheduled yet — open the plan to add exams.
             </Typography>
@@ -298,8 +298,8 @@ function ExamPlanCard({
           flexWrap: "nowrap",
           px: { xs: 2, sm: 2.25, md: 3 },
           py: 1.5,
-          borderTop: "1px solid rgba(0,96,80,0.08)",
-          bgcolor: "rgba(0,96,80,0.02)",
+          borderTop: "1px solid rgba(27,94,168,0.08)",
+          bgcolor: "rgba(27,94,168,0.02)",
         }}
       >
         <Button
@@ -319,10 +319,10 @@ function ExamPlanCard({
             borderRadius: "12px",
             py: { xs: 0.9, sm: 1.05 },
             px: { xs: 1.1, sm: 1.75 },
-            borderColor: "rgba(0,96,80,0.35)",
+            borderColor: "rgba(27,94,168,0.35)",
             color: primaryGreen,
             "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 0.75 } },
-            "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(0,96,80,0.06)" },
+            "&:hover": { borderColor: primaryGreen, bgcolor: "rgba(27,94,168,0.06)" },
           }}
         >
           {downloading ? (
@@ -362,9 +362,9 @@ function ExamPlanCard({
             py: { xs: 0.9, sm: 1.1 },
             px: { xs: 1.1, sm: 1.75 },
             bgcolor: primaryGreen,
-            boxShadow: "0 8px 20px -8px rgba(0,96,80,0.5)",
+            boxShadow: "0 8px 20px -8px rgba(27,94,168,0.5)",
             "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 0.75 } },
-            "&:hover": { bgcolor: primaryDark, boxShadow: "0 10px 24px -6px rgba(0,96,80,0.55)" },
+            "&:hover": { bgcolor: primaryDark, boxShadow: "0 10px 24px -6px rgba(27,94,168,0.55)" },
           }}
         >
           <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
@@ -682,7 +682,7 @@ export default function ExamTimetables() {
               fontWeight: 800,
               fontFamily: fontBody,
               fontSize: "0.72rem",
-              bgcolor: "rgba(0,96,80,0.08)",
+              bgcolor: "rgba(27,94,168,0.08)",
               color: primaryGreen,
               borderRadius: "10px",
               height: 32,
@@ -705,7 +705,7 @@ export default function ExamTimetables() {
             textAlign: "center",
             borderRadius: "22px",
             bgcolor: "var(--kd-surface)",
-            border: "1px dashed rgba(0,96,80,0.2)",
+            border: "1px dashed rgba(27,94,168,0.2)",
             boxShadow: "0 12px 36px -20px rgba(20,26,58,0.12)",
           }}
         >
@@ -721,7 +721,7 @@ export default function ExamTimetables() {
               justifyContent: "center",
               background: `linear-gradient(145deg, ${primaryGreen}, ${navy})`,
               color: "#fff",
-              boxShadow: "0 12px 28px -10px rgba(0,96,80,0.5)",
+              boxShadow: "0 12px 28px -10px rgba(27,94,168,0.5)",
             }}
           >
             <FactCheckRoundedIcon sx={{ fontSize: 32 }} />
@@ -743,7 +743,7 @@ export default function ExamTimetables() {
               borderRadius: "12px",
               px: 3,
               bgcolor: primaryGreen,
-              boxShadow: "0 8px 20px -8px rgba(0,96,80,0.5)",
+              boxShadow: "0 8px 20px -8px rgba(27,94,168,0.5)",
               "&:hover": { bgcolor: primaryDark },
             }}
           >
@@ -785,7 +785,7 @@ export default function ExamTimetables() {
                       width: activeIndex === idx ? 22 : 8,
                       height: 8,
                       borderRadius: 999,
-                      bgcolor: activeIndex === idx ? primaryGreen : "rgba(0,96,80,0.2)",
+                      bgcolor: activeIndex === idx ? primaryGreen : "rgba(27,94,168,0.2)",
                       cursor: "pointer",
                       transition: "width 0.25s ease, background 0.25s ease",
                     }}

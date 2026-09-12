@@ -1,6 +1,6 @@
-export const primaryGreen = "#006050";
-export const primaryDark = "#004840";
-export const primaryLight = "rgba(0, 96, 80, 0.1)";
+export const primaryGreen = "#1B5EA8";
+export const primaryDark = "#0E3D73";
+export const primaryLight = "rgba(27, 94, 168, 0.1)";
 export const accentGold = "#c8a840";
 export const accentGoldMuted = "#d4c078";
 export const navy = "#1e2858";
@@ -103,12 +103,12 @@ export const inputSx = {
     bgcolor: "var(--kd-surface)",
     fontFamily: fontBody,
     transition: "all 0.22s ease",
-    "& fieldset": { borderColor: "rgba(0, 96, 80, 0.18)", borderWidth: "1.5px" },
-    "&:hover fieldset": { borderColor: "rgba(0, 96, 80, 0.4)" },
+    "& fieldset": { borderColor: "rgba(27, 94, 168, 0.18)", borderWidth: "1.5px" },
+    "&:hover fieldset": { borderColor: "rgba(27, 94, 168, 0.4)" },
     "&.Mui-focused fieldset": {
       borderColor: primaryGreen,
       borderWidth: "2px",
-      boxShadow: "0 0 0 3px rgba(0, 96, 80, 0.1)",
+      boxShadow: "0 0 0 3px rgba(27, 94, 168, 0.1)",
     },
   },
   "& .MuiInputLabel-root": {
@@ -147,7 +147,7 @@ export const ghostBtnSx = {
 
 export const pageShellSx = {
   minHeight: "100%",
-  background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(0,96,80,0.04) 100%)`,
+  background: `linear-gradient(180deg, var(--kd-page-a) 0%, var(--kd-page-b) 48%, rgba(27,94,168,0.04) 100%)`,
   mx: { xs: -1.5, sm: -2, md: -3 },
   mt: { xs: -1, sm: -1.5 },
   px: { xs: 1.5, sm: 2, md: 3 },

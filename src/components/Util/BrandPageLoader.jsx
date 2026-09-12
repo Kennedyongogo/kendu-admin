@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 
 const BRAND = {
   navy: "#1e2858",
-  green: "#006050",
+  green: "#1B5EA8",
   gold: "#c8a840",
 };
 
@@ -23,7 +23,7 @@ export default function BrandPageLoader({ message = "Loading…" }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: `linear-gradient(165deg, #f7faf8 0%, #fff 45%, rgba(0,96,80,0.06) 100%)`,
+        background: `linear-gradient(165deg, #f5f8fc 0%, #fff 45%, rgba(27,94,168,0.06) 100%)`,
         zIndex: 1300,
         gap: 2,
         px: 3,
@@ -38,7 +38,7 @@ export default function BrandPageLoader({ message = "Loading…" }) {
           height: 96,
           borderRadius: "50%",
           objectFit: "cover",
-          boxShadow: "0 12px 32px -8px rgba(0, 96, 80, 0.4)",
+          boxShadow: "0 12px 32px -8px rgba(27, 94, 168, 0.4)",
         }}
       />
       <Typography
@@ -72,7 +72,7 @@ export default function BrandPageLoader({ message = "Loading…" }) {
           width: 36,
           height: 36,
           borderRadius: "50%",
-          border: `3px solid rgba(0,96,80,0.15)`,
+          border: `3px solid rgba(27,94,168,0.15)`,
           borderTopColor: BRAND.gold,
           animation: "kenduSpin 0.85s linear infinite",
           mt: 1,

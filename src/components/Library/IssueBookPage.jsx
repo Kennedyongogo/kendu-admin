@@ -77,16 +77,16 @@ function BookCard({ book, selected, onSelect, index }) {
         borderRadius: "18px",
         overflow: "hidden",
         bgcolor: "var(--kd-surface)",
-        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.12)",
+        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(27,94,168,0.12)",
         boxShadow: selected
-          ? "0 18px 40px -14px rgba(0,96,80,0.45)"
+          ? "0 18px 40px -14px rgba(27,94,168,0.45)"
           : "0 10px 28px -18px rgba(20,26,58,0.16)",
         cursor: "pointer",
         textAlign: "left",
         transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 20px 44px -16px rgba(0,96,80,0.38)",
+          boxShadow: "0 20px 44px -16px rgba(27,94,168,0.38)",
           borderColor: primaryGreen,
         },
       }}
@@ -96,7 +96,7 @@ function BookCard({ book, selected, onSelect, index }) {
           height: 48,
           background: selected
             ? `linear-gradient(135deg, ${primaryGreen} 0%, ${primaryDark} 100%)`
-            : `linear-gradient(135deg, ${warmCream} 0%, rgba(0,96,80,0.1) 100%)`,
+            : `linear-gradient(135deg, ${warmCream} 0%, rgba(27,94,168,0.1) 100%)`,
         }}
       />
       <Box
@@ -109,7 +109,7 @@ function BookCard({ book, selected, onSelect, index }) {
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
-          border: selected ? "none" : "2px solid rgba(0,96,80,0.3)",
+          border: selected ? "none" : "2px solid rgba(27,94,168,0.3)",
           bgcolor: selected ? "#fff" : "var(--kd-surface)",
         }}
       >
@@ -124,7 +124,7 @@ function BookCard({ book, selected, onSelect, index }) {
           mt: -3,
           display: "grid",
           placeItems: "center",
-          bgcolor: selected ? primaryGreen : "rgba(0,96,80,0.1)",
+          bgcolor: selected ? primaryGreen : "rgba(27,94,168,0.1)",
           color: selected ? "#fff" : primaryGreen,
           border: "3px solid var(--kd-surface)",
           boxShadow: "0 8px 20px rgba(20,26,58,0.16)",
@@ -153,7 +153,7 @@ function BookCard({ book, selected, onSelect, index }) {
         <Typography noWrap sx={{ mt: 0.6, fontFamily: fontBody, color: textSecondary, fontSize: "0.76rem", fontWeight: 600 }}>
           {book.author || "Author not set"}
         </Typography>
-        <Box sx={{ mt: 1.1, pt: 1, borderTop: "1px dashed rgba(0,96,80,0.15)" }}>
+        <Box sx={{ mt: 1.1, pt: 1, borderTop: "1px dashed rgba(27,94,168,0.15)" }}>
           <Stack direction="row" spacing={0.6} alignItems="center" sx={{ minWidth: 0 }}>
             <Inventory2RoundedIcon sx={{ fontSize: 15, color: selected ? primaryGreen : accentGold, flexShrink: 0 }} />
             <Typography noWrap sx={{ fontFamily: fontBody, fontWeight: 700, color: textSecondary, fontSize: "0.74rem" }}>
@@ -187,16 +187,16 @@ function BorrowerCard({ user, selected, onSelect, index }) {
         borderRadius: "18px",
         overflow: "hidden",
         bgcolor: "var(--kd-surface)",
-        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(0,96,80,0.12)",
+        border: selected ? `2px solid ${primaryGreen}` : "1px solid rgba(27,94,168,0.12)",
         boxShadow: selected
-          ? "0 18px 40px -14px rgba(0,96,80,0.45)"
+          ? "0 18px 40px -14px rgba(27,94,168,0.45)"
           : "0 10px 28px -18px rgba(20,26,58,0.16)",
         cursor: "pointer",
         textAlign: "center",
         transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 20px 44px -16px rgba(0,96,80,0.38)",
+          boxShadow: "0 20px 44px -16px rgba(27,94,168,0.38)",
           borderColor: primaryGreen,
         },
       }}
@@ -206,7 +206,7 @@ function BorrowerCard({ user, selected, onSelect, index }) {
           height: 54,
           background: selected
             ? `linear-gradient(135deg, ${primaryGreen} 0%, ${primaryDark} 100%)`
-            : `linear-gradient(135deg, ${warmCream} 0%, rgba(0,96,80,0.1) 100%)`,
+            : `linear-gradient(135deg, ${warmCream} 0%, rgba(27,94,168,0.1) 100%)`,
         }}
       />
       <Box
@@ -219,7 +219,7 @@ function BorrowerCard({ user, selected, onSelect, index }) {
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
-          border: selected ? "none" : "2px solid rgba(0,96,80,0.3)",
+          border: selected ? "none" : "2px solid rgba(27,94,168,0.3)",
           bgcolor: selected ? "#fff" : "var(--kd-surface)",
         }}
       >
@@ -262,8 +262,8 @@ function BorrowerCard({ user, selected, onSelect, index }) {
             py: 0.35,
             maxWidth: "100%",
             borderRadius: "999px",
-            bgcolor: selected ? "rgba(0,96,80,0.1)" : warmCream,
-            border: "1px solid rgba(0,96,80,0.14)",
+            bgcolor: selected ? "rgba(27,94,168,0.1)" : warmCream,
+            border: "1px solid rgba(27,94,168,0.14)",
           }}
         >
           <BadgeRoundedIcon sx={{ fontSize: 14, color: selected ? primaryGreen : textMuted, flexShrink: 0 }} />
@@ -314,7 +314,7 @@ function PickerSection({
       animate="visible"
       sx={{
         bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         borderRadius: "20px",
         boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
         overflow: "hidden",
@@ -325,7 +325,7 @@ function PickerSection({
         justifyContent="space-between"
         alignItems={{ md: "center" }}
         spacing={1.5}
-        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(0,96,80,0.08)", bgcolor: warmCream }}
+        sx={{ px: 2.5, py: 1.75, borderBottom: "1px solid rgba(27,94,168,0.08)", bgcolor: warmCream }}
       >
         <Box>
           <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, fontSize: "1.08rem" }}>
@@ -402,6 +402,9 @@ export default function IssueBookPage() {
   const [borrowerSearch, setBorrowerSearch] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedBorrower, setSelectedBorrower] = useState(null);
+  const [loanDays, setLoanDays] = useState("14");
+  const [loanHours, setLoanHours] = useState("0");
+  const [loanMinutes, setLoanMinutes] = useState("0");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -482,6 +485,35 @@ export default function IssueBookPage() {
     [borrowers, selectedBorrower]
   );
 
+  const durationPreview = useMemo(() => {
+    const days = Math.max(0, parseInt(loanDays, 10) || 0);
+    const hours = Math.max(0, Math.min(23, parseInt(loanHours, 10) || 0));
+    const minutes = Math.max(0, Math.min(59, parseInt(loanMinutes, 10) || 0));
+    const totalMs = (((days * 24 + hours) * 60 + minutes) * 60 * 1000);
+    const hasCustom = totalMs > 0;
+    const due = hasCustom ? new Date(Date.now() + totalMs) : null;
+    const parts = [];
+    if (days) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+    if (hours) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+    if (minutes) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+    return {
+      label: parts.length ? parts.join(", ") : "Enter days, hours, or minutes",
+      dueLabel: due
+        ? due.toLocaleString("en-KE", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "—",
+      hasCustom,
+      days,
+      hours,
+      minutes,
+    };
+  }, [loanDays, loanHours, loanMinutes]);
+
   const issueBook = async () => {
     if (!selectedBook) {
       Swal.fire({
@@ -501,6 +533,15 @@ export default function IssueBookPage() {
       });
       return;
     }
+    if (!durationPreview.hasCustom) {
+      Swal.fire({
+        icon: "warning",
+        title: "Set loan duration",
+        text: "Enter how long the borrower may keep the book (days, hours, and/or minutes).",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -509,14 +550,17 @@ export default function IssueBookPage() {
         body: JSON.stringify({
           book_id: selectedBook.id,
           borrower_id: selectedBorrower.id,
+          loan_days: durationPreview.days,
+          loan_hours: durationPreview.hours,
+          loan_minutes: durationPreview.minutes,
           notes: notes.trim() || null,
         }),
       });
       await Swal.fire({
         icon: "success",
         title: "Book issued",
-        text: `${selectedBook.title} issued to ${selectedBorrower.full_name}.`,
-        timer: 1800,
+        text: `${selectedBook.title} issued to ${selectedBorrower.full_name}. Due ${durationPreview.dueLabel}.`,
+        timer: 2000,
         showConfirmButton: false,
       });
       navigate("/library", { replace: true });
@@ -538,7 +582,7 @@ export default function IssueBookPage() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Issue book"
-        subtitle="Select a book and a borrower, then confirm the loan"
+        subtitle="Select a book, a borrower, and how long they may keep it"
         icon={<SwapHorizRoundedIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <Tooltip title="Back to library">
@@ -577,7 +621,7 @@ export default function IssueBookPage() {
           searchPlaceholder="Search title, author, ISBN or programme"
           visible={visibleBooks}
           matches={bookMatches}
-          emptyIcon={<MenuBookRoundedIcon sx={{ fontSize: 46, color: "rgba(0,96,80,0.25)" }} />}
+          emptyIcon={<MenuBookRoundedIcon sx={{ fontSize: 46, color: "rgba(27,94,168,0.25)" }} />}
           emptyTitle="No available books match"
           emptyHint="Try another title, or add copies in the catalogue first."
           moreLabel="books"
@@ -605,7 +649,7 @@ export default function IssueBookPage() {
           searchPlaceholder="Search name, admission no, email or role"
           visible={visibleBorrowers}
           matches={borrowers}
-          emptyIcon={<PersonSearchRoundedIcon sx={{ fontSize: 46, color: "rgba(0,96,80,0.25)" }} />}
+          emptyIcon={<PersonSearchRoundedIcon sx={{ fontSize: 46, color: "rgba(27,94,168,0.25)" }} />}
           emptyTitle="No borrowers match"
           emptyHint="Try the person's name, admission number, or email."
           moreLabel="users"
@@ -632,8 +676,8 @@ export default function IssueBookPage() {
                   sx={{
                     p: 1.5,
                     borderRadius: "14px",
-                    bgcolor: "rgba(0,96,80,0.05)",
-                    border: "1px dashed rgba(0,96,80,0.3)",
+                    bgcolor: "rgba(27,94,168,0.05)",
+                    border: "1px dashed rgba(27,94,168,0.3)",
                   }}
                 >
                   <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -650,6 +694,54 @@ export default function IssueBookPage() {
                   Select one book and one borrower above to issue the loan.
                 </Alert>
               )}
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: fontBody,
+                    fontWeight: 700,
+                    fontSize: "0.74rem",
+                    color: textMuted,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    mb: 1,
+                  }}
+                >
+                  Loan duration
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    label="Days"
+                    type="number"
+                    value={loanDays}
+                    onChange={(e) => setLoanDays(e.target.value)}
+                    fullWidth
+                    sx={inputSx}
+                    inputProps={{ min: 0, max: 365 }}
+                  />
+                  <TextField
+                    label="Hours"
+                    type="number"
+                    value={loanHours}
+                    onChange={(e) => setLoanHours(e.target.value)}
+                    fullWidth
+                    sx={inputSx}
+                    inputProps={{ min: 0, max: 23 }}
+                  />
+                  <TextField
+                    label="Minutes"
+                    type="number"
+                    value={loanMinutes}
+                    onChange={(e) => setLoanMinutes(e.target.value)}
+                    fullWidth
+                    sx={inputSx}
+                    inputProps={{ min: 0, max: 59 }}
+                  />
+                </Stack>
+                <Typography sx={{ mt: 1, fontFamily: fontBody, color: textSecondary, fontSize: "0.78rem", fontWeight: 600 }}>
+                  Keep for {durationPreview.label} · due around {durationPreview.dueLabel}. After that the loan is marked overdue.
+                </Typography>
+              </Box>
 
               <TextField
                 label="Notes (optional)"
@@ -671,7 +763,7 @@ export default function IssueBookPage() {
                 </Button>
                 <Button
                   variant="contained"
-                  disabled={saving || !selectedBook || !selectedBorrower}
+                  disabled={saving || !selectedBook || !selectedBorrower || !durationPreview.hasCustom}
                   onClick={issueBook}
                   startIcon={saving ? <CircularProgress size={14} color="inherit" /> : <SwapHorizRoundedIcon />}
                   sx={{

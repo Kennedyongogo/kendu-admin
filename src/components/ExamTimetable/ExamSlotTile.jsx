@@ -27,11 +27,11 @@ export default function ExamSlotTile({ slot, actions }) {
         p: 1.25,
         borderRadius: "16px",
         bgcolor: warmCream,
-        border: "1px solid rgba(0,96,80,0.1)",
+        border: "1px solid rgba(27,94,168,0.1)",
         transition: "border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
         "&:hover": {
-          borderColor: "rgba(0,96,80,0.28)",
-          boxShadow: "0 8px 22px -10px rgba(0,96,80,0.35)",
+          borderColor: "rgba(27,94,168,0.28)",
+          boxShadow: "0 8px 22px -10px rgba(27,94,168,0.35)",
           transform: "translateY(-2px)",
         },
       }}
@@ -44,8 +44,8 @@ export default function ExamSlotTile({ slot, actions }) {
             borderRadius: "12px",
             overflow: "hidden",
             textAlign: "center",
-            border: "1px solid rgba(0,96,80,0.15)",
-            boxShadow: "0 4px 12px -6px rgba(0,96,80,0.3)",
+            border: "1px solid rgba(27,94,168,0.15)",
+            boxShadow: "0 4px 12px -6px rgba(27,94,168,0.3)",
           }}
         >
           <Box
@@ -77,7 +77,7 @@ export default function ExamSlotTile({ slot, actions }) {
           </Box>
           <Box
             sx={{
-              bgcolor: "rgba(0,96,80,0.06)",
+              bgcolor: "rgba(27,94,168,0.06)",
               color: textMuted,
               fontFamily: fontBody,
               fontSize: "0.58rem",

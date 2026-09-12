@@ -224,7 +224,7 @@ export default function ExamTimetableCreate() {
           color: "#fff",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 20px 48px -16px rgba(0, 96, 80, 0.4)",
+          boxShadow: "0 20px 48px -16px rgba(27, 94, 168, 0.4)",
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="flex-start">
@@ -277,7 +277,7 @@ export default function ExamTimetableCreate() {
             p: { xs: 2, sm: 2.5 },
             borderRadius: "20px",
             bgcolor: "var(--kd-surface)",
-            border: "1px solid rgba(0,96,80,0.12)",
+            border: "1px solid rgba(27,94,168,0.12)",
             boxShadow: "0 12px 40px -24px rgba(20,26,58,0.18)",
           }}
         >
@@ -475,7 +475,7 @@ export default function ExamTimetableCreate() {
             p: 2.25,
             borderRadius: "20px",
             bgcolor: warmCream,
-            border: "1px solid rgba(0,96,80,0.1)",
+            border: "1px solid rgba(27,94,168,0.1)",
           }}
         >
           <Typography
@@ -543,7 +543,7 @@ export default function ExamTimetableCreate() {
                         p: 1.1,
                         borderRadius: "12px",
                         bgcolor: "#fff",
-                        border: "1px solid rgba(0,96,80,0.1)",
+                        border: "1px solid rgba(27,94,168,0.1)",
                       }}
                     >
                       <Typography sx={{ fontFamily: fontBody, fontWeight: 700, fontSize: "0.82rem" }}>

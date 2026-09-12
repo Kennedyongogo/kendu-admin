@@ -100,7 +100,7 @@ const dateTimeToFormParts = (value) => {
 
 const cardSx = {
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   borderRadius: "20px",
   boxShadow: "0 12px 36px -16px rgba(20,26,58,0.12)",
   overflow: "hidden",
@@ -117,7 +117,7 @@ function SectionLabel({ icon, title, hint }) {
           display: "grid",
           placeItems: "center",
           color: primaryGreen,
-          bgcolor: "rgba(0,96,80,0.08)",
+          bgcolor: "rgba(27,94,168,0.08)",
           flexShrink: 0,
           "& svg": { fontSize: 18 },
         }}
@@ -165,7 +165,7 @@ function TimePartsPicker({ hour, minute, meridiem, onHour, onMinute, onMeridiem,
         sx={{
           borderRadius: "12px",
           overflow: "hidden",
-          border: "1px solid rgba(0,96,80,0.2)",
+          border: "1px solid rgba(27,94,168,0.2)",
           flexShrink: 0,
         }}
       >
@@ -192,7 +192,7 @@ function TimePartsPicker({ hour, minute, meridiem, onHour, onMinute, onMeridiem,
                 "&:hover": {
                   background: active
                     ? `linear-gradient(145deg, ${accent} 0%, ${primaryDark} 150%)`
-                    : "rgba(0,96,80,0.06)",
+                    : "rgba(27,94,168,0.06)",
                 },
               }}
             >
@@ -587,7 +587,7 @@ export default function TimetableCreatePage() {
                 p: 1.75,
                 borderRadius: "16px",
                 bgcolor: warmCream,
-                border: "1px solid rgba(0,96,80,0.1)",
+                border: "1px solid rgba(27,94,168,0.1)",
               }}
             >
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
@@ -624,7 +624,7 @@ export default function TimetableCreatePage() {
                 p: 1.75,
                 borderRadius: "16px",
                 bgcolor: warmCream,
-                border: "1px solid rgba(0,96,80,0.1)",
+                border: "1px solid rgba(27,94,168,0.1)",
               }}
             >
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>

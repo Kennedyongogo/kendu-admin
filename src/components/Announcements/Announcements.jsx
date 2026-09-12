@@ -321,7 +321,7 @@ export default function Announcements() {
       <TableContainer
         sx={{
           borderRadius: "18px",
-          border: "1px solid rgba(0,96,80,0.12)",
+          border: "1px solid rgba(27,94,168,0.12)",
           bgcolor: "var(--kd-surface)",
           boxShadow: "0 12px 40px -24px rgba(20,26,58,0.18)",
           overflow: "hidden",
@@ -341,7 +341,7 @@ export default function Announcements() {
                   fontSize: "0.7rem",
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
-                  borderBottom: "1px solid rgba(0,96,80,0.1)",
+                  borderBottom: "1px solid rgba(27,94,168,0.1)",
                   py: 1.75,
                   fontFamily: fontBody,
                 },
@@ -404,8 +404,8 @@ export default function Announcements() {
                   key={row.id}
                   hover
                   sx={{
-                    "&:hover": { bgcolor: "rgba(0,96,80,0.04)" },
-                    "& td": { borderColor: "rgba(0,96,80,0.06)", fontFamily: fontBody },
+                    "&:hover": { bgcolor: "rgba(27,94,168,0.04)" },
+                    "& td": { borderColor: "rgba(27,94,168,0.06)", fontFamily: fontBody },
                   }}
                 >
                   <TableCell sx={{ color: textMuted, fontWeight: 600 }}>
@@ -425,7 +425,7 @@ export default function Announcements() {
                           justifyContent: "center",
                           bgcolor: warmCream,
                           color: primaryGreen,
-                          border: "1px solid rgba(0,96,80,0.12)",
+                          border: "1px solid rgba(27,94,168,0.12)",
                         }}
                       >
                         {row.cover_image_url ? (
@@ -496,7 +496,7 @@ export default function Announcements() {
                       sx={{
                         fontWeight: 700,
                         fontSize: "0.7rem",
-                        bgcolor: row.is_published ? "rgba(0,96,80,0.12)" : "rgba(30,40,88,0.08)",
+                        bgcolor: row.is_published ? "rgba(27,94,168,0.12)" : "rgba(30,40,88,0.08)",
                         color: row.is_published ? primaryGreen : textMuted,
                         borderRadius: "8px",
                       }}
@@ -560,7 +560,7 @@ export default function Announcements() {
           }}
           rowsPerPageOptions={[5, 10, 25]}
           sx={{
-            borderTop: "1px solid rgba(0,96,80,0.08)",
+            borderTop: "1px solid rgba(27,94,168,0.08)",
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
               fontFamily: fontBody,
             },
@@ -749,7 +749,7 @@ export default function Announcements() {
             />
             <Box
               sx={{
-                border: "1.5px dashed rgba(0,96,80,0.35)",
+                border: "1.5px dashed rgba(27,94,168,0.35)",
                 borderRadius: "16px",
                 bgcolor: warmCream,
                 p: 2,

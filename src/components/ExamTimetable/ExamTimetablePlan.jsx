@@ -61,7 +61,7 @@ const MINUTE_OPTIONS = ["00", "15", "30", "45"];
 const panelSx = {
   borderRadius: "18px",
   bgcolor: "var(--kd-surface)",
-  border: "1px solid rgba(0,96,80,0.1)",
+  border: "1px solid rgba(27,94,168,0.1)",
   boxShadow: "0 10px 36px -20px rgba(20,26,58,0.14)",
 };
 
@@ -643,8 +643,8 @@ export default function ExamTimetablePlan() {
               mb: { xs: 2, sm: 2.5 },
               p: 1.5,
               borderRadius: "12px",
-              bgcolor: "rgba(0,96,80,0.05)",
-              border: "1px solid rgba(0,96,80,0.1)",
+              bgcolor: "rgba(27,94,168,0.05)",
+              border: "1px solid rgba(27,94,168,0.1)",
             }}
           >
             <Typography
@@ -683,7 +683,7 @@ export default function ExamTimetablePlan() {
                 borderRadius: "10px",
                 display: "grid",
                 placeItems: "center",
-                bgcolor: "rgba(0,96,80,0.1)",
+                bgcolor: "rgba(27,94,168,0.1)",
                 color: primaryGreen,
               }}
             >
@@ -719,11 +719,11 @@ export default function ExamTimetablePlan() {
               px: 2,
               textAlign: "center",
               borderRadius: "16px",
-              border: "2px dashed rgba(0,96,80,0.18)",
-              bgcolor: "rgba(0,96,80,0.03)",
+              border: "2px dashed rgba(27,94,168,0.18)",
+              bgcolor: "rgba(27,94,168,0.03)",
             }}
           >
-            <CalendarMonthRoundedIcon sx={{ fontSize: 44, color: "rgba(0,96,80,0.35)", mb: 1.5 }} />
+            <CalendarMonthRoundedIcon sx={{ fontSize: 44, color: "rgba(27,94,168,0.35)", mb: 1.5 }} />
             <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, mb: 0.5 }}>
               No exam slots yet
             </Typography>
@@ -1017,8 +1017,8 @@ function StatCard({ icon, label, value, compact = false }) {
       sx={{
         p: 1.5,
         borderRadius: "14px",
-        bgcolor: "rgba(0,96,80,0.04)",
-        border: "1px solid rgba(0,96,80,0.08)",
+        bgcolor: "rgba(27,94,168,0.04)",
+        border: "1px solid rgba(27,94,168,0.08)",
       }}
     >
       <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.75 }}>
