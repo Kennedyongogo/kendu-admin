@@ -19,6 +19,8 @@ import {
   TransferWithinAStation,
   LocalLibrary,
   Chat,
+  PictureAsPdf,
+  BubbleChart,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -178,6 +180,8 @@ const MENU_SECTIONS = [
     label: "System",
     items: [
       { text: "Music", icon: <LibraryMusic />, path: "/music" },
+      { text: "Brochures", icon: <PictureAsPdf />, path: "/brochures" },
+      { text: "Upcoming activities", icon: <BubbleChart />, path: "/upcoming-activities" },
       { text: "Settings", icon: <Settings />, path: "/settings" },
       { text: "Audit Trail", icon: <History />, path: "/audit" },
     ],
@@ -312,6 +316,8 @@ const Navbar = (props) => {
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
     (path === "/music" && location.pathname.startsWith("/music")) ||
+    (path === "/brochures" && location.pathname.startsWith("/brochures")) ||
+    (path === "/upcoming-activities" && location.pathname.startsWith("/upcoming-activities")) ||
     (path === "/admissions" && location.pathname.startsWith("/admissions")) ||
     (path === "/accounting" && location.pathname.startsWith("/accounting")) ||
     (path === "/library" && location.pathname.startsWith("/library")) ||
@@ -348,7 +354,8 @@ const Navbar = (props) => {
             item.path === "/exam-timetables" ||
             item.path === "/announcements" ||
             item.path === "/staff-chat" ||
-            item.path === "/library"
+            item.path === "/library" ||
+            item.path === "/upcoming-activities"
         )
       );
       return;

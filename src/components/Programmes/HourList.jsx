@@ -119,7 +119,7 @@ export default function HourList() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Programme hours"
-        subtitle="Manage teaching/practice hour distributions across programme years"
+        subtitle="Manage programme hour distributions"
         icon={<ScheduleIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search hours…">

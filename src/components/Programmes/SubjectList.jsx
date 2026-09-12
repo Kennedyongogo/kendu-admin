@@ -130,7 +130,7 @@ export default function SubjectList() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Programme subjects"
-        subtitle="Manage subject-specific KCSE grade requirements for each programme"
+        subtitle="Manage programme KCSE requirements"
         icon={<GradeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search subjects…">

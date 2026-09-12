@@ -24,12 +24,14 @@ import PersonSearchRoundedIcon from "@mui/icons-material/PersonSearchRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import EventRoundedIcon from "@mui/icons-material/EventRounded";
 import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
+import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import {
   accentGold,
@@ -53,6 +55,15 @@ import {
 import { UsersHero, FormSection, fadeUp } from "../Users/usersUi";
 
 const VISIBLE_STUDENTS = 8;
+
+function money(amount, currency = "KES") {
+  return new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(amount) || 0);
+}
 
 // datetime-local value in the user's timezone (toISOString would give UTC).
 const localDateTimeValue = (date = new Date()) =>
@@ -255,6 +266,8 @@ export default function RecordPaymentPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
+  const [ledger, setLedger] = useState(null);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     amount: "",
@@ -287,6 +300,40 @@ export default function RecordPaymentPage() {
       active = false;
     };
   }, [token]);
+
+  useEffect(() => {
+    let active = true;
+    if (!selected?.id) {
+      setLedger(null);
+      return undefined;
+    }
+    (async () => {
+      setLedgerLoading(true);
+      try {
+        const response = await fetch(`/api/accounting/students/${selected.id}`, {
+          headers: authJsonHeaders(token),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not load student fees");
+        if (active) setLedger(data.data || null);
+      } catch (requestError) {
+        if (active) {
+          setLedger(null);
+          Swal.fire({
+            icon: "warning",
+            title: "Fee summary unavailable",
+            text: requestError.message,
+            confirmButtonColor: primaryGreen,
+          });
+        }
+      } finally {
+        if (active) setLedgerLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [selected?.id, token]);
 
   const matches = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -341,12 +388,17 @@ export default function RecordPaymentPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) throw new Error(data.message || "Could not record payment");
+      const credit = Number(data.data?.summary?.credit || 0);
       await Swal.fire({
         icon: "success",
         title: "Payment recorded",
-        text: `${selected.full_name}'s oldest outstanding balance was reduced.`,
-        timer: 2000,
-        showConfirmButton: false,
+        text:
+          credit > 0
+            ? `${selected.full_name} now has ${money(credit, data.data?.summary?.currency)} excess fee credit on account.`
+            : `${selected.full_name}'s oldest outstanding balance was reduced.`,
+        timer: credit > 0 ? 3200 : 2000,
+        showConfirmButton: credit > 0,
+        confirmButtonColor: primaryGreen,
       });
       navigate("/accounting", { replace: true });
     } catch (requestError) {
@@ -480,47 +532,124 @@ export default function RecordPaymentPage() {
           <FormSection title="Payment details">
             <Stack spacing={2}>
               {selected ? (
-                <Stack
-                  direction="row"
-                  spacing={1.5}
-                  alignItems="center"
-                  sx={{
-                    p: 1.5,
-                    borderRadius: "14px",
-                    bgcolor: "rgba(27,94,168,0.05)",
-                    border: "1px dashed rgba(27,94,168,0.3)",
-                  }}
-                >
-                  <Avatar
-                    src={profileImageSrc(selected)}
-                    alt={selected.full_name}
+                <Stack spacing={1.25}>
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
                     sx={{
-                      width: 42,
-                      height: 42,
-                      fontFamily: fontDisplay,
-                      fontWeight: 700,
-                      fontSize: "0.9rem",
-                      bgcolor: primaryGreen,
-                      color: "#fff",
+                      p: 1.5,
+                      borderRadius: "14px",
+                      bgcolor: "rgba(27,94,168,0.05)",
+                      border: "1px dashed rgba(27,94,168,0.3)",
                     }}
                   >
-                    {getInitials(selected.full_name)}
-                  </Avatar>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography noWrap sx={{ fontFamily: fontBody, fontWeight: 700, color: textPrimary, fontSize: "0.9rem" }}>
-                      {selected.full_name}
-                    </Typography>
-                    <Typography noWrap sx={{ fontFamily: fontBody, color: textSecondary, fontSize: "0.76rem", fontWeight: 600 }}>
-                      {selected.admission_number || "No admission number"} · {selected.programme?.name || "No programme"}
-                    </Typography>
-                  </Box>
-                  <Button
-                    size="small"
-                    onClick={() => setSelected(null)}
-                    sx={{ textTransform: "none", fontFamily: fontBody, fontWeight: 700, color: textSecondary, flexShrink: 0 }}
-                  >
-                    Change
-                  </Button>
+                    <Avatar
+                      src={profileImageSrc(selected)}
+                      alt={selected.full_name}
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        fontFamily: fontDisplay,
+                        fontWeight: 700,
+                        fontSize: "0.9rem",
+                        bgcolor: primaryGreen,
+                        color: "#fff",
+                      }}
+                    >
+                      {getInitials(selected.full_name)}
+                    </Avatar>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography noWrap sx={{ fontFamily: fontBody, fontWeight: 700, color: textPrimary, fontSize: "0.9rem" }}>
+                        {selected.full_name}
+                      </Typography>
+                      <Typography noWrap sx={{ fontFamily: fontBody, color: textSecondary, fontSize: "0.76rem", fontWeight: 600 }}>
+                        {selected.admission_number || "No admission number"} · {selected.programme?.name || "No programme"}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      onClick={() => setSelected(null)}
+                      sx={{ textTransform: "none", fontFamily: fontBody, fontWeight: 700, color: textSecondary, flexShrink: 0 }}
+                    >
+                      Change
+                    </Button>
+                  </Stack>
+
+                  {ledgerLoading ? (
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 0.5 }}>
+                      <CircularProgress size={16} sx={{ color: primaryGreen }} />
+                      <Typography sx={{ fontFamily: fontBody, fontSize: "0.78rem", color: textMuted }}>
+                        Loading fee summary…
+                      </Typography>
+                    </Stack>
+                  ) : ledger?.summary ? (
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+                        gap: 1,
+                      }}
+                    >
+                      {[
+                        {
+                          label: "Billed",
+                          value: money(ledger.summary.total_charged, ledger.summary.currency),
+                          icon: <ReceiptLongRoundedIcon sx={{ fontSize: 16 }} />,
+                        },
+                        {
+                          label: "Paid",
+                          value: money(ledger.summary.total_paid, ledger.summary.currency),
+                          icon: <PaymentsRoundedIcon sx={{ fontSize: 16 }} />,
+                        },
+                        {
+                          label: "Balance",
+                          value: money(ledger.summary.balance, ledger.summary.currency),
+                          icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 16 }} />,
+                        },
+                        {
+                          label: "Excess credit",
+                          value: money(ledger.summary.credit || 0, ledger.summary.currency),
+                          icon: <SavingsRoundedIcon sx={{ fontSize: 16 }} />,
+                          highlight: Number(ledger.summary.credit) > 0,
+                        },
+                      ].map((item) => (
+                        <Box
+                          key={item.label}
+                          sx={{
+                            p: 1.15,
+                            borderRadius: "12px",
+                            bgcolor: item.highlight ? "rgba(200,168,64,0.12)" : "rgba(27,94,168,0.04)",
+                            border: item.highlight
+                              ? "1px solid rgba(200,168,64,0.4)"
+                              : "1px solid rgba(27,94,168,0.1)",
+                          }}
+                        >
+                          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.35, color: textMuted }}>
+                            {item.icon}
+                            <Typography sx={{ fontFamily: fontBody, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                              {item.label}
+                            </Typography>
+                          </Stack>
+                          <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "0.95rem", color: textPrimary }}>
+                            {item.value}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : null}
+
+                  {ledger?.summary?.credit > 0 ? (
+                    <Alert severity="info" sx={{ borderRadius: "12px", fontFamily: fontBody }}>
+                      This student already has {money(ledger.summary.credit, ledger.summary.currency)} excess
+                      credit. Recording more than the outstanding balance will increase that credit.
+                    </Alert>
+                  ) : ledger?.summary && Number(form.amount) > Number(ledger.summary.balance || 0) ? (
+                    <Alert severity="warning" sx={{ borderRadius: "12px", fontFamily: fontBody }}>
+                      Amount is above the outstanding balance of {money(ledger.summary.balance, ledger.summary.currency)}.
+                      The excess will be kept as fee credit on this student&apos;s account.
+                    </Alert>
+                  ) : null}
                 </Stack>
               ) : (
                 <Alert severity="info" icon={<PersonSearchRoundedIcon />} sx={{ borderRadius: "14px", fontFamily: fontBody }}>

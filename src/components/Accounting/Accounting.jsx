@@ -29,6 +29,7 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import AddCardRoundedIcon from "@mui/icons-material/AddCardRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
@@ -616,7 +617,7 @@ export default function Accounting() {
 
       {tab === 0 && dashboard ? (
         <Box>
-          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" }, gap: 2 }}>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(5, 1fr)" }, gap: 2 }}>
             <StatCard
               index={0}
               label="Total billed"
@@ -642,6 +643,18 @@ export default function Accounting() {
             />
             <StatCard
               index={3}
+              label="Excess credit"
+              value={money(dashboard.summary.credit || 0)}
+              hint={
+                dashboard.summary.credit > 0
+                  ? "Overpayments held on student accounts"
+                  : "No unallocated overpayments"
+              }
+              icon={<SavingsRoundedIcon />}
+              accent={dashboard.summary.credit > 0 ? "#c8a840" : "#2e7d32"}
+            />
+            <StatCard
+              index={4}
               label="Collection rate"
               value={`${dashboard.summary.collection_rate}%`}
               hint="Paid against billed fees"
@@ -649,6 +662,23 @@ export default function Accounting() {
               accent={navy}
             />
           </Box>
+
+          {dashboard.summary.credit > 0 ? (
+            <Alert
+              severity="info"
+              sx={{
+                mt: 2,
+                borderRadius: "14px",
+                fontFamily: fontBody,
+                bgcolor: "rgba(200,168,64,0.08)",
+                border: "1px solid rgba(200,168,64,0.28)",
+              }}
+            >
+              Students currently hold <strong>{money(dashboard.summary.credit)}</strong> in excess fee
+              credit (payments above billed charges). This credit remains on their accounts until new
+              semester fees are posted and allocated.
+            </Alert>
+          ) : null}
 
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1.5fr) minmax(320px, 0.8fr)" }, gap: 2, mt: 2 }}>
             <ChartCard

@@ -165,7 +165,7 @@ export default function Programmes() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Programmes"
-        subtitle="Manage academic programmes offered by the school"
+        subtitle="Manage academic programmes"
         icon={<MenuBookIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch

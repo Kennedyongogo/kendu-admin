@@ -25,6 +25,8 @@ import SubjectList from "./Programmes/SubjectList";
 import SubjectFormPage from "./Programmes/SubjectFormPage";
 import SubjectViewPage from "./Programmes/SubjectViewPage";
 import Music from "./Music/Music";
+import Brochures from "./Brochures/Brochures";
+import UpcomingActivities from "./UpcomingActivities/UpcomingActivities";
 import Admissions from "./Admissions/Admissions";
 import AdmissionViewPage from "./Admissions/AdmissionViewPage";
 import Accounting from "./Accounting/Accounting";
@@ -86,6 +88,7 @@ function PageRoutes() {
               <Route path="exam-timetables/:id" element={<ExamTimetablePlan />} />
               <Route path="exam-timetables" element={<ExamTimetables />} />
               <Route path="announcements" element={<Announcements />} />
+              <Route path="upcoming-activities" element={<UpcomingActivities />} />
               <Route path="staff-chat" element={<StaffChat />} />
               <Route path="staff-commons" element={<StaffChat />} />
               <Route path="library/issue" element={<IssueBookPage />} />
@@ -151,6 +154,8 @@ function PageRoutes() {
               <Route path="staff-chat" element={<StaffChat />} />
               <Route path="staff-commons" element={<StaffChat />} />
               <Route path="music" element={<Music />} />
+              <Route path="brochures" element={<Brochures />} />
+              <Route path="upcoming-activities" element={<UpcomingActivities />} />
               <Route path="audit" element={<Audit />} />
               <Route path="settings" element={<Settings user={user} />} />
               <Route path="*" element={<NotFound />} />
