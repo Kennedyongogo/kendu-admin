@@ -43,7 +43,7 @@ import CohortTransferPage from "./CohortTransfer/CohortTransferPage";
 import StudentTranscriptPage from "./CohortTransfer/StudentTranscriptPage";
 import StudentTranscriptEditorPage from "./CohortTransfer/StudentTranscriptEditorPage";
 import Announcements from "./Announcements/Announcements";
-import StaffCommons from "./StaffCommons/StaffCommons";
+import StaffChat from "./StaffCommons/StaffChat";
 import ExamTimetables from "./ExamTimetable/ExamTimetables";
 import ExamTimetableCreate from "./ExamTimetable/ExamTimetableCreate";
 import ExamTimetablePlan from "./ExamTimetable/ExamTimetablePlan";
@@ -86,7 +86,8 @@ function PageRoutes() {
               <Route path="exam-timetables/:id" element={<ExamTimetablePlan />} />
               <Route path="exam-timetables" element={<ExamTimetables />} />
               <Route path="announcements" element={<Announcements />} />
-              <Route path="staff-commons" element={<StaffCommons />} />
+              <Route path="staff-chat" element={<StaffChat />} />
+              <Route path="staff-commons" element={<StaffChat />} />
               <Route path="library/issue" element={<IssueBookPage />} />
               <Route path="library" element={<Library />} />
               <Route path="settings" element={<Settings user={user} />} />
@@ -147,7 +148,8 @@ function PageRoutes() {
               <Route path="exam-timetables/:id" element={<ExamTimetablePlan />} />
               <Route path="exam-timetables" element={<ExamTimetables />} />
               <Route path="announcements" element={<Announcements />} />
-              <Route path="staff-commons" element={<StaffCommons />} />
+              <Route path="staff-chat" element={<StaffChat />} />
+              <Route path="staff-commons" element={<StaffChat />} />
               <Route path="music" element={<Music />} />
               <Route path="audit" element={<Audit />} />
               <Route path="settings" element={<Settings user={user} />} />

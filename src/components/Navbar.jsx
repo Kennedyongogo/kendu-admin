@@ -17,8 +17,8 @@ import {
   LockOpen,
   HowToReg,
   TransferWithinAStation,
-  Groups,
   LocalLibrary,
+  Chat,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -167,7 +167,7 @@ const MENU_SECTIONS = [
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
       { text: "Exam Timetables", icon: <FactCheck />, path: "/exam-timetables" },
       { text: "News & Events", icon: <Campaign />, path: "/announcements" },
-      { text: "Staff Commons", icon: <Groups />, path: "/staff-commons" },
+      { text: "Chat", icon: <Chat />, path: "/staff-chat" },
     ],
   },
   {
@@ -318,7 +318,9 @@ const Navbar = (props) => {
     (path === "/timetable" && location.pathname.startsWith("/timetable")) ||
     (path === "/exam-timetables" && location.pathname.startsWith("/exam-timetables")) ||
     (path === "/announcements" && location.pathname.startsWith("/announcements")) ||
-    (path === "/staff-commons" && location.pathname.startsWith("/staff-commons")) ||
+    (path === "/staff-chat" &&
+      (location.pathname.startsWith("/staff-chat") ||
+        location.pathname.startsWith("/staff-commons"))) ||
     (path === "/users" && location.pathname.startsWith("/users"));
 
   const logout = () => {
@@ -345,7 +347,7 @@ const Navbar = (props) => {
             item.path === "/timetable" ||
             item.path === "/exam-timetables" ||
             item.path === "/announcements" ||
-            item.path === "/staff-commons" ||
+            item.path === "/staff-chat" ||
             item.path === "/library"
         )
       );
