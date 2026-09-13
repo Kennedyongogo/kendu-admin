@@ -69,7 +69,7 @@ function heroImageSrc(filename) {
   return `/images/${encodeURIComponent(filename)}`;
 }
 
-function GreenImagePanel({ activeSlide, compact = false, onSelectSlide }) {
+function HeroImagePanel({ activeSlide, compact = false, onSelectSlide }) {
   return (
     <Box
       component={motion.div}
@@ -83,19 +83,19 @@ function GreenImagePanel({ activeSlide, compact = false, onSelectSlide }) {
         minHeight: compact ? undefined : "100dvh",
         flex: compact ? "0 0 auto" : "1 1 auto",
         minWidth: 0,
-        bgcolor: BRAND.green,
+        bgcolor: BRAND.greenDark,
         ml: compact ? 0 : { lg: "-10%" },
       }}
     >
-      {/* Atmospheric planes */}
+      {/* Atmospheric planes — blue fades only */}
       <Box
         sx={{
           position: "absolute",
           inset: 0,
           background: `
-            radial-gradient(ellipse 80% 60% at 70% 20%, rgba(61, 158, 120, 0.55) 0%, transparent 55%),
-            radial-gradient(ellipse 70% 50% at 90% 90%, rgba(20, 72, 64, 0.7) 0%, transparent 50%),
-            linear-gradient(160deg, ${BRAND.green} 0%, ${BRAND.greenDark} 100%)
+            radial-gradient(ellipse 80% 60% at 70% 20%, rgba(74, 138, 212, 0.45) 0%, transparent 55%),
+            radial-gradient(ellipse 70% 50% at 90% 90%, rgba(14, 61, 115, 0.75) 0%, transparent 50%),
+            linear-gradient(160deg, ${BRAND.green} 0%, ${BRAND.greenDark} 52%, ${BRAND.navyDeep} 100%)
           `,
         }}
       />
@@ -106,7 +106,7 @@ function GreenImagePanel({ activeSlide, compact = false, onSelectSlide }) {
           right: 0,
           width: { xs: "55%", lg: "48%" },
           height: { xs: "42%", lg: "46%" },
-          bgcolor: "rgba(0, 72, 64, 0.55)",
+          bgcolor: "rgba(14, 61, 115, 0.55)",
           clipPath: "polygon(100% 0, 0 0, 100% 100%)",
         }}
       />
@@ -117,7 +117,7 @@ function GreenImagePanel({ activeSlide, compact = false, onSelectSlide }) {
           bottom: 0,
           width: { xs: "78%", lg: "70%" },
           height: { xs: "50%", lg: "54%" },
-          bgcolor: "rgba(61, 158, 120, 0.35)",
+          bgcolor: "rgba(74, 138, 212, 0.28)",
           clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
         }}
       />
@@ -169,7 +169,7 @@ function GreenImagePanel({ activeSlide, compact = false, onSelectSlide }) {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, transparent 45%, rgba(10, 28, 24, 0.72) 100%)",
+              "linear-gradient(180deg, transparent 45%, rgba(14, 30, 58, 0.78) 100%)",
             pointerEvents: "none",
           }}
         />
@@ -506,7 +506,7 @@ export default function LoginPage() {
           background: `
             radial-gradient(ellipse 90% 70% at 12% 88%, ${C.greenWash} 0%, transparent 55%),
             radial-gradient(ellipse 60% 50% at 78% 8%, ${C.goldWash} 0%, transparent 50%),
-            linear-gradient(165deg, #ffffff 0%, #f5f8fc 48%, #f3f7f5 100%)
+            linear-gradient(165deg, #ffffff 0%, #f5f8fc 48%, #eef3fa 100%)
           `,
           overflow: "hidden",
         }}
@@ -836,13 +836,13 @@ export default function LoginPage() {
 
       {isDesktop ? (
         <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>
-          <GreenImagePanel
+          <HeroImagePanel
             activeSlide={activeSlide}
             onSelectSlide={setActiveSlide}
           />
         </Box>
       ) : (
-        <GreenImagePanel activeSlide={activeSlide} compact />
+        <HeroImagePanel activeSlide={activeSlide} compact />
       )}
 
       {/* Reset dialog */}

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Box,
@@ -32,11 +32,10 @@ import {
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
-  ALL_ROLES,
   formatRole,
   getActorFromStorage,
   getPortalToken,
-  assignableRoles,
+  creatableRolesForKind,
   primaryGreen,
   textSecondary,
   inputSx,
@@ -47,36 +46,49 @@ import {
 import { UsersHero, FormSection, fadeUp, UserAvatar } from "./usersUi";
 import useProgrammeEnrolmentOptions from "./useProgrammeEnrolmentOptions";
 
-const initialForm = () => ({
+const initialForm = (kind = "admin") => ({
   email: "",
-  password: "",
+  password: kind === "student" ? "123456" : "",
   full_name: "",
   phone: "",
   admission_number: "",
-  role: "staff",
+  role: kind === "student" ? "student" : "staff",
   position: "",
   is_public: false,
   department_id: "",
   programme_id: "",
   year_of_study: "",
   semester: "",
+  gender: "",
+  boarding_status: "",
   profileFile: null,
   profilePreview: "",
 });
 
 export default function UsersCreate() {
   const navigate = useNavigate();
-  const [form, setForm] = useState(initialForm());
+  const [searchParams] = useSearchParams();
+  const createKind = searchParams.get("for") === "student" ? "student" : "admin";
+  const isStudentCreate = createKind === "student";
+
+  const [form, setForm] = useState(() => initialForm(createKind));
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [programmes, setProgrammes] = useState([]);
   const [departments, setDepartments] = useState([]);
 
   const actor = getActorFromStorage();
-  const creatableRoles = assignableRoles(actor?.role);
+  const creatableRoles = useMemo(
+    () => creatableRolesForKind(actor?.role, createKind),
+    [actor?.role, createKind]
+  );
   const enrolment = useProgrammeEnrolmentOptions(
     form.role === "student" ? form.programme_id : ""
   );
+
+  useEffect(() => {
+    setForm(initialForm(createKind));
+  }, [createKind]);
 
   useEffect(() => {
     if (form.role !== "student" || !form.programme_id || enrolment.loading) return;
@@ -123,7 +135,8 @@ export default function UsersCreate() {
     })();
   }, []);
 
-  const goBack = () => navigate("/users");
+  const listPath = isStudentCreate ? "/students" : "/users";
+  const goBack = () => navigate(listPath);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,6 +146,17 @@ export default function UsersCreate() {
         icon: "error",
         title: "Not signed in",
         text: "Please sign in again.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
+    if (!creatableRoles.includes(form.role)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid role",
+        text: isStudentCreate
+          ? "Only the student role can be used here."
+          : "Only admin or staff roles can be used here.",
         confirmButtonColor: primaryGreen,
       });
       return;
@@ -164,6 +188,15 @@ export default function UsersCreate() {
       });
       return;
     }
+    if (form.role === "student" && (!form.gender || !form.boarding_status)) {
+      Swal.fire({
+        icon: "error",
+        title: "Student details incomplete",
+        text: "Gender and boarding status are required for students.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -186,6 +219,8 @@ export default function UsersCreate() {
         body.append("programme_id", form.programme_id);
         body.append("year_of_study", form.year_of_study);
         body.append("semester", form.semester);
+        body.append("gender", form.gender);
+        body.append("boarding_status", form.boarding_status);
       }
       if (form.profileFile) body.append("profile_image", form.profileFile);
 
@@ -204,7 +239,7 @@ export default function UsersCreate() {
 
       await Swal.fire({
         icon: "success",
-        title: "User created",
+        title: isStudentCreate ? "Student created" : "User created",
         text: data.data?.full_name
           ? `${data.data.full_name} was added successfully.`
           : "The account was created.",
@@ -213,7 +248,7 @@ export default function UsersCreate() {
         showConfirmButton: false,
       });
 
-      navigate("/users", { replace: true });
+      navigate(listPath, { replace: true });
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -229,15 +264,19 @@ export default function UsersCreate() {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={pageShellSx}>
       <UsersHero
-        title="Create user"
-        subtitle="Add a new admin, staff, or student account"
+        title={isStudentCreate ? "Create student" : "Create user"}
+        subtitle={
+          isStudentCreate
+            ? "Add a new student account"
+            : "Add a new admin or staff account"
+        }
         icon={<PersonAddIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <Tooltip title="Back to users">
+          <Tooltip title={isStudentCreate ? "Back to students" : "Back to admin"}>
             <IconButton
               onClick={goBack}
               type="button"
-              aria-label="Back to users"
+              aria-label={isStudentCreate ? "Back to students" : "Back to admin"}
               sx={{
                 color: "#fff",
                 bgcolor: "rgba(255,255,255,0.15)",
@@ -497,6 +536,32 @@ export default function UsersCreate() {
                       ))}
                     </TextField>
                   </Stack>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      select
+                      fullWidth
+                      required
+                      label="Gender"
+                      value={form.gender}
+                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                      sx={inputSx}
+                    >
+                      <MenuItem value="male">Male</MenuItem>
+                      <MenuItem value="female">Female</MenuItem>
+                    </TextField>
+                    <TextField
+                      select
+                      fullWidth
+                      required
+                      label="Boarding"
+                      value={form.boarding_status}
+                      onChange={(e) => setForm({ ...form, boarding_status: e.target.value })}
+                      sx={inputSx}
+                    >
+                      <MenuItem value="boarder">Boarder</MenuItem>
+                      <MenuItem value="non_boarder">Non-boarder</MenuItem>
+                    </TextField>
+                  </Stack>
                 </>
               ) : (
                 <>
@@ -552,11 +617,13 @@ export default function UsersCreate() {
                       programme_id: role === "student" ? form.programme_id : "",
                       year_of_study: role === "student" ? form.year_of_study : "",
                       semester: role === "student" ? form.semester : "",
+                      gender: role === "student" ? form.gender : "",
+                      boarding_status: role === "student" ? form.boarding_status : "",
                       password: role === "student" && !form.password ? "123456" : form.password,
                     });
                   }}
                 >
-                  {(creatableRoles.length ? creatableRoles : ALL_ROLES).map((r) => (
+                  {(creatableRoles.length ? creatableRoles : ["staff"]).map((r) => (
                     <MenuItem key={r} value={r}>
                       {formatRole(r)}
                     </MenuItem>
@@ -613,7 +680,7 @@ export default function UsersCreate() {
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <PersonAddIcon />}
             sx={{ ...primaryBtnSx, minWidth: 160 }}
           >
-            {saving ? "Creating…" : "Create user"}
+            {saving ? "Creating…" : isStudentCreate ? "Create student" : "Create user"}
           </Button>
         </Box>
       </Stack>

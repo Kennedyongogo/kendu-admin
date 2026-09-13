@@ -8,6 +8,7 @@ import NotFound from "../Pages/NotFound";
 import Dashboard from "../Pages/Dashboard";
 import UsersTable from "./Users/UsersTable";
 import UsersCreate from "./Users/UsersCreate";
+import Students from "./Students/Students";
 import Audit from "./Audit/Audit";
 import Programmes from "./Programmes/Programmes";
 import ProgrammeFormPage from "./Programmes/ProgrammeFormPage";
@@ -137,6 +138,7 @@ function PageRoutes() {
               <Route path="cohort-transfer" element={<CohortTransferPage />} />
               <Route path="users/create" element={<UsersCreate />} />
               <Route path="users" element={<UsersTable />} />
+              <Route path="students" element={<Students />} />
               <Route path="admissions/:id" element={<AdmissionViewPage />} />
               <Route path="admissions" element={<Admissions />} />
               <Route path="accounting/record-payment" element={<RecordPaymentPage />} />

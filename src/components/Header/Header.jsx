@@ -58,7 +58,8 @@ const PAGE_TITLES = [
   { prefix: "/library", title: "Library", subtitle: "Books, loans, rules & e-learning" },
   { prefix: "/timetable", title: "Timetable", subtitle: "Classes & CATs" },
   { prefix: "/exam-timetables", title: "Exam Timetables", subtitle: "Exam plans & approval" },
-  { prefix: "/users", title: "Users", subtitle: "Account management" },
+  { prefix: "/users", title: "Admin", subtitle: "Admin & staff accounts" },
+  { prefix: "/students", title: "Students dashboard", subtitle: "Gender & boarding insights" },
   { prefix: "/music", title: "Music", subtitle: "Background audio tracks" },
   { prefix: "/settings", title: "Settings", subtitle: "Preferences & security" },
   { prefix: "/audit", title: "Audit Trail", subtitle: "Admin activity & system logs" },
@@ -79,7 +80,14 @@ const getInitials = (name) => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 };
 
-function getPageContext(pathname) {
+function getPageContext(pathname, search = "") {
+  if (pathname.startsWith("/students")) {
+    const tab = new URLSearchParams(search).get("tab");
+    if (tab === "list") {
+      return { title: "Students", subtitle: "Enrolled student accounts" };
+    }
+    return { title: "Students dashboard", subtitle: "Gender & boarding insights" };
+  }
   const match = PAGE_TITLES.find(({ prefix }) => pathname.startsWith(prefix));
   return match || { title: "Admin Portal", subtitle: "Kendu Adventist School" };
 }
@@ -101,7 +109,7 @@ export default function Header(props) {
   const [themeMode, setThemeMode] = useState(getStoredThemeMode);
   const navigate = useNavigate();
   const location = useLocation();
-  const page = getPageContext(location.pathname);
+  const page = getPageContext(location.pathname, location.search);
 
   const toggleThemeMode = () => {
     const next = themeMode === "dark" ? "light" : "dark";

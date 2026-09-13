@@ -35,15 +35,14 @@ import {
   Phone as PhoneIcon,
   Visibility as ViewIcon,
   ToggleOn as ToggleOnIcon,
+  ToggleOff as ToggleOffIcon,
   Badge as BadgeIcon,
   Groups as GroupsIcon,
   Public as PublicIcon,
-  UploadFile as UploadFileIcon,
   MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
-  ALL_ROLES,
   ROLE_TABS,
   authJsonHeaders,
   getPortalToken,
@@ -74,7 +73,6 @@ import {
   HeroActionButton,
   RoleBadge,
 } from "./usersUi";
-import StudentImportDialog from "./StudentImportDialog";
 import useProgrammeEnrolmentOptions from "./useProgrammeEnrolmentOptions";
 
 const emptyForm = () => ({
@@ -109,12 +107,11 @@ export default function UsersTable() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [programmes, setProgrammes] = useState([]);
   const [departments, setDepartments] = useState([]);
 
   const actor = getActorFromStorage();
-  const editableRoles = assignableRoles(actor?.role);
+  const editableRoles = assignableRoles(actor?.role).filter((r) => r !== "student");
   const canEditRole = editableRoles.length > 0;
   const enrolment = useProgrammeEnrolmentOptions(
     form.role === "student" ? form.programme_id : ""
@@ -152,12 +149,12 @@ export default function UsersTable() {
       return;
     }
 
-    const role = ROLE_TABS[activeTab]?.value;
+    const role = ROLE_TABS[activeTab]?.value || "admin";
     const params = new URLSearchParams({
       page: String(page + 1),
       limit: String(rowsPerPage),
+      role,
     });
-    if (role) params.set("role", role);
 
     try {
       const response = await fetch(`/api/users?${params.toString()}`, {
@@ -435,9 +432,6 @@ export default function UsersTable() {
     setForm(emptyForm());
   };
 
-  const showAdmissionColumn = ROLE_TABS[activeTab]?.value === "student";
-  const isStudentsTab = ROLE_TABS[activeTab]?.value === "student";
-
   if (loading && users.length === 0) {
     return <BrandPageLoader message="Loading users…" />;
   }
@@ -445,30 +439,13 @@ export default function UsersTable() {
   return (
     <Box sx={pageShellSx}>
       <UsersHero
-        title="User management"
-        subtitle="Create and manage admin, staff, and student accounts"
+        title="Admin"
+        subtitle="Create and manage admin and staff accounts"
         icon={<GroupsIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
-            {isStudentsTab ? (
-              <HeroActionButton
-                variant="outlined"
-                startIcon={<UploadFileIcon />}
-                onClick={() => setImportOpen(true)}
-                sx={{
-                  color: "#fff",
-                  borderColor: "rgba(255,255,255,0.45)",
-                  bgcolor: "rgba(255,255,255,0.08)",
-                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.16)" },
-                }}
-              >
-                Import Excel
-              </HeroActionButton>
-            ) : null}
-            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/users/create")}>
-              Create user
-            </HeroActionButton>
-          </Stack>
+          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/users/create")}>
+            Create user
+          </HeroActionButton>
         }
       />
 
@@ -509,7 +486,6 @@ export default function UsersTable() {
                 <TableCell width={56}>#</TableCell>
                 <TableCell>User</TableCell>
                 <TableCell>Role</TableCell>
-                {showAdmissionColumn ? <TableCell>Admission no.</TableCell> : null}
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -517,13 +493,13 @@ export default function UsersTable() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={showAdmissionColumn ? 6 : 5} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <CircularProgress sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={showAdmissionColumn ? 6 : 5} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>No users in this tab.</Typography>
                     <Button
                       variant="text"
@@ -565,13 +541,6 @@ export default function UsersTable() {
                       <TableCell>
                         <RoleBadge role={row.role} />
                       </TableCell>
-                      {showAdmissionColumn ? (
-                        <TableCell>
-                          <Typography sx={{ fontSize: "0.85rem", fontWeight: 600, color: textSecondary }}>
-                            {row.admission_number || "—"}
-                          </Typography>
-                        </TableCell>
-                      ) : null}
                       <TableCell>
                         <Chip
                           label={active ? "Active" : "Inactive"}
@@ -602,9 +571,13 @@ export default function UsersTable() {
                             },
                             {
                               title: active ? "Deactivate" : "Activate",
-                              icon: <ToggleOnIcon fontSize="small" />,
+                              icon: active ? (
+                                <ToggleOnIcon fontSize="small" />
+                              ) : (
+                                <ToggleOffIcon fontSize="small" />
+                              ),
                               onClick: () => handleToggleActive(row),
-                              color: "#c8a840",
+                              color: active ? "#c8a840" : textMuted,
                             },
                             {
                               title: "Delete",
@@ -1023,7 +996,7 @@ export default function UsersTable() {
                 });
               }}
             >
-              {(canEditRole ? editableRoles : ALL_ROLES).map((r) => (
+              {editableRoles.map((r) => (
                 <MenuItem key={r} value={r}>
                   {formatRole(r)}
                 </MenuItem>
@@ -1067,12 +1040,6 @@ export default function UsersTable() {
           </Typography>
         </Stack>
       </PremiumDialog>
-
-      <StudentImportDialog
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        onImported={() => void fetchUsers()}
-      />
     </Box>
   );
 }

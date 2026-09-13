@@ -174,7 +174,10 @@ const MENU_SECTIONS = [
   },
   {
     label: "Administration",
-    items: [{ text: "Users", icon: <PeopleAlt />, path: "/users" }],
+    items: [
+      { text: "Admin", icon: <PeopleAlt />, path: "/users" },
+      { text: "Students", icon: <School />, path: "/students" },
+    ],
   },
   {
     label: "System",
@@ -327,7 +330,8 @@ const Navbar = (props) => {
     (path === "/staff-chat" &&
       (location.pathname.startsWith("/staff-chat") ||
         location.pathname.startsWith("/staff-commons"))) ||
-    (path === "/users" && location.pathname.startsWith("/users"));
+    (path === "/users" && location.pathname.startsWith("/users")) ||
+    (path === "/students" && location.pathname.startsWith("/students"));
 
   const logout = () => {
     clearPortalSession();

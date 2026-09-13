@@ -43,11 +43,21 @@ export function assignableRoles(actorRole) {
   return [];
 }
 
+/**
+ * Roles shown on create screens.
+ * kind: "admin" → admin/staff only; "student" → student only.
+ */
+export function creatableRolesForKind(actorRole, kind = "admin") {
+  const allowed = assignableRoles(actorRole);
+  if (kind === "student") {
+    return allowed.includes("student") ? ["student"] : [];
+  }
+  return allowed.filter((r) => r === "admin" || r === "staff");
+}
+
 export const ROLE_TABS = [
-  { label: "All users", value: null },
   { label: "Admin", value: "admin" },
   { label: "Staff", value: "staff" },
-  { label: "Students", value: "student" },
 ];
 
 export const authJsonHeaders = (token) => {
