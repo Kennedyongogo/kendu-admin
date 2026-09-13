@@ -18,6 +18,7 @@ import {
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import DownloadIcon from "@mui/icons-material/Download";
 import Swal from "sweetalert2";
 import { PremiumDialog } from "./usersUi";
 import {
@@ -44,13 +45,17 @@ const SYSTEM_FIELDS = [
   { key: "programme", label: "Programme", required: false },
   { key: "year_of_study", label: "Year of study", required: false },
   { key: "semester", label: "Semester", required: false },
+  { key: "gender", label: "Gender", required: false },
+  { key: "boarding_status", label: "Boarding status", required: false },
 ];
 
 function guessMapping(columns) {
   const map = {};
   for (const field of SYSTEM_FIELDS) {
     const hit = (columns || []).find(
-      (c) => c.suggested === field.key || String(c.header).toLowerCase().replace(/\s+/g, "_") === field.key
+      (c) =>
+        c.suggested === field.key ||
+        String(c.header).toLowerCase().replace(/\s+/g, "_") === field.key
     );
     if (hit) map[field.key] = hit.header;
   }
@@ -67,8 +72,11 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
     programme_id: "",
     year_of_study: "",
     semester: "",
+    gender: "",
+    boarding_status: "",
   });
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState("");
   const enrolment = useProgrammeEnrolmentOptions(defaults.programme_id);
@@ -101,9 +109,16 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
     setFile(null);
     setPreview(null);
     setMapping({});
-    setDefaults({ programme_id: "", year_of_study: "", semester: "" });
+    setDefaults({
+      programme_id: "",
+      year_of_study: "",
+      semester: "",
+      gender: "",
+      boarding_status: "",
+    });
     setError("");
     setLoadingPreview(false);
+    setDownloadingTemplate(false);
     setImporting(false);
 
     (async () => {
@@ -128,6 +143,34 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
   const mappingReady = useMemo(() => {
     return SYSTEM_FIELDS.filter((f) => f.required).every((f) => Boolean(mapping[f.key]));
   }, [mapping]);
+
+  const handleDownloadTemplate = async () => {
+    setDownloadingTemplate(true);
+    setError("");
+    try {
+      const token = getPortalToken();
+      const res = await fetch("/api/users/import-template?for=student", {
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Could not download template");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "students-import-template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message || "Could not download template");
+    } finally {
+      setDownloadingTemplate(false);
+    }
+  };
 
   const handleFile = async (picked) => {
     if (!picked) return;
@@ -171,6 +214,14 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
       setError("Set a default semester or map a Semester column.");
       return;
     }
+    if (!defaults.gender && !mapping.gender) {
+      setError("Set a default gender or map a Gender column.");
+      return;
+    }
+    if (!defaults.boarding_status && !mapping.boarding_status) {
+      setError("Set a default boarding status or map a Boarding status column.");
+      return;
+    }
 
     setImporting(true);
     setError("");
@@ -185,6 +236,8 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
           programme_id: defaults.programme_id || null,
           year_of_study: defaults.year_of_study || null,
           semester: defaults.semester || null,
+          gender: defaults.gender || null,
+          boarding_status: defaults.boarding_status || null,
           password: defaultPassword,
         })
       );
@@ -221,7 +274,7 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
       open={open}
       onClose={() => !importing && !loadingPreview && onClose()}
       title="Import students from Excel"
-      subtitle="Upload any spreadsheet, match columns, then import"
+      subtitle="Three steps: upload → match columns → confirm import"
       icon={<TableChartIcon />}
       maxWidth="md"
       footer={
@@ -255,7 +308,9 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
             <Button
               variant="contained"
               disabled={importing}
-              startIcon={importing ? <CircularProgress size={16} color="inherit" /> : <CheckCircleOutlineIcon />}
+              startIcon={
+                importing ? <CircularProgress size={16} color="inherit" /> : <CheckCircleOutlineIcon />
+              }
               onClick={() => void handleImport()}
               sx={primaryBtnSx}
             >
@@ -290,46 +345,100 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
       ) : null}
 
       {step === 0 ? (
-        <Box
-          sx={{
-            border: "1px dashed rgba(27,94,168,0.35)",
-            borderRadius: "16px",
-            bgcolor: "rgba(27,94,168,0.04)",
-            p: 3,
-            textAlign: "center",
-          }}
-        >
-          <UploadFileIcon sx={{ fontSize: 40, color: primaryGreen, mb: 1 }} />
-          <Typography sx={{ fontFamily: fontBody, fontWeight: 800, color: textPrimary, mb: 0.5 }}>
-            Choose an Excel file
-          </Typography>
-          <Typography sx={{ fontSize: "0.85rem", color: textMuted, mb: 2 }}>
-            .xlsx or .xls — any columns are fine; you will map them next.
-          </Typography>
-          <Button
-            component="label"
-            variant="contained"
-            disabled={loadingPreview}
-            startIcon={loadingPreview ? <CircularProgress size={16} color="inherit" /> : <UploadFileIcon />}
-            sx={primaryBtnSx}
+        <Stack spacing={2}>
+          <Alert severity="info" sx={{ borderRadius: "12px" }}>
+            <strong>How it works</strong>
+            <Box component="ol" sx={{ m: "8px 0 0", pl: 2.25, fontSize: "0.86rem" }}>
+              <li>Optional: download the system template and fill in your students.</li>
+              <li>Upload any Excel file (.xlsx / .xls).</li>
+              <li>Match each Excel column to the system fields.</li>
+              <li>Set defaults, review a sample, then import.</li>
+            </Box>
+          </Alert>
+
+          <Box
+            sx={{
+              border: "1px solid rgba(27,94,168,0.14)",
+              borderRadius: "16px",
+              bgcolor: "rgba(27,94,168,0.03)",
+              p: 2.25,
+            }}
           >
-            {loadingPreview ? "Reading…" : "Upload Excel"}
-            <input
-              hidden
-              type="file"
-              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                e.target.value = "";
-                if (f) void handleFile(f);
+            <Typography sx={{ fontFamily: fontBody, fontWeight: 800, color: textPrimary, mb: 0.5 }}>
+              Prefer a ready-made sheet?
+            </Typography>
+            <Typography sx={{ fontSize: "0.84rem", color: textMuted, mb: 1.5 }}>
+              Download the template with required columns. Programme, year, semester, gender, and
+              boarding use dropdowns filled from the database.
+            </Typography>
+            <Button
+              variant="outlined"
+              disabled={downloadingTemplate}
+              startIcon={
+                downloadingTemplate ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <DownloadIcon />
+                )
+              }
+              onClick={() => void handleDownloadTemplate()}
+              sx={{
+                ...ghostBtnSx,
+                border: "1px solid rgba(27,94,168,0.28)",
+                color: primaryGreen,
               }}
-            />
-          </Button>
-        </Box>
+            >
+              {downloadingTemplate ? "Downloading…" : "Download Excel template"}
+            </Button>
+          </Box>
+
+          <Box
+            sx={{
+              border: "1px dashed rgba(27,94,168,0.35)",
+              borderRadius: "16px",
+              bgcolor: "rgba(27,94,168,0.04)",
+              p: 3,
+              textAlign: "center",
+            }}
+          >
+            <UploadFileIcon sx={{ fontSize: 40, color: primaryGreen, mb: 1 }} />
+            <Typography sx={{ fontFamily: fontBody, fontWeight: 800, color: textPrimary, mb: 0.5 }}>
+              Step 1 — Upload Excel
+            </Typography>
+            <Typography sx={{ fontSize: "0.85rem", color: textMuted, mb: 2 }}>
+              Use the template or your own spreadsheet. Column names can differ; you will map them next.
+            </Typography>
+            <Button
+              component="label"
+              variant="contained"
+              disabled={loadingPreview}
+              startIcon={
+                loadingPreview ? <CircularProgress size={16} color="inherit" /> : <UploadFileIcon />
+              }
+              sx={primaryBtnSx}
+            >
+              {loadingPreview ? "Reading…" : "Upload Excel"}
+              <input
+                hidden
+                type="file"
+                accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) void handleFile(f);
+                }}
+              />
+            </Button>
+          </Box>
+        </Stack>
       ) : null}
 
       {step === 1 ? (
         <Stack spacing={2}>
+          <Alert severity="info" sx={{ borderRadius: "12px" }}>
+            <strong>Step 2 — Match columns.</strong> For each system field, choose the matching column from
+            your Excel file. Required fields are marked with *.
+          </Alert>
           <Typography sx={{ fontSize: "0.85rem", color: textSecondary }}>
             File: <strong>{file?.name}</strong> · {preview?.row_count || 0} data row(s)
           </Typography>
@@ -361,14 +470,15 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
       {step === 2 ? (
         <Stack spacing={2}>
           <Alert severity="info" sx={{ borderRadius: "12px" }}>
-            Password defaults to <strong>{defaultPassword}</strong> when the Password column is empty or unmapped.
+            <strong>Step 3 — Confirm & import.</strong> Defaults fill any row that has no mapped value for
+            that field. Password defaults to <strong>{defaultPassword}</strong> when blank or unmapped.
           </Alert>
 
           <Typography sx={{ fontFamily: fontBody, fontWeight: 800, color: textPrimary }}>
             Defaults for this import
           </Typography>
           <Typography sx={{ fontSize: "0.8rem", color: textMuted, mt: -1 }}>
-            Used when a row has no mapped value for programme / year / semester.
+            Used when a row has no mapped value for programme / year / semester / gender / boarding.
           </Typography>
 
           <FormControl fullWidth required sx={inputSx}>
@@ -442,6 +552,33 @@ export default function StudentImportDialog({ open, onClose, onImported }) {
                   {enrolment.semester_labels?.[s] || `Semester ${s}`}
                 </MenuItem>
               ))}
+            </TextField>
+          </Stack>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              select
+              fullWidth
+              required
+              label="Default gender"
+              value={defaults.gender}
+              onChange={(e) => setDefaults((d) => ({ ...d, gender: e.target.value }))}
+              sx={inputSx}
+            >
+              <MenuItem value="male">Male</MenuItem>
+              <MenuItem value="female">Female</MenuItem>
+            </TextField>
+            <TextField
+              select
+              fullWidth
+              required
+              label="Default boarding"
+              value={defaults.boarding_status}
+              onChange={(e) => setDefaults((d) => ({ ...d, boarding_status: e.target.value }))}
+              sx={inputSx}
+            >
+              <MenuItem value="boarder">Boarder</MenuItem>
+              <MenuItem value="non_boarder">Non-boarder</MenuItem>
             </TextField>
           </Stack>
 

@@ -35,11 +35,13 @@ import {
   School as SchoolIcon,
   ToggleOff as ToggleOffIcon,
   ToggleOn as ToggleOnIcon,
+  UploadFile as UploadFileIcon,
   Visibility as ViewIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import StudentsDashboard from "./StudentsDashboard";
+import StudentImportDialog from "../Users/StudentImportDialog";
 import {
   DetailField,
   HeroActionButton,
@@ -148,6 +150,7 @@ export default function Students() {
   const [openEdit, setOpenEdit] = useState(false);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const enrolment = useProgrammeEnrolmentOptions(form.programme_id);
 
@@ -435,13 +438,28 @@ export default function Students() {
         icon={<SchoolIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           isListTab ? (
-            <HeroActionButton
-              variant="contained"
-              startIcon={<PersonIcon />}
-              onClick={() => navigate("/users/create?for=student")}
-            >
-              Add student
-            </HeroActionButton>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+              <HeroActionButton
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => setImportOpen(true)}
+                sx={{
+                  color: "#fff",
+                  borderColor: "rgba(255,255,255,0.45)",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.16)" },
+                }}
+              >
+                Import Excel
+              </HeroActionButton>
+              <HeroActionButton
+                variant="contained"
+                startIcon={<PersonIcon />}
+                onClick={() => navigate("/users/create?for=student")}
+              >
+                Add student
+              </HeroActionButton>
+            </Stack>
           ) : null
         }
       />
@@ -1065,6 +1083,15 @@ export default function Students() {
           </Stack>
         </Stack>
       </PremiumDialog>
+
+      <StudentImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={() => {
+          setImportOpen(false);
+          void load();
+        }}
+      />
     </Box>
   );
 }
