@@ -21,6 +21,7 @@ import {
   Chat,
   PictureAsPdf,
   BubbleChart,
+  Restaurant,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -162,6 +163,7 @@ const MENU_SECTIONS = [
       { text: "Units", icon: <School />, path: "/units" },
       { text: "Registrations", icon: <HowToReg />, path: "/registrations" },
       { text: "Access", icon: <LockOpen />, path: "/access" },
+      { text: "Meals", icon: <Restaurant />, path: "/meals" },
       { text: "Cohort transfer", icon: <TransferWithinAStation />, path: "/cohort-transfer" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
@@ -315,6 +317,7 @@ const Navbar = (props) => {
     (path === "/units" && location.pathname.startsWith("/units")) ||
     (path === "/registrations" && location.pathname.startsWith("/registrations")) ||
     (path === "/access" && location.pathname.startsWith("/access")) ||
+    (path === "/meals" && location.pathname.startsWith("/meals")) ||
     (path === "/cohort-transfer" && location.pathname.startsWith("/cohort-transfer")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||

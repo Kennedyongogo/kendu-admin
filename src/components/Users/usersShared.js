@@ -22,7 +22,7 @@ export const primaryRed = primaryGreen;
 export const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 export const fontDisplay = '"Fraunces", "Georgia", serif';
 
-export const ALL_ROLES = ["admin", "staff", "student"];
+export const ALL_ROLES = ["admin", "staff", "student", "catering"];
 
 import {
   getPortalToken,
@@ -45,19 +45,20 @@ export function assignableRoles(actorRole) {
 
 /**
  * Roles shown on create screens.
- * kind: "admin" → admin/staff only; "student" → student only.
+ * kind: "admin" → admin/staff/catering; "student" → student only.
  */
 export function creatableRolesForKind(actorRole, kind = "admin") {
   const allowed = assignableRoles(actorRole);
   if (kind === "student") {
     return allowed.includes("student") ? ["student"] : [];
   }
-  return allowed.filter((r) => r === "admin" || r === "staff");
+  return allowed.filter((r) => r !== "student");
 }
 
 export const ROLE_TABS = [
   { label: "Admin", value: "admin" },
   { label: "Staff", value: "staff" },
+  { label: "Catering", value: "catering" },
 ];
 
 export const authJsonHeaders = (token) => {
@@ -82,6 +83,8 @@ export function roleChipColor(role) {
       return { bg: navy, color: "#fff" };
     case "student":
       return { bg: accentGold, color: navy };
+    case "catering":
+      return { bg: "#0f766e", color: "#fff" };
     default:
       return { bg: primaryLight, color: primaryDark };
   }

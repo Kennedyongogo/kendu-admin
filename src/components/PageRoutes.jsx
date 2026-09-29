@@ -42,6 +42,7 @@ import DepartmentViewPage from "./Departments/DepartmentViewPage";
 import Units from "./Units/Units";
 import Registrations from "./Units/Registrations";
 import Access from "./Access/Access";
+import Meals from "./Meals/Meals";
 import CohortTransferPage from "./CohortTransfer/CohortTransferPage";
 import StudentTranscriptPage from "./CohortTransfer/StudentTranscriptPage";
 import StudentTranscriptEditorPage from "./CohortTransfer/StudentTranscriptEditorPage";
@@ -126,6 +127,7 @@ function PageRoutes() {
               <Route path="units" element={<Units />} />
               <Route path="registrations" element={<Registrations />} />
               <Route path="access" element={<Access />} />
+              <Route path="meals" element={<Meals />} />
               <Route
                 path="cohort-transfer/students/:studentId/transcripts/new"
                 element={<StudentTranscriptEditorPage />}
