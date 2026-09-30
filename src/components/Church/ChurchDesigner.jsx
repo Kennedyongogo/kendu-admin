@@ -31,6 +31,7 @@ import {
   CheckCircle as UnblockIcon,
   DeleteOutline as DeleteSeatIcon,
   Sell as LabelIcon,
+  RotateRight as RotateIcon,
 } from "@mui/icons-material";
 import {
   fontBody,
@@ -46,6 +47,9 @@ import {
 import { alertError, confirmAction, toastSuccess } from "../Meals/mealsShared";
 import {
   churchApi,
+  CROSS_WALL_LIST,
+  crossFromWalls,
+  crossWalls,
   emptyLayout,
   fromLocalInput,
   rowLetters,
@@ -58,19 +62,28 @@ import {
 import {
   CopyFromDialog,
   DetailsForm,
+  EmptyPlanCard,
+  FloatingToolbar,
   PropertiesPanel,
   RelabelDialog,
   SeatBlockDialog,
   SectionTitle,
-  Toolbox,
 } from "./designerPanels";
 
 const GRID = 10;
+const CANVAS_PAD = 20;
+// Leaves room for the floating tool rail so it never covers the plan when fitted.
+const CANVAS_PAD_RAIL = 80;
+const PANEL_WIDTH = 340;
+const PANEL_GAP = 14;
+// Horizontal room taken by the floating details panel, so the plan is fitted and centred beside it.
+const PANEL_SPACE = PANEL_WIDTH + PANEL_GAP * 2;
 const MAX_HISTORY = 80;
 const DESIGN_COLORS = {
   available: { fill: "#ffffff", stroke: "#1B5EA8", text: "#0E3D73" },
   blocked: { fill: "#e5e7eb", stroke: "#9ca3af", text: "#6b7280" },
   booked: { fill: "#1e2858", stroke: "#1e2858", text: "#ffffff" },
+  ticked: { fill: "#fee2e2", stroke: "#b91c1c", text: "#991b1b" },
 };
 
 let uidCounter = 0;
@@ -114,15 +127,291 @@ function churchTemplate() {
   return { width: 1200, height: 900, seat_size: size, shapes, seats };
 }
 
-const SeatItem = memo(function SeatItem({ seat, size, selected, locked, cursor }) {
+/**
+ * Cruciform church: platform and choir in the top arm, seats in the nave and both side arms (transepts).
+ * Coordinates line up with crossPoints() for a cross at x 40, y 40, 1320 × 1220.
+ */
+function crossChurchTemplate() {
+  const shapes = [
+    { id: uid("sh"), type: "cross", x: 40, y: 40, w: 1320, h: 1220, label: "Main sanctuary" },
+    { id: uid("sh"), type: "stage", x: 486, y: 72, w: 428, h: 120, label: "Platform" },
+    { id: uid("sh"), type: "pulpit", x: 665, y: 104, w: 70, h: 40, label: "Pulpit" },
+    { id: uid("sh"), type: "altar", x: 640, y: 152, w: 120, h: 28, label: "Table" },
+    { id: uid("sh"), type: "choir", x: 486, y: 204, w: 428, h: 88, label: "Choir" },
+    { id: uid("sh"), type: "aisle", x: 665, y: 326, w: 70, h: 894, label: "Centre aisle" },
+    { id: uid("sh"), type: "aisle", x: 452, y: 640, w: 496, h: 60, label: "Cross aisle" },
+    { id: uid("sh"), type: "door", x: 630, y: 1252, w: 140, h: 16, label: "Main entrance" },
+    { id: uid("sh"), type: "door", x: 32, y: 434, w: 16, h: 90, label: "" },
+    { id: uid("sh"), type: "door", x: 1352, y: 434, w: 16, h: 90, label: "" },
+    { id: uid("sh"), type: "window", x: 432, y: 120, w: 8, h: 110, label: "" },
+    { id: uid("sh"), type: "window", x: 960, y: 120, w: 8, h: 110, label: "" },
+    { id: uid("sh"), type: "window", x: 432, y: 820, w: 8, h: 120, label: "" },
+    { id: uid("sh"), type: "window", x: 960, y: 820, w: 8, h: 120, label: "" },
+  ];
+  const seats = [];
+  const size = 28;
+  const pitch = 36;
+  const rowPitch = 44;
+  const firstY = 347;
+  // Rows A–G line up with the side wings; rows H–S sit behind the cross aisle.
+  const crossAisleAfter = 7;
+  const backRowsY = 729;
+  for (let r = 0; r < 19; r += 1) {
+    const y = r < crossAisleAfter ? firstY + r * rowPitch : backRowsY + (r - crossAisleAfter) * rowPitch;
+    const row = rowLetters(r);
+    for (let c = 0; c < 5; c += 1) {
+      seats.push({ id: uid("s"), label: `${row}${c + 1}`, x: 491 + c * pitch, y, section: "Nave left", group: null, bookable: true });
+      seats.push({ id: uid("s"), label: `${row}${c + 6}`, x: 765 + c * pitch, y, section: "Nave right", group: null, bookable: true });
+    }
+  }
+  for (let r = 0; r < 7; r += 1) {
+    const y = firstY + r * rowPitch;
+    const row = rowLetters(r);
+    for (let c = 0; c < 9; c += 1) {
+      seats.push({ id: uid("s"), label: `L${row}${c + 1}`, x: 94 + c * pitch, y, section: "Left wing", group: null, bookable: true });
+      seats.push({ id: uid("s"), label: `R${row}${c + 1}`, x: 1018 + c * pitch, y, section: "Right wing", group: null, bookable: true });
+    }
+  }
+  return { width: 1400, height: 1300, seat_size: size, shapes, seats };
+}
+
+const HALL_TYPES = new Set(["room", "cross"]);
+// When a hall is resized these keep their size; only their position follows the walls.
+const FIXED_SIZE_TYPES = new Set(["door", "window", "pillar", "pulpit", "label"]);
+// Doors and windows sit on the wall line, slightly outside the hall's box, but still belong to it.
+const WALL_REACH = 24;
+const PLAN_MARGIN = 40;
+const HANDLE_CURSORS = { n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize", ne: "nesw-resize", sw: "nesw-resize", nw: "nwse-resize", se: "nwse-resize" };
+
+/** Seats and building parts that are inside (or on the walls of) a hall. */
+function tickSeats(sel, ids, on) {
+  const set = new Set(sel.seats);
+  ids.forEach((sid) => (on ? set.add(sid) : set.delete(sid)));
+  return { shapes: [], seats: [...set] };
+}
+
+function hallContents(l, hall) {
+  const near = (x, y) =>
+    x >= hall.x - WALL_REACH && x <= hall.x + hall.w + WALL_REACH && y >= hall.y - WALL_REACH && y <= hall.y + hall.h + WALL_REACH;
+  return {
+    seats: l.seats.filter((s) => near(s.x, s.y)).map((s) => s.id),
+    shapes: l.shapes.filter((s) => !HALL_TYPES.has(s.type) && near(s.x + s.w / 2, s.y + s.h / 2)).map((s) => s.id),
+  };
+}
+
+/** Grows the plan so nothing sticks out past its right or bottom edge. */
+function growPlanToFit(l) {
+  const half = l.seat_size / 2;
+  let right = 0;
+  let bottom = 0;
+  for (const s of l.shapes) {
+    right = Math.max(right, s.x + s.w);
+    bottom = Math.max(bottom, s.y + s.h);
+  }
+  for (const s of l.seats) {
+    right = Math.max(right, s.x + half);
+    bottom = Math.max(bottom, s.y + half);
+  }
+  const width = Math.min(6000, Math.max(l.width, Math.ceil((right + PLAN_MARGIN) / 10) * 10));
+  const height = Math.min(6000, Math.max(l.height, Math.ceil((bottom + PLAN_MARGIN) / 10) * 10));
+  return width === l.width && height === l.height ? l : { ...l, width, height };
+}
+
+/** Small floating bar above a selected building part (not the church walls): rotate and delete. */
+function ShapeBar({ shape, zoom, onRotate, onDelete }) {
+  const cx = (shape.x + shape.w / 2) * zoom;
+  const top = shape.y * zoom - 12;
+  const below = top < 50;
+  const btn = { minWidth: 0, px: 1.1, py: 0.45, borderRadius: "9px", fontFamily: fontBody, fontWeight: 700, fontSize: "0.76rem", textTransform: "none" };
+  return (
+    <Box
+      onPointerDown={(e) => e.stopPropagation()}
+      sx={{
+        position: "absolute",
+        left: cx,
+        top: below ? (shape.y + shape.h) * zoom + 12 : top,
+        transform: below ? "translate(-50%, 0)" : "translate(-50%, -100%)",
+        zIndex: 5,
+        display: "flex",
+        gap: 0.5,
+        p: 0.6,
+        bgcolor: "#fff",
+        borderRadius: "12px",
+        border: "1px solid rgba(27,94,168,0.18)",
+        boxShadow: "0 14px 34px -12px rgba(20,26,58,0.45)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Tooltip title="Turn it a quarter, e.g. make an aisle run across (R)">
+        <Button size="small" onClick={onRotate} startIcon={<RotateIcon sx={{ fontSize: 16 }} />} sx={{ ...btn, color: primaryGreen, bgcolor: "rgba(27,94,168,0.07)" }}>
+          Rotate
+        </Button>
+      </Tooltip>
+      <Tooltip title="Delete (Del)">
+        <Button size="small" onClick={onDelete} sx={{ ...btn, color: "#b91c1c", bgcolor: "rgba(185,28,28,0.07)" }}>
+          <DeleteSeatIcon sx={{ fontSize: 17 }} />
+        </Button>
+      </Tooltip>
+    </Box>
+  );
+}
+
+// Walls of a cross can't get closer than this, so arms never collapse or turn inside out.
+const MIN_WALL_GAP = 40;
+// Doors and windows whose centre is this close to a wall line travel with that wall.
+const WALL_ATTACH = 14;
+
+/** Where a cross wall line may move to, given where the other walls are. */
+function clampCrossWall(a, param, v) {
+  const g = MIN_WALL_GAP;
+  const limits = {
+    top: [0, Math.min(a.lt, a.rt) - g],
+    bottom: [Math.max(a.lb, a.rb) + g, Infinity],
+    left: [0, Math.min(a.hl, a.fl) - g],
+    right: [Math.max(a.hr, a.fr) + g, Infinity],
+    hl: [a.left + g, a.hr - g],
+    hr: [a.hl + g, a.right - g],
+    fl: [a.left + g, a.fr - g],
+    fr: [a.fl + g, a.right - g],
+    lt: [a.top + g, a.lb - g],
+    lb: [a.lt + g, a.bottom - g],
+    rt: [a.top + g, a.rb - g],
+    rb: [a.rt + g, a.bottom - g],
+  }[param];
+  return Math.min(Math.max(v, limits[0]), limits[1]);
+}
+
+/** Doors and windows sitting on one wall segment of a cross. */
+function itemsOnWall(l, walls, wall) {
+  const [x1, y1] = [walls[wall.from[0]], walls[wall.from[1]]];
+  const [x2, y2] = [walls[wall.to[0]], walls[wall.to[1]]];
+  return l.shapes.filter((s) => {
+    if (s.type !== "door" && s.type !== "window") return false;
+    const cx = s.x + s.w / 2;
+    const cy = s.y + s.h / 2;
+    return wall.axis === "x"
+      ? Math.abs(cx - x1) <= WALL_ATTACH && cy >= Math.min(y1, y2) - 4 && cy <= Math.max(y1, y2) + 4
+      : Math.abs(cy - y1) <= WALL_ATTACH && cx >= Math.min(x1, x2) - 4 && cx <= Math.max(x1, x2) + 4;
+  });
+}
+
+/** A grip in the middle of every wall of a selected cross; drag one to move just that wall. */
+function CrossWallGrips({ shape, zoom }) {
+  const walls = crossWalls(shape);
+  const thick = 9 / zoom;
+  return (
+    <g>
+      {CROSS_WALL_LIST.map((wall) => {
+        const x1 = walls[wall.from[0]];
+        const y1 = walls[wall.from[1]];
+        const x2 = walls[wall.to[0]];
+        const y2 = walls[wall.to[1]];
+        const len = Math.min(Math.hypot(x2 - x1, y2 - y1) * 0.5, 44 / zoom);
+        const cx = (x1 + x2) / 2;
+        const cy = (y1 + y2) / 2;
+        const horizontal = wall.axis === "y";
+        const w = horizontal ? len : thick;
+        const h = horizontal ? thick : len;
+        return (
+          <rect
+            key={wall.id}
+            data-kind="wall"
+            data-id={shape.id}
+            data-wall={wall.id}
+            x={cx - w / 2}
+            y={cy - h / 2}
+            width={w}
+            height={h}
+            rx={thick / 2}
+            fill="#1B5EA8"
+            stroke="#fff"
+            strokeWidth={2 / zoom}
+            style={{ cursor: horizontal ? "ns-resize" : "ew-resize" }}
+          >
+            <title>{`${wall.name}: drag to move this wall`}</title>
+          </rect>
+        );
+      })}
+    </g>
+  );
+}
+
+/** Selection box with corner and edge grips, kept the same size on screen at any zoom. */
+function ResizeHandles({ shape, zoom }) {
+  const hs = 11 / zoom;
+  const sw = 1.5 / zoom;
+  const { x, y, w, h } = shape;
+  // A cross has its own grip on every wall, so its box only keeps the corner grips (resize the whole church).
+  const edges = shape.type !== "cross";
+  const grips = [
+    ["nw", x, y],
+    ["ne", x + w, y],
+    ["sw", x, y + h],
+    ["se", x + w, y + h],
+    ...(edges && w * zoom >= 56 ? [["n", x + w / 2, y], ["s", x + w / 2, y + h]] : []),
+    ...(edges && h * zoom >= 56 ? [["w", x, y + h / 2], ["e", x + w, y + h / 2]] : []),
+  ];
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke="#c8a840" strokeWidth={sw} strokeDasharray={`${6 / zoom} ${4 / zoom}`} style={{ pointerEvents: "none" }} />
+      {grips.map(([dir, gx, gy]) => (
+        <rect
+          key={dir}
+          data-kind="handle"
+          data-id={shape.id}
+          data-dir={dir}
+          x={gx - hs / 2}
+          y={gy - hs / 2}
+          width={hs}
+          height={hs}
+          rx={2.5 / zoom}
+          fill="#fff"
+          stroke="#c8a840"
+          strokeWidth={sw * 1.4}
+          style={{ cursor: HANDLE_CURSORS[dir] }}
+        />
+      ))}
+    </g>
+  );
+}
+
+const SeatItem = memo(function SeatItem({ seat, size, selected, locked, cursor, checkMode }) {
   const blocked = !locked && seat.bookable === false;
-  const colors = locked ? DESIGN_COLORS.booked : blocked ? DESIGN_COLORS.blocked : DESIGN_COLORS.available;
+  const ticked = checkMode && selected && !locked;
+  const colors = locked ? DESIGN_COLORS.booked : ticked ? DESIGN_COLORS.ticked : blocked ? DESIGN_COLORS.blocked : DESIGN_COLORS.available;
   const r = Math.max(5, size * 0.22);
   const bx = seat.x + size / 2 - r * 0.4;
   const by = seat.y - size / 2 + r * 0.4;
+  const cr = Math.max(5, size * 0.24);
+  const cx = seat.x - size / 2 + cr * 0.4;
+  const cy = seat.y - size / 2 + cr * 0.4;
   return (
     <g data-kind="seat" data-id={seat.id} style={{ cursor }}>
-      <SeatGraphic seat={seat} size={size} colors={colors} selected={selected} />
+      <SeatGraphic seat={seat} size={size} colors={colors} selected={selected && !checkMode} />
+      {checkMode && !locked ? (
+        <g style={{ pointerEvents: "none" }}>
+          <rect
+            x={cx - cr}
+            y={cy - cr}
+            width={cr * 2}
+            height={cr * 2}
+            rx={cr * 0.45}
+            fill={ticked ? "#b91c1c" : "#fff"}
+            stroke={ticked ? "#fff" : "#94a3b8"}
+            strokeWidth={1.4}
+          />
+          {ticked ? (
+            <polyline
+              points={`${cx - cr * 0.5},${cy + cr * 0.02} ${cx - cr * 0.12},${cy + cr * 0.42} ${cx + cr * 0.55},${cy - cr * 0.4}`}
+              fill="none"
+              stroke="#fff"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ) : null}
+        </g>
+      ) : null}
       {blocked ? (
         <g style={{ pointerEvents: "none" }}>
           <circle cx={bx} cy={by} r={r} fill="#b45309" stroke="#fff" strokeWidth={1.5} />
@@ -270,9 +559,65 @@ function QuickBar({ seats, size, zoom, lockedSeats, inputRef, onRename, onBlock,
   );
 }
 
+/** Bottom bar of the tick tool: how many seats are ticked, and one button to remove them all. */
+function TickBar({ count, lockedCount, total, onAll, onClear, onDelete }) {
+  const removable = count - lockedCount;
+  const btn = { minWidth: 0, px: 1.4, py: 0.6, borderRadius: "10px", fontFamily: fontBody, fontWeight: 700, fontSize: "0.8rem", textTransform: "none" };
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+      onPointerDown={(e) => e.stopPropagation()}
+      sx={{
+        pointerEvents: "auto",
+        px: 1.25,
+        py: 0.9,
+        bgcolor: "var(--kd-surface)",
+        borderRadius: "16px",
+        border: "1px solid rgba(185,28,28,0.2)",
+        boxShadow: "0 18px 40px -20px rgba(20,26,58,0.5)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Typography sx={{ fontFamily: fontBody, fontWeight: 800, fontSize: "0.86rem", color: textPrimary, px: 0.75 }}>
+        {count ? `${count} seat${count === 1 ? "" : "s"} ticked` : "No seats ticked"}
+        {lockedCount ? (
+          <Box component="span" sx={{ color: textMuted, fontWeight: 600, fontSize: "0.76rem" }}>
+            {" "}
+            · {lockedCount} booked, kept
+          </Box>
+        ) : null}
+      </Typography>
+      <Button size="small" onClick={onAll} disabled={count >= total} sx={{ ...btn, color: primaryGreen, bgcolor: "rgba(27,94,168,0.07)" }}>
+        Tick all
+      </Button>
+      <Button size="small" onClick={onClear} disabled={!count} sx={{ ...btn, color: textSecondary, bgcolor: "rgba(100,116,139,0.08)" }}>
+        Clear
+      </Button>
+      <Button
+        size="small"
+        onClick={onDelete}
+        disabled={removable <= 0}
+        startIcon={<DeleteSeatIcon sx={{ fontSize: 18 }} />}
+        sx={{ ...btn, color: "#fff", bgcolor: "#b91c1c", "&:hover": { bgcolor: "#991b1b" }, "&.Mui-disabled": { color: "rgba(255,255,255,0.8)", bgcolor: "rgba(185,28,28,0.35)" } }}
+      >
+        {removable > 0 ? `Delete ${removable} seat${removable === 1 ? "" : "s"}` : "Delete"}
+      </Button>
+    </Stack>
+  );
+}
+
+// Doors, windows and pillars are only a few pixels thick when zoomed out, so they get a wider invisible grab area.
+const THIN_TYPES = new Set(["door", "window", "pillar"]);
+const THIN_GRAB = 12;
+
 const ShapeItem = memo(function ShapeItem({ shape, selected }) {
   return (
     <g data-kind="shape" data-id={shape.id} style={{ cursor: "move" }}>
+      {THIN_TYPES.has(shape.type) ? (
+        <rect x={shape.x - THIN_GRAB} y={shape.y - THIN_GRAB} width={shape.w + THIN_GRAB * 2} height={shape.h + THIN_GRAB * 2} fill="transparent" />
+      ) : null}
       <ShapeGraphic shape={shape} selected={selected} />
     </g>
   );
@@ -306,6 +651,7 @@ export default function ChurchDesigner() {
   const [selection, setSelection] = useState({ shapes: [], seats: [] });
   const [tool, setTool] = useState("select");
   const [zoom, setZoom] = useState(0.8);
+  const [viewSize, setViewSize] = useState({ w: 0, h: 0 });
   const [snapOn, setSnapOn] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [loading, setLoading] = useState(!isNew);
@@ -323,6 +669,7 @@ export default function ChurchDesigner() {
   const svgRef = useRef(null);
   const scrollRef = useRef(null);
   const dragRef = useRef(null);
+  const planOffsetRef = useRef({ x: 0, y: 0 });
   const layoutRef = useRef(layout);
   layoutRef.current = layout;
 
@@ -359,7 +706,10 @@ export default function ChurchDesigner() {
   const fit = useCallback((l = layoutRef.current) => {
     const el = scrollRef.current;
     if (!el) return;
-    const z = Math.min((el.clientWidth - 48) / l.width, (el.clientHeight - 48) / l.height);
+    const cs = getComputedStyle(el);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    const z = Math.min((el.clientWidth - padX) / l.width, (el.clientHeight - padY) / l.height);
     setZoom(Math.max(0.2, Math.min(2, Math.floor(z * 20) / 20)));
   }, []);
 
@@ -440,6 +790,13 @@ export default function ChurchDesigner() {
 
   const labelInputRef = useRef(null);
 
+  const prevToolRef = useRef(tool);
+  useEffect(() => {
+    if (tool === "pick") setSelection((s) => (s.shapes.length ? { ...s, shapes: [] } : s));
+    else if (prevToolRef.current === "pick") setSelection({ shapes: [], seats: [] });
+    prevToolRef.current = tool;
+  }, [tool]);
+
   // Whatever gets selected on the canvas, its editor should be the visible tab.
   useEffect(() => {
     if (selection.seats.length || selection.shapes.length) setPanel("properties");
@@ -475,13 +832,58 @@ export default function ChurchDesigner() {
       /* capture is best-effort; moves still arrive while the pointer is over the plan */
     }
 
+    if (target?.dataset.kind === "wall") {
+      const shape = l.shapes.find((s) => s.id === target.dataset.id);
+      const wall = CROSS_WALL_LIST.find((w) => w.id === target.dataset.wall);
+      const walls = crossWalls(shape);
+      dragRef.current = {
+        kind: "wall",
+        id: shape.id,
+        wall,
+        start: p,
+        orig: walls,
+        before: l,
+        moved: false,
+        attached: new Map(itemsOnWall(l, walls, wall).map((s) => [s.id, { x: s.x, y: s.y }])),
+      };
+      return;
+    }
+
     if (target?.dataset.kind === "handle") {
       const shape = l.shapes.find((s) => s.id === target.dataset.id);
-      dragRef.current = { kind: "resize", start: p, id: shape.id, orig: { w: shape.w, h: shape.h }, before: l, moved: false };
+      const inside = HALL_TYPES.has(shape.type) && !e.altKey ? hallContents(l, shape) : { seats: [], shapes: [] };
+      const seatIds = new Set(inside.seats);
+      const shapeIds = new Set(inside.shapes);
+      dragRef.current = {
+        kind: "resize",
+        dir: target.dataset.dir || "se",
+        start: p,
+        id: shape.id,
+        orig: { x: shape.x, y: shape.y, w: shape.w, h: shape.h },
+        before: l,
+        moved: false,
+        seats: new Map(l.seats.filter((s) => seatIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
+        shapes: new Map(l.shapes.filter((s) => shapeIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y, w: s.w, h: s.h, type: s.type }])),
+      };
       return;
     }
 
     const onSeat = target?.dataset.kind === "seat";
+
+    // Tick tool: each click flips one seat, a drag flips every seat it passes, empty space boxes a block.
+    if (tool === "pick") {
+      const seat = onSeat ? l.seats.find((s) => s.id === target.dataset.id) : null;
+      if (seat) {
+        if (lockedSeats.has(seat.id)) return;
+        const value = !selectedSet.seats.has(seat.id);
+        setSelection((cur) => tickSeats(cur, [seat.id], value));
+        dragRef.current = { kind: "pick", value, done: new Set([seat.id]) };
+        return;
+      }
+      dragRef.current = { kind: "marquee", start: p, additive: true, base: selection, seatsOnly: true };
+      setMarquee({ x: p.x, y: p.y, w: 0, h: 0 });
+      return;
+    }
 
     if (tool === "block") {
       const seat = onSeat ? l.seats.find((s) => s.id === target.dataset.id) : null;
@@ -528,11 +930,35 @@ export default function ChurchDesigner() {
       }
       const seatIds = new Set(sel.seats);
       const shapeIds = new Set(sel.shapes);
+      // Dragging a hall carries everything inside it; Alt moves the walls alone.
+      if (!e.altKey) {
+        for (const sh of l.shapes) {
+          if (!shapeIds.has(sh.id) || !HALL_TYPES.has(sh.type)) continue;
+          const inside = hallContents(l, sh);
+          inside.seats.forEach((sid) => seatIds.add(sid));
+          inside.shapes.forEach((sid) => shapeIds.add(sid));
+        }
+      }
+      const half = l.seat_size / 2;
+      let minX = Infinity;
+      let minY = Infinity;
+      for (const s of l.seats) {
+        if (!seatIds.has(s.id)) continue;
+        minX = Math.min(minX, s.x - half);
+        minY = Math.min(minY, s.y - half);
+      }
+      for (const s of l.shapes) {
+        if (!shapeIds.has(s.id)) continue;
+        minX = Math.min(minX, s.x);
+        minY = Math.min(minY, s.y);
+      }
       dragRef.current = {
         kind: "move",
         start: p,
         before: l,
         moved: false,
+        minX: Math.max(0, minX),
+        minY: Math.max(0, minY),
         seats: new Map(l.seats.filter((s) => seatIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
         shapes: new Map(l.shapes.filter((s) => shapeIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
       };
@@ -562,40 +988,111 @@ export default function ChurchDesigner() {
       return;
     }
 
+    if (d.kind === "pick") {
+      const half = l.seat_size / 2;
+      const seat = l.seats.find((s) => Math.abs(s.x - p.x) <= half && Math.abs(s.y - p.y) <= half);
+      if (!seat || d.done.has(seat.id)) return;
+      d.done.add(seat.id);
+      if (lockedSeats.has(seat.id)) return;
+      setSelection((cur) => tickSeats(cur, [seat.id], d.value));
+      return;
+    }
+
     if (d.kind === "move") {
-      const dx = snap(p.x - d.start.x);
-      const dy = snap(p.y - d.start.y);
+      const dx = Math.max(snap(p.x - d.start.x), -d.minX);
+      const dy = Math.max(snap(p.y - d.start.y), -d.minY);
       if (!d.moved && !dx && !dy) return;
       if (!d.moved) {
         setPast((ps) => [...ps.slice(-MAX_HISTORY + 1), d.before]);
         setFuture([]);
         d.moved = true;
       }
-      setLayout({
-        ...l,
-        seats: d.seats.size
-          ? l.seats.map((s) => {
-              const o = d.seats.get(s.id);
-              return o ? { ...s, x: Math.min(Math.max(o.x + dx, 0), l.width), y: Math.min(Math.max(o.y + dy, 0), l.height) } : s;
-            })
-          : l.seats,
-        shapes: d.shapes.size
-          ? l.shapes.map((s) => {
-              const o = d.shapes.get(s.id);
-              return o ? { ...s, x: o.x + dx, y: o.y + dy } : s;
-            })
-          : l.shapes,
-      });
+      setLayout(
+        growPlanToFit({
+          ...l,
+          seats: d.seats.size
+            ? l.seats.map((s) => {
+                const o = d.seats.get(s.id);
+                return o ? { ...s, x: o.x + dx, y: o.y + dy } : s;
+              })
+            : l.seats,
+          shapes: d.shapes.size
+            ? l.shapes.map((s) => {
+                const o = d.shapes.get(s.id);
+                return o ? { ...s, x: o.x + dx, y: o.y + dy } : s;
+              })
+            : l.shapes,
+        }),
+      );
       setDirty(true);
-    } else if (d.kind === "resize") {
-      const w = Math.max(8, snap(d.orig.w + (p.x - d.start.x)));
-      const h = Math.max(4, snap(d.orig.h + (p.y - d.start.y)));
+    } else if (d.kind === "wall") {
+      const { wall, orig } = d;
+      const delta = wall.axis === "x" ? p.x - d.start.x : p.y - d.start.y;
+      const value = clampCrossWall(orig, wall.param, snap(orig[wall.param] + delta));
+      const applied = Math.round(value - orig[wall.param]);
+      if (!d.moved && !applied) return;
       if (!d.moved) {
         setPast((ps) => [...ps.slice(-MAX_HISTORY + 1), d.before]);
         setFuture([]);
         d.moved = true;
       }
-      setLayout({ ...l, shapes: l.shapes.map((s) => (s.id === d.id ? { ...s, w, h } : s)) });
+      const geometry = crossFromWalls({ ...orig, [wall.param]: value });
+      setLayout(
+        growPlanToFit({
+          ...l,
+          shapes: l.shapes.map((s) => {
+            if (s.id === d.id) return { ...s, ...geometry };
+            const o = d.attached.get(s.id);
+            if (!o) return s;
+            return wall.axis === "x" ? { ...s, x: o.x + applied } : { ...s, y: o.y + applied };
+          }),
+        }),
+      );
+      setDirty(true);
+    } else if (d.kind === "resize") {
+      const { orig, dir } = d;
+      const minW = 8;
+      const minH = 4;
+      let { x, y, w, h } = orig;
+      if (dir.includes("e")) w = Math.max(minW, snap(orig.x + orig.w + p.x - d.start.x) - orig.x);
+      if (dir.includes("s")) h = Math.max(minH, snap(orig.y + orig.h + p.y - d.start.y) - orig.y);
+      if (dir.includes("w")) {
+        x = Math.min(orig.x + orig.w - minW, Math.max(0, snap(orig.x + p.x - d.start.x)));
+        w = orig.x + orig.w - x;
+      }
+      if (dir.includes("n")) {
+        y = Math.min(orig.y + orig.h - minH, Math.max(0, snap(orig.y + p.y - d.start.y)));
+        h = orig.y + orig.h - y;
+      }
+      if (!d.moved) {
+        setPast((ps) => [...ps.slice(-MAX_HISTORY + 1), d.before]);
+        setFuture([]);
+        d.moved = true;
+      }
+      const sx = w / orig.w;
+      const sy = h / orig.h;
+      const mapX = (v) => x + (v - orig.x) * sx;
+      const mapY = (v) => y + (v - orig.y) * sy;
+      setLayout(
+        growPlanToFit({
+          ...l,
+          shapes: l.shapes.map((s) => {
+            if (s.id === d.id) return { ...s, x, y, w, h };
+            const o = d.shapes.get(s.id);
+            if (!o) return s;
+            if (FIXED_SIZE_TYPES.has(o.type)) {
+              return { ...s, x: Math.round(mapX(o.x + o.w / 2) - o.w / 2), y: Math.round(mapY(o.y + o.h / 2) - o.h / 2) };
+            }
+            return { ...s, x: Math.round(mapX(o.x)), y: Math.round(mapY(o.y)), w: Math.max(4, Math.round(o.w * sx)), h: Math.max(4, Math.round(o.h * sy)) };
+          }),
+          seats: d.seats.size
+            ? l.seats.map((s) => {
+                const o = d.seats.get(s.id);
+                return o ? { ...s, x: Math.round(mapX(o.x)), y: Math.round(mapY(o.y)) } : s;
+              })
+            : l.seats,
+        }),
+      );
       setDirty(true);
     } else if (d.kind === "draw") {
       const x2 = snap(p.x);
@@ -639,7 +1136,7 @@ export default function ChurchDesigner() {
         h: rect.h,
         label: d.type === "door" || d.type === "window" || d.type === "pillar" ? "" : meta.label,
       };
-      const shapes = d.type === "room" ? [shape, ...l.shapes] : [...l.shapes, shape];
+      const shapes = d.type === "room" || d.type === "cross" ? [shape, ...l.shapes] : [...l.shapes, shape];
       commit({ ...l, shapes });
       setSelection({ shapes: [shape.id], seats: [] });
       setPreview(null);
@@ -650,8 +1147,8 @@ export default function ChurchDesigner() {
       setMarquee(null);
       if (!m || (m.w < 3 && m.h < 3)) return;
       const inside = (x, y) => x >= m.x && x <= m.x + m.w && y >= m.y && y <= m.y + m.h;
-      const seats = l.seats.filter((s) => inside(s.x, s.y)).map((s) => s.id);
-      const shapes = l.shapes.filter((s) => inside(s.x, s.y) && inside(s.x + s.w, s.y + s.h)).map((s) => s.id);
+      const seats = l.seats.filter((s) => inside(s.x, s.y) && !(d.seatsOnly && lockedSeats.has(s.id))).map((s) => s.id);
+      const shapes = d.seatsOnly ? [] : l.shapes.filter((s) => inside(s.x, s.y) && inside(s.x + s.w, s.y + s.h)).map((s) => s.id);
       const base = d.additive ? d.base : { shapes: [], seats: [] };
       setSelection({
         seats: [...new Set([...base.seats, ...seats])],
@@ -672,6 +1169,14 @@ export default function ChurchDesigner() {
     const block = (e) => e.ctrlKey && e.preventDefault();
     el.addEventListener("wheel", block, { passive: false });
     return () => el.removeEventListener("wheel", block);
+  }, [loading]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => setViewSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [loading]);
 
   // ---- edit operations ------------------------------------------------------
@@ -713,6 +1218,23 @@ export default function ChurchDesigner() {
     },
     [commit, selection]
   );
+
+  const rotateSelection = useCallback(() => {
+    const l = layoutRef.current;
+    const ids = new Set(selection.shapes);
+    if (!l.shapes.some((s) => ids.has(s.id) && !HALL_TYPES.has(s.type))) return;
+    commit(
+      growPlanToFit({
+        ...l,
+        shapes: l.shapes.map((s) => {
+          if (!ids.has(s.id) || HALL_TYPES.has(s.type)) return s;
+          const cx = s.x + s.w / 2;
+          const cy = s.y + s.h / 2;
+          return { ...s, x: Math.max(0, Math.round(cx - s.h / 2)), y: Math.max(0, Math.round(cy - s.w / 2)), w: s.h, h: s.w };
+        }),
+      }),
+    );
+  }, [commit, selection]);
 
   const duplicateSelection = useCallback(() => {
     const l = layoutRef.current;
@@ -790,22 +1312,27 @@ export default function ChurchDesigner() {
       } else if (!mod && e.key.toLowerCase() === "x" && selection.seats.length) {
         const seats = layoutRef.current.seats.filter((s) => selection.seats.includes(s.id));
         setBookable(selection.seats, seats.every((s) => s.bookable === false));
+      } else if (!mod && e.key.toLowerCase() === "r" && selection.shapes.length) {
+        rotateSelection();
       } else if (!mod && e.key.toLowerCase() === "v") setTool("select");
-      else if (!mod && e.key.toLowerCase() === "s") setTool("seat");
-      else if (!mod && e.key.toLowerCase() === "k") setTool("block");
+      else if (!mod && e.key.toLowerCase() === "s") setTool((t) => (t === "seat" ? "select" : "seat"));
+      else if (!mod && e.key.toLowerCase() === "k") setTool((t) => (t === "block" ? "select" : "block"));
+      else if (!mod && e.key.toLowerCase() === "c") setTool((t) => (t === "pick" ? "select" : "pick"));
       else if (!mod && e.key.toLowerCase() === "b") setBlockOpen(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [blockOpen, relabelOpen, copyOpen, readOnly, undo, redo, duplicateSelection, deleteSelection, nudge, selection, setBookable]);
+  }, [blockOpen, relabelOpen, copyOpen, readOnly, undo, redo, duplicateSelection, deleteSelection, nudge, rotateSelection, selection, setBookable]);
 
   const visibleCentre = () => {
     const el = scrollRef.current;
     const l = layoutRef.current;
-    if (!el) return { x: l.width / 2, y: l.height / 2 };
+    if (!el || !svgRef.current) return { x: l.width / 2, y: l.height / 2 };
+    const view = el.getBoundingClientRect();
+    const plan = svgRef.current.getBoundingClientRect();
     return {
-      x: Math.min(l.width, (el.scrollLeft + el.clientWidth / 2 - 24) / zoom),
-      y: Math.min(l.height, (el.scrollTop + el.clientHeight / 2 - 24) / zoom),
+      x: Math.max(0, Math.min(l.width, (view.left + el.clientWidth / 2 - plan.left) / zoom)),
+      y: Math.max(0, Math.min(l.height, (view.top + el.clientHeight / 2 - plan.top) / zoom)),
     };
   };
 
@@ -929,8 +1456,8 @@ export default function ChurchDesigner() {
     commit({ ...l, shapes: where === "front" ? [...rest, ...picked] : [...picked, ...rest] });
   };
 
-  const applyTemplate = () => {
-    const t = churchTemplate();
+  const applyTemplate = (kind) => {
+    const t = kind === "cross" ? crossChurchTemplate() : churchTemplate();
     commit(t);
     setSelection({ shapes: [], seats: [] });
     setTimeout(() => fit(t), 30);
@@ -1067,7 +1594,7 @@ export default function ChurchDesigner() {
 
   const status = service?.status || "draft";
   const size = layout.seat_size;
-  const seatCursor = tool === "block" ? "cell" : tool === "select" || tool === "seat" ? "pointer" : "crosshair";
+  const seatCursor = tool === "block" ? "cell" : tool === "select" || tool === "seat" || tool === "pick" ? "pointer" : "crosshair";
   const selectedSeats = layout.seats.filter((s) => selectedSet.seats.has(s.id));
   const singleShape =
     selection.shapes.length === 1 && !selection.seats.length ? layout.shapes.find((s) => s.id === selection.shapes[0]) : null;
@@ -1084,15 +1611,19 @@ export default function ChurchDesigner() {
     );
   }
 
+  const canvasPadLeft = readOnly ? CANVAS_PAD : CANVAS_PAD_RAIL;
+  let planOffsetX = Math.max(0, Math.floor((viewSize.w - canvasPadLeft - PANEL_SPACE - CANVAS_PAD - layout.width * zoom) / 2));
+  let planOffsetY = Math.max(0, Math.floor((viewSize.h - CANVAS_PAD * 2 - layout.height * zoom) / 2));
+  // The plan can grow mid-drag; re-centring then would slide it under the pointer, so hold its position until release.
+  if (dragRef.current) ({ x: planOffsetX, y: planOffsetY } = planOffsetRef.current);
+  else planOffsetRef.current = { x: planOffsetX, y: planOffsetY };
   const topBtn = { ...ghostBtnSx, border: "1px solid rgba(27,94,168,0.16)", bgcolor: "var(--kd-surface)", px: 1.75, py: 0.8 };
 
   return (
     <Box
       sx={{
         height: "calc(100dvh - 72px)",
-        mx: { xs: -1.5, sm: -2, md: -3 },
-        mt: { xs: -1, sm: -1.5 },
-        mb: { xs: -1.5, sm: -2, md: -3 },
+        m: -3,
         display: "flex",
         flexDirection: "column",
         bgcolor: "var(--kd-page-b)",
@@ -1218,21 +1749,27 @@ export default function ChurchDesigner() {
         </Alert>
       ) : null}
 
-      <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
-        {!readOnly ? (
-          <Box sx={{ width: 212, flexShrink: 0, borderRight: "1px solid rgba(27,94,168,0.1)", bgcolor: "var(--kd-surface)", overflowY: "auto", p: 1.5 }}>
-            <Toolbox
-              tool={tool}
-              setTool={setTool}
-              onAddBlock={() => setBlockOpen(true)}
-              onTemplate={applyTemplate}
-              onCopyFrom={openCopy}
-              seatRow={seatRow}
-              setSeatRow={setSeatRow}
-              isEmpty={!layout.seats.length && !layout.shapes.length}
-            />
-          </Box>
-        ) : null}
+      <Box sx={{ position: "relative", flex: 1, minHeight: 0, display: "flex" }}>
+          {!readOnly ? (
+            <FloatingToolbar tool={tool} setTool={setTool} onAddBlock={() => setBlockOpen(true)} seatRow={seatRow} setSeatRow={setSeatRow} />
+          ) : null}
+          {!readOnly && tool === "pick" ? (
+            <Box sx={{ position: "absolute", left: 0, right: PANEL_SPACE, bottom: 18, zIndex: 6, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+              <TickBar
+                count={selectedSeats.length}
+                lockedCount={selectedSeats.filter((s) => lockedSeats.has(s.id)).length}
+                total={layout.seats.length - lockedSeats.size}
+                onAll={() => setSelection({ shapes: [], seats: layout.seats.filter((s) => !lockedSeats.has(s.id)).map((s) => s.id) })}
+                onClear={() => setSelection({ shapes: [], seats: [] })}
+                onDelete={deleteSelection}
+              />
+            </Box>
+          ) : null}
+          {!readOnly && !layout.seats.length && !layout.shapes.length ? (
+            <Box sx={{ position: "absolute", top: 0, bottom: 0, left: 0, right: PANEL_SPACE, zIndex: 4, pointerEvents: "none" }}>
+              <EmptyPlanCard onTemplate={applyTemplate} onCopyFrom={openCopy} />
+            </Box>
+          ) : null}
 
         <Box
           ref={scrollRef}
@@ -1241,13 +1778,19 @@ export default function ChurchDesigner() {
             flex: 1,
             minWidth: 0,
             overflow: "auto",
-            p: 3,
-            backgroundColor: "#eef2f7",
-            backgroundImage: "radial-gradient(rgba(27,94,168,0.14) 1px, transparent 1px)",
-            backgroundSize: "18px 18px",
+            p: `${CANVAS_PAD}px`,
+            pl: `${canvasPadLeft}px`,
+            pr: `${PANEL_SPACE + CANVAS_PAD}px`,
+            bgcolor: "#fff",
+            // Grid lines are anchored to the plan origin so they continue seamlessly past the plan edge.
+            backgroundImage:
+              "linear-gradient(rgba(27,94,168,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(27,94,168,0.07) 1px, transparent 1px)",
+            backgroundSize: `${GRID * 5 * zoom}px ${GRID * 5 * zoom}px`,
+            backgroundPosition: `${canvasPadLeft + planOffsetX}px ${CANVAS_PAD + planOffsetY}px`,
+            backgroundAttachment: "local",
           }}
         >
-          <Box sx={{ position: "relative", width: layout.width * zoom, height: layout.height * zoom, boxShadow: "0 24px 60px -30px rgba(20,26,58,0.45)", borderRadius: "10px", bgcolor: "#fff" }}>
+          <Box sx={{ position: "relative", ml: `${planOffsetX}px`, mt: `${planOffsetY}px`, width: layout.width * zoom, height: layout.height * zoom, outline: "1.5px dashed rgba(27,94,168,0.22)", outlineOffset: 2, borderRadius: "6px" }}>
             <svg
               ref={svgRef}
               viewBox={`0 0 ${layout.width} ${layout.height}`}
@@ -1268,33 +1811,23 @@ export default function ChurchDesigner() {
                 borderRadius: 10,
               }}
             >
-              <defs>
-                <pattern id="church-grid" width={GRID * 5} height={GRID * 5} patternUnits="userSpaceOnUse">
-                  <path d={`M ${GRID * 5} 0 L 0 0 0 ${GRID * 5}`} fill="none" stroke="rgba(27,94,168,0.08)" strokeWidth="1" />
-                </pattern>
-              </defs>
-              <rect x={0} y={0} width={layout.width} height={layout.height} fill="url(#church-grid)" />
+              <rect x={0} y={0} width={layout.width} height={layout.height} fill="transparent" />
               {layout.shapes.map((s) => (
                 <ShapeItem key={s.id} shape={s} selected={selectedSet.shapes.has(s.id)} />
               ))}
               {layout.seats.map((s) => (
-                <SeatItem key={s.id} seat={s} size={size} selected={selectedSet.seats.has(s.id)} locked={lockedSeats.has(s.id)} cursor={seatCursor} />
-              ))}
-              {singleShape && !readOnly ? (
-                <rect
-                  data-kind="handle"
-                  data-id={singleShape.id}
-                  x={singleShape.x + singleShape.w - 7}
-                  y={singleShape.y + singleShape.h - 7}
-                  width={14}
-                  height={14}
-                  rx={3}
-                  fill="#c8a840"
-                  stroke="#fff"
-                  strokeWidth={2}
-                  style={{ cursor: "nwse-resize" }}
+                <SeatItem
+                  key={s.id}
+                  seat={s}
+                  size={size}
+                  selected={selectedSet.seats.has(s.id)}
+                  locked={lockedSeats.has(s.id)}
+                  cursor={seatCursor}
+                  checkMode={tool === "pick"}
                 />
-              ) : null}
+              ))}
+              {singleShape && !readOnly ? <ResizeHandles shape={singleShape} zoom={zoom} /> : null}
+              {singleShape?.type === "cross" && !readOnly ? <CrossWallGrips shape={singleShape} zoom={zoom} /> : null}
               {preview ? (
                 <rect x={preview.x} y={preview.y} width={preview.w} height={preview.h} fill="rgba(200,168,64,0.15)" stroke="#c8a840" strokeWidth={2} strokeDasharray="6 4" />
               ) : null}
@@ -1302,7 +1835,10 @@ export default function ChurchDesigner() {
                 <rect x={marquee.x} y={marquee.y} width={marquee.w} height={marquee.h} fill="rgba(27,94,168,0.08)" stroke={primaryGreen} strokeWidth={1.5} strokeDasharray="5 4" />
               ) : null}
             </svg>
-            {!readOnly && !marquee && tool !== "block" && selectedSeats.length > 0 && !selection.shapes.length ? (
+            {!readOnly && !marquee && singleShape && !HALL_TYPES.has(singleShape.type) ? (
+              <ShapeBar shape={singleShape} zoom={zoom} onRotate={rotateSelection} onDelete={deleteSelection} />
+            ) : null}
+            {!readOnly && !marquee && tool !== "block" && tool !== "pick" && selectedSeats.length > 0 && !selection.shapes.length ? (
               <QuickBar
                 seats={selectedSeats}
                 size={size}
@@ -1318,7 +1854,23 @@ export default function ChurchDesigner() {
           </Box>
         </Box>
 
-        <Box sx={{ width: 300, flexShrink: 0, borderLeft: "1px solid rgba(27,94,168,0.1)", bgcolor: "var(--kd-surface)", display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: PANEL_GAP,
+            right: PANEL_GAP,
+            bottom: PANEL_GAP,
+            width: PANEL_WIDTH,
+            zIndex: 6,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            bgcolor: "var(--kd-surface)",
+            border: "1px solid rgba(27,94,168,0.12)",
+            borderRadius: "16px",
+            boxShadow: "0 18px 44px -20px rgba(20,26,58,0.35)",
+          }}
+        >
           <Tabs
             value={panel}
             onChange={(_, v) => setPanel(v)}
@@ -1333,13 +1885,13 @@ export default function ChurchDesigner() {
             <Tab value="details" label="Service details" />
             <Tab value="properties" label={selection.seats.length + selection.shapes.length ? `Selection (${selection.seats.length + selection.shapes.length})` : "Plan"} />
           </Tabs>
-          <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+          <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", p: 2, display: "flex", flexDirection: "column" }}>
             {panel === "details" ? (
               <>
                 <SectionTitle>When & what</SectionTitle>
                 <DetailsForm details={details} setDetails={setDetails} readOnly={readOnly} />
                 {service?.created_by ? (
-                  <Typography sx={{ fontFamily: fontBody, fontSize: "0.74rem", color: textMuted, mt: 2 }}>
+                  <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", color: textMuted, mt: 1.5, flexShrink: 0 }}>
                     Created by {service.created_by.full_name}
                     {service.reviewed_by ? ` · reviewed by ${service.reviewed_by.full_name}` : ""}
                   </Typography>
@@ -1358,14 +1910,15 @@ export default function ChurchDesigner() {
                 onSetBookable={setBookable}
                 onDelete={deleteSelection}
                 onOrder={order}
+                onRotate={rotateSelection}
                 onAlign={align}
                 onRelabel={() => setRelabelOpen(true)}
               />
             )}
           </Box>
-          <Box sx={{ px: 2, py: 1.25, borderTop: "1px solid rgba(27,94,168,0.08)", bgcolor: "rgba(30,40,88,0.03)" }}>
-            <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", color: textMuted, lineHeight: 1.5 }}>
-              <b style={{ color: navy }}>Flow:</b> Save draft → Submit → Approve. The creator may approve their own service. Only approved services
+          <Box sx={{ px: 2, py: 1, borderTop: "1px solid rgba(27,94,168,0.08)", bgcolor: "rgba(30,40,88,0.03)", flexShrink: 0 }}>
+            <Typography sx={{ fontFamily: fontBody, fontSize: "0.7rem", color: textMuted, lineHeight: 1.45 }}>
+              <b style={{ color: navy }}>Flow:</b> Save draft → Submit → Approve. The creator may approve their own service; only approved services
               appear to students.
             </Typography>
           </Box>

@@ -68,6 +68,7 @@ export const SEAT_COLORS = {
 
 export const SHAPE_TYPES = [
   { type: "room", label: "Church hall", w: 900, h: 700, hint: "Outer walls of the building" },
+  { type: "cross", label: "Cross-shaped hall", w: 900, h: 860, hint: "Walls of a church built like a cross" },
   { type: "stage", label: "Platform", w: 360, h: 120, hint: "Raised platform / rostrum" },
   { type: "pulpit", label: "Pulpit", w: 70, h: 50, hint: "Preaching desk" },
   { type: "altar", label: "Communion table", w: 120, h: 50, hint: "Table or altar" },
@@ -82,6 +83,7 @@ export const SHAPE_TYPES = [
 
 export const SHAPE_STYLE = {
   room: { fill: "#fbfaf6", stroke: "#1e2858", strokeWidth: 6, rx: 14, text: "#94a3b8", textSize: 14 },
+  cross: { fill: "#fbfaf6", stroke: "#1e2858", strokeWidth: 6, rx: 0, text: "#94a3b8", textSize: 14 },
   stage: { fill: "rgba(200,168,64,0.22)", stroke: "#b8962e", strokeWidth: 2, rx: 12, text: "#7a5f10", textSize: 16 },
   pulpit: { fill: "#1e2858", stroke: "#1e2858", strokeWidth: 1, rx: 8, text: "#ffffff", textSize: 11 },
   altar: { fill: "rgba(109,40,217,0.14)", stroke: "#6d28d9", strokeWidth: 2, rx: 6, text: "#5b21b6", textSize: 12 },
@@ -152,7 +154,119 @@ export function seatStatusFor(seat) {
   return seat.status || (seat.bookable === false ? "blocked" : "available");
 }
 
+/**
+ * Wall positions of a cross-shaped hall, as fractions of its box. hl/hr: side walls of the front (platform) arm,
+ * fl/fr: side walls of the nave, lt/lb and rt/rb: front and back walls of the left and right wings.
+ * The box itself gives the front wall, back wall and the two wing end walls.
+ * Keep in sync with the student portal and the mobile app, which draw the same outline.
+ */
+export const CROSS_DEFAULTS = { hl: 0.3, hr: 0.7, fl: 0.3, fr: 0.7, lt: 0.22, lb: 0.5, rt: 0.22, rb: 0.5 };
+
+/** Absolute position of every wall line of a cross. */
+export function crossWalls(shape) {
+  const f = { ...CROSS_DEFAULTS, ...(shape.cross || {}) };
+  const { x, y, w, h } = shape;
+  return {
+    left: x,
+    right: x + w,
+    top: y,
+    bottom: y + h,
+    hl: x + f.hl * w,
+    hr: x + f.hr * w,
+    fl: x + f.fl * w,
+    fr: x + f.fr * w,
+    lt: y + f.lt * h,
+    lb: y + f.lb * h,
+    rt: y + f.rt * h,
+    rb: y + f.rb * h,
+  };
+}
+
+/** Box and wall fractions for a cross from absolute wall lines (inverse of crossWalls). */
+export function crossFromWalls(a) {
+  const w = a.right - a.left;
+  const h = a.bottom - a.top;
+  const fx = (v) => Math.round(((v - a.left) / w) * 1e6) / 1e6;
+  const fy = (v) => Math.round(((v - a.top) / h) * 1e6) / 1e6;
+  return {
+    x: a.left,
+    y: a.top,
+    w,
+    h,
+    cross: { hl: fx(a.hl), hr: fx(a.hr), fl: fx(a.fl), fr: fx(a.fr), lt: fy(a.lt), lb: fy(a.lb), rt: fy(a.rt), rb: fy(a.rb) },
+  };
+}
+
+/** The 12 walls of a cross, clockwise from the front wall. `param` is the wall line that moves when it is dragged. */
+export const CROSS_WALL_LIST = [
+  { id: "top", param: "top", axis: "y", from: ["hl", "top"], to: ["hr", "top"], name: "Front wall" },
+  { id: "headR", param: "hr", axis: "x", from: ["hr", "top"], to: ["hr", "rt"], name: "Front arm, right wall" },
+  { id: "rightTop", param: "rt", axis: "y", from: ["hr", "rt"], to: ["right", "rt"], name: "Right wing, front wall" },
+  { id: "right", param: "right", axis: "x", from: ["right", "rt"], to: ["right", "rb"], name: "Right wing, end wall" },
+  { id: "rightBottom", param: "rb", axis: "y", from: ["fr", "rb"], to: ["right", "rb"], name: "Right wing, back wall" },
+  { id: "footR", param: "fr", axis: "x", from: ["fr", "rb"], to: ["fr", "bottom"], name: "Nave, right wall" },
+  { id: "bottom", param: "bottom", axis: "y", from: ["fl", "bottom"], to: ["fr", "bottom"], name: "Back wall" },
+  { id: "footL", param: "fl", axis: "x", from: ["fl", "lb"], to: ["fl", "bottom"], name: "Nave, left wall" },
+  { id: "leftBottom", param: "lb", axis: "y", from: ["left", "lb"], to: ["fl", "lb"], name: "Left wing, back wall" },
+  { id: "left", param: "left", axis: "x", from: ["left", "lt"], to: ["left", "lb"], name: "Left wing, end wall" },
+  { id: "leftTop", param: "lt", axis: "y", from: ["left", "lt"], to: ["hl", "lt"], name: "Left wing, front wall" },
+  { id: "headL", param: "hl", axis: "x", from: ["hl", "top"], to: ["hl", "lt"], name: "Front arm, left wall" },
+];
+
+/** Corner points of a cross-shaped hall, clockwise from the front-left corner. */
+export function crossPoints(shape) {
+  const a = crossWalls(shape);
+  return [
+    [a.hl, a.top],
+    [a.hr, a.top],
+    [a.hr, a.rt],
+    [a.right, a.rt],
+    [a.right, a.rb],
+    [a.fr, a.rb],
+    [a.fr, a.bottom],
+    [a.fl, a.bottom],
+    [a.fl, a.lb],
+    [a.left, a.lb],
+    [a.left, a.lt],
+    [a.hl, a.lt],
+  ];
+}
+
+function CrossGraphic({ shape, selected }) {
+  const st = SHAPE_STYLE.cross;
+  const label = shape.label ?? "";
+  const walls = crossWalls(shape);
+  return (
+    <g>
+      <polygon
+        points={crossPoints(shape).map((p) => p.join(",")).join(" ")}
+        fill={st.fill}
+        stroke={selected ? "#c8a840" : st.stroke}
+        strokeWidth={st.strokeWidth}
+        strokeLinejoin="round"
+      />
+      {label ? (
+        <text
+          x={(walls.hl + walls.hr) / 2}
+          y={shape.y + st.textSize * 0.9 + 8}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontFamily='"Plus Jakarta Sans", system-ui, sans-serif'
+          fontWeight={700}
+          fontSize={st.textSize}
+          fill={st.text}
+          letterSpacing={4}
+          style={{ pointerEvents: "none", userSelect: "none" }}
+        >
+          {String(label).toUpperCase()}
+        </text>
+      ) : null}
+    </g>
+  );
+}
+
 export function ShapeGraphic({ shape, selected = false }) {
+  if (shape.type === "cross") return <CrossGraphic shape={shape} selected={selected} />;
   const st = SHAPE_STYLE[shape.type] || SHAPE_STYLE.area;
   const cx = shape.x + shape.w / 2;
   const cy = shape.y + shape.h / 2;
