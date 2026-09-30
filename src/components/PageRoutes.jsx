@@ -51,7 +51,19 @@ import StaffChat from "./StaffCommons/StaffChat";
 import ExamTimetables from "./ExamTimetable/ExamTimetables";
 import ExamTimetableCreate from "./ExamTimetable/ExamTimetableCreate";
 import ExamTimetablePlan from "./ExamTimetable/ExamTimetablePlan";
+import Church from "./Church/Church";
+import ChurchDesigner from "./Church/ChurchDesigner";
+import ChurchMonitor from "./Church/ChurchMonitor";
 import { readStoredPortalSession } from "../auth/portalAuth";
+
+const churchRoutes = (
+  <>
+    <Route path="church/new" element={<ChurchDesigner />} />
+    <Route path="church/:id/design" element={<ChurchDesigner />} />
+    <Route path="church/:id" element={<ChurchMonitor />} />
+    <Route path="church" element={<Church />} />
+  </>
+);
 
 function readStoredUser() {
   const session = readStoredPortalSession();
@@ -95,6 +107,7 @@ function PageRoutes() {
               <Route path="staff-commons" element={<StaffChat />} />
               <Route path="library/issue" element={<IssueBookPage />} />
               <Route path="library" element={<Library />} />
+              {churchRoutes}
               <Route path="settings" element={<Settings user={user} />} />
               <Route path="*" element={<Navigate to="/units" replace />} />
             </>
@@ -128,6 +141,7 @@ function PageRoutes() {
               <Route path="registrations" element={<Registrations />} />
               <Route path="access" element={<Access />} />
               <Route path="meals" element={<Meals />} />
+              {churchRoutes}
               <Route
                 path="cohort-transfer/students/:studentId/transcripts/new"
                 element={<StudentTranscriptEditorPage />}

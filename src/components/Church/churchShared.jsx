@@ -61,7 +61,7 @@ export const SEAT_COLORS = {
   available: { fill: "#ffffff", stroke: "#1B5EA8", text: "#0E3D73", label: "Available" },
   booked: { fill: "#1e2858", stroke: "#1e2858", text: "#ffffff", label: "Booked" },
   mine: { fill: "#c8a840", stroke: "#8a6d12", text: "#1e2858", label: "Your seat" },
-  blocked: { fill: "#e5e7eb", stroke: "#9ca3af", text: "#6b7280", label: "Reserved" },
+  blocked: { fill: "#e5e7eb", stroke: "#9ca3af", text: "#6b7280", label: "Blocked" },
   present: { fill: "#059669", stroke: "#047857", text: "#ffffff", label: "Attended" },
   absent: { fill: "#dc2626", stroke: "#b91c1c", text: "#ffffff", label: "Did not attend" },
 };
@@ -81,7 +81,7 @@ export const SHAPE_TYPES = [
 ];
 
 export const SHAPE_STYLE = {
-  room: { fill: "#fbfaf6", stroke: "#1e2858", strokeWidth: 6, rx: 14, text: "#94a3b8", textSize: 18 },
+  room: { fill: "#fbfaf6", stroke: "#1e2858", strokeWidth: 6, rx: 14, text: "#94a3b8", textSize: 14 },
   stage: { fill: "rgba(200,168,64,0.22)", stroke: "#b8962e", strokeWidth: 2, rx: 12, text: "#7a5f10", textSize: 16 },
   pulpit: { fill: "#1e2858", stroke: "#1e2858", strokeWidth: 1, rx: 8, text: "#ffffff", textSize: 11 },
   altar: { fill: "rgba(109,40,217,0.14)", stroke: "#6d28d9", strokeWidth: 2, rx: 6, text: "#5b21b6", textSize: 12 },
@@ -159,6 +159,11 @@ export function ShapeGraphic({ shape, selected = false }) {
   const label = shape.label ?? (shape.type === "label" ? "Text" : "");
   const outside = st.labelOutside;
   const vertical = shape.h > shape.w * 2.2 && shape.type !== "label";
+  // Big areas usually contain other things (pulpit on the platform, seats in the hall), so their label sits on the top edge.
+  const topLabel = !outside && !vertical && ["room", "stage", "choir", "area"].includes(shape.type) && shape.h >= st.textSize * 4;
+  const labelY = outside ? shape.y + shape.h + st.textSize + 2 : topLabel ? shape.y + st.textSize * 0.9 + 6 : cy;
+  const isRoom = shape.type === "room" && topLabel;
+  const labelX = isRoom ? shape.x + 20 : cx;
   return (
     <g>
       {shape.type !== "label" ? (
@@ -178,9 +183,9 @@ export function ShapeGraphic({ shape, selected = false }) {
       ) : null}
       {label ? (
         <text
-          x={cx}
-          y={outside ? shape.y + shape.h + st.textSize + 2 : cy}
-          textAnchor="middle"
+          x={labelX}
+          y={labelY}
+          textAnchor={isRoom ? "start" : "middle"}
           dominantBaseline={outside ? "auto" : "central"}
           fontFamily='"Plus Jakarta Sans", system-ui, sans-serif'
           fontWeight={shape.type === "label" ? 800 : 700}

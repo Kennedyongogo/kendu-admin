@@ -30,6 +30,7 @@ import {
   Lock as LockIcon,
   AutoAwesome as TemplateIcon,
   ContentCopy as CopyIcon,
+  DoNotDisturbOn as BlockSeatIcon,
 } from "@mui/icons-material";
 import { PremiumDialog } from "../Users/usersUi";
 import {
@@ -131,8 +132,9 @@ export function Toolbox({ tool, setTool, onAddBlock, onTemplate, onCopyFrom, sea
         <SectionTitle>Tools</SectionTitle>
         <Stack spacing={0.4}>
           <ToolButton active={tool === "select"} onClick={() => setTool("select")} icon={<SelectIcon sx={{ fontSize: 18 }} />} label="Select & move" hint="Click, shift-click or drag a box to select. Keyboard: V" />
-          <ToolButton active={tool === "seat"} onClick={() => setTool("seat")} icon={<SeatIcon sx={{ fontSize: 18 }} />} label="Single seat" hint="Click on the plan to drop seats one by one. Keyboard: S" />
-          <ToolButton active={false} onClick={onAddBlock} icon={<BlockIcon sx={{ fontSize: 18 }} />} label="Block of seats" hint="Add rows × seats at once with automatic labels. Keyboard: B" />
+          <ToolButton active={tool === "seat"} onClick={() => setTool("seat")} icon={<SeatIcon sx={{ fontSize: 18 }} />} label="Single seat" hint="Click empty space to drop a seat; click a seat to select, rename or delete it. Keyboard: S" />
+          <ToolButton active={false} onClick={onAddBlock} icon={<BlockIcon sx={{ fontSize: 18 }} />} label="Rows of seats" hint="Add rows × seats at once with automatic labels. Keyboard: B" />
+          <ToolButton active={tool === "block"} onClick={() => setTool("block")} icon={<BlockSeatIcon sx={{ fontSize: 18 }} />} label="Block / unblock" hint="Click or drag over seats to block them (nobody can book). Click a blocked seat to open it again. Keyboard: K" />
         </Stack>
         {tool === "seat" ? (
           <TextField
@@ -140,10 +142,17 @@ export function Toolbox({ tool, setTool, onAddBlock, onTemplate, onCopyFrom, sea
             label="Row for new seats"
             value={seatRow}
             onChange={(e) => setSeatRow(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))}
-            helperText="Seats get the next number in this row."
+            helperText="New seats get the next number in this row. Click an existing seat to rename or delete it."
             sx={{ ...smallInputSx, mt: 1.25 }}
             fullWidth
           />
+        ) : null}
+        {tool === "block" ? (
+          <Box sx={{ mt: 1.25, p: 1.25, borderRadius: "12px", bgcolor: "rgba(180,83,9,0.08)", border: "1px solid rgba(180,83,9,0.2)" }}>
+            <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: "#92400e", lineHeight: 1.5 }}>
+              Click or drag across seats to <b>block</b> them. Start on a blocked seat to <b>unblock</b>. Booked seats are skipped.
+            </Typography>
+          </Box>
         ) : null}
       </Box>
 
@@ -239,20 +248,33 @@ function NumField({ label, value, onChange, min, max, step = 1, disabled }) {
   );
 }
 
-function TextCommit({ label, value, onCommit, disabled, error, helperText, placeholder }) {
+/** Text field that saves on blur / Enter. If onCommit returns a message, it is shown and nothing is saved. */
+function TextCommit({ label, value, onCommit, disabled, error, helperText, placeholder, inputProps }) {
   const [text, setText] = useState(value ?? "");
-  useEffect(() => setText(value ?? ""), [value]);
+  const [problem, setProblem] = useState("");
+  useEffect(() => {
+    setText(value ?? "");
+    setProblem("");
+  }, [value]);
   return (
     <TextField
       size="small"
       label={label}
       value={text}
       disabled={disabled}
-      error={error}
-      helperText={helperText}
+      error={error || !!problem}
+      helperText={problem || helperText}
       placeholder={placeholder}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={() => text !== (value ?? "") && onCommit(text)}
+      inputProps={inputProps}
+      onChange={(e) => {
+        setText(e.target.value);
+        setProblem("");
+      }}
+      onBlur={() => {
+        if (text === (value ?? "")) return;
+        const msg = onCommit(text);
+        if (typeof msg === "string" && msg) setProblem(msg);
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter") e.currentTarget.blur();
       }}
@@ -279,6 +301,8 @@ export function PropertiesPanel({
   onUpdateShape,
   onUpdateSeat,
   onUpdateSeats,
+  onRenameSeat,
+  onSetBookable,
   onDelete,
   onOrder,
   onAlign,
@@ -286,8 +310,6 @@ export function PropertiesPanel({
 }) {
   const shapes = layout.shapes.filter((s) => selection.shapes.includes(s.id));
   const seats = layout.seats.filter((s) => selection.seats.includes(s.id));
-  const labelTaken = (label, id) =>
-    layout.seats.some((s) => s.id !== id && s.label.toLowerCase() === String(label).trim().toLowerCase());
 
   const sections = useMemo(() => {
     const m = new Map();
@@ -309,14 +331,14 @@ export function PropertiesPanel({
           <SectionTitle>Seating summary</SectionTitle>
           <StatLine label="Seats on the plan" value={layout.seats.length} />
           <StatLine label="Bookable" value={layout.seats.length - blocked} color="#047857" />
-          <StatLine label="Reserved (not bookable)" value={blocked} color={blocked ? "#b45309" : undefined} />
+          <StatLine label="Blocked (not bookable)" value={blocked} color={blocked ? "#b45309" : undefined} />
           {lockedSeats.size ? <StatLine label="Already booked" value={lockedSeats.size} color="#1e2858" /> : null}
         </Box>
         {sections.length ? (
           <Box>
             <SectionTitle>Sections</SectionTitle>
             {sections.map(([name, v]) => (
-              <StatLine key={name} label={name} value={v.blocked ? `${v.total} (${v.blocked} reserved)` : v.total} />
+              <StatLine key={name} label={name} value={v.blocked ? `${v.total} (${v.blocked} blocked)` : v.total} />
             ))}
           </Box>
         ) : null}
@@ -387,39 +409,64 @@ export function PropertiesPanel({
   if (seats.length === 1 && !shapes.length) {
     const s = seats[0];
     const locked = lockedSeats.has(s.id);
+    const blocked = s.bookable === false;
     return (
       <Stack spacing={1.5}>
-        <SectionTitle>Seat</SectionTitle>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <SectionTitle sx={{ mb: 0 }}>Seat {s.label}</SectionTitle>
+          <Box
+            sx={{
+              px: 1,
+              py: 0.25,
+              borderRadius: "99px",
+              fontFamily: fontBody,
+              fontSize: "0.68rem",
+              fontWeight: 800,
+              color: locked ? "#1e2858" : blocked ? "#b45309" : "#047857",
+              bgcolor: locked ? "rgba(30,40,88,0.08)" : blocked ? "rgba(180,83,9,0.1)" : "rgba(4,120,87,0.1)",
+            }}
+          >
+            {locked ? "Booked" : blocked ? "Blocked" : "Open"}
+          </Box>
+        </Stack>
         {locked ? (
           <Alert icon={<LockIcon fontSize="small" />} severity="info" sx={{ borderRadius: "12px", fontFamily: fontBody, fontSize: "0.78rem" }}>
-            Booked by {lockedSeats.get(s.id) || "someone"}. It can be moved or renamed, but not removed or reserved.
+            Booked by {lockedSeats.get(s.id) || "someone"}. It can be moved or renamed, but not removed or blocked.
           </Alert>
         ) : null}
         <TextCommit
           label="Seat label"
           value={s.label}
-          onCommit={(v) => {
-            const label = v.trim().slice(0, 20);
-            if (label && !labelTaken(label, s.id)) onUpdateSeat(s.id, { label });
-          }}
-          helperText="Shown to students, e.g. C12"
+          inputProps={{ maxLength: 20 }}
+          onCommit={(v) => onRenameSeat(s.id, v)}
+          helperText="Shown on tickets, e.g. C12. Tip: double-click a seat to rename it on the plan."
         />
         <TextCommit label="Section" value={s.section ?? ""} placeholder="e.g. Left wing, Gallery" onCommit={(v) => onUpdateSeat(s.id, { section: v.trim() || null })} />
         <Stack direction="row" spacing={1}>
           <NumField label="X" value={s.x} onChange={(v) => onUpdateSeat(s.id, { x: v })} />
           <NumField label="Y" value={s.y} onChange={(v) => onUpdateSeat(s.id, { y: v })} />
         </Stack>
-        <FormControlLabel
-          control={<Switch checked={s.bookable !== false} disabled={locked} onChange={(e) => onUpdateSeat(s.id, { bookable: e.target.checked })} />}
-          label={
-            <Typography sx={{ fontFamily: fontBody, fontSize: "0.84rem", fontWeight: 600 }}>
-              {s.bookable !== false ? "Open for booking" : "Reserved (not bookable)"}
-            </Typography>
-          }
-        />
-        <Button startIcon={<DeleteIcon />} disabled={locked} onClick={onDelete} sx={{ ...ghostBtnSx, color: "#b91c1c", border: "1px solid rgba(185,28,28,0.2)" }}>
-          Delete seat
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            onClick={() => onSetBookable([s.id], blocked)}
+            disabled={locked}
+            sx={{
+              ...ghostBtnSx,
+              flex: 1,
+              color: blocked ? "#047857" : "#b45309",
+              border: `1px solid ${blocked ? "rgba(4,120,87,0.3)" : "rgba(180,83,9,0.3)"}`,
+            }}
+          >
+            {blocked ? "Unblock seat" : "Block seat"}
+          </Button>
+          <Button startIcon={<DeleteIcon />} disabled={locked} onClick={onDelete} sx={{ ...ghostBtnSx, flex: 1, color: "#b91c1c", border: "1px solid rgba(185,28,28,0.2)" }}>
+            Delete
+          </Button>
+        </Stack>
+        <Typography sx={{ fontFamily: fontBody, fontSize: "0.74rem", color: textMuted, lineHeight: 1.5 }}>
+          Blocked seats stay on the plan (for ushers, guests, broken chairs…) but nobody can book them. Keyboard: X blocks/unblocks,
+          Delete removes, Enter renames.
+        </Typography>
       </Stack>
     );
   }
@@ -441,15 +488,15 @@ export function PropertiesPanel({
             onCommit={(v) => onUpdateSeats(selection.seats, { section: v.trim() || null })}
           />
           <Stack direction="row" spacing={1}>
-            <Button size="small" onClick={() => onUpdateSeats(selection.seats, { bookable: true })} sx={{ ...ghostBtnSx, flex: 1, border: "1px solid rgba(4,120,87,0.25)", color: "#047857" }}>
-              Open
+            <Button size="small" onClick={() => onSetBookable(selection.seats, true)} sx={{ ...ghostBtnSx, flex: 1, border: "1px solid rgba(4,120,87,0.25)", color: "#047857" }}>
+              Unblock
             </Button>
             <Button
               size="small"
-              onClick={() => onUpdateSeats(selection.seats.filter((id) => !lockedSeats.has(id)), { bookable: false })}
+              onClick={() => onSetBookable(selection.seats, false)}
               sx={{ ...ghostBtnSx, flex: 1, border: "1px solid rgba(180,83,9,0.25)", color: "#b45309" }}
             >
-              Reserve
+              Block
             </Button>
           </Stack>
           <Button size="small" startIcon={<LabelIcon />} onClick={onRelabel} sx={{ ...ghostBtnSx, border: "1px solid rgba(27,94,168,0.15)" }}>
@@ -477,7 +524,7 @@ export function PropertiesPanel({
       ) : null}
       {lockedCount ? (
         <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: textMuted }}>
-          {lockedCount} booked seat{lockedCount === 1 ? " is" : "s are"} locked and will be skipped when deleting or reserving.
+          {lockedCount} booked seat{lockedCount === 1 ? " is" : "s are"} locked and will be skipped when deleting or blocking.
         </Typography>
       ) : null}
       <Button startIcon={<DeleteIcon />} onClick={onDelete} sx={{ ...ghostBtnSx, color: "#b91c1c", border: "1px solid rgba(185,28,28,0.2)" }}>

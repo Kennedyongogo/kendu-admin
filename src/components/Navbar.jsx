@@ -22,6 +22,7 @@ import {
   PictureAsPdf,
   BubbleChart,
   Restaurant,
+  Church,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -164,6 +165,7 @@ const MENU_SECTIONS = [
       { text: "Registrations", icon: <HowToReg />, path: "/registrations" },
       { text: "Access", icon: <LockOpen />, path: "/access" },
       { text: "Meals", icon: <Restaurant />, path: "/meals" },
+      { text: "Church", icon: <Church />, path: "/church" },
       { text: "Cohort transfer", icon: <TransferWithinAStation />, path: "/cohort-transfer" },
       { text: "Admissions", icon: <AssignmentInd />, path: "/admissions" },
       { text: "Accounting", icon: <AccountBalanceWallet />, path: "/accounting" },
@@ -318,6 +320,7 @@ const Navbar = (props) => {
     (path === "/registrations" && location.pathname.startsWith("/registrations")) ||
     (path === "/access" && location.pathname.startsWith("/access")) ||
     (path === "/meals" && location.pathname.startsWith("/meals")) ||
+    (path === "/church" && location.pathname.startsWith("/church")) ||
     (path === "/cohort-transfer" && location.pathname.startsWith("/cohort-transfer")) ||
     (path === "/settings" && location.pathname.startsWith("/settings")) ||
     (path === "/audit" && location.pathname.startsWith("/audit")) ||
@@ -362,6 +365,7 @@ const Navbar = (props) => {
             item.path === "/announcements" ||
             item.path === "/staff-chat" ||
             item.path === "/library" ||
+            item.path === "/church" ||
             item.path === "/upcoming-activities"
         )
       );
