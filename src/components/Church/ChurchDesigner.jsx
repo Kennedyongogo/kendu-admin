@@ -84,7 +84,9 @@ const DESIGN_COLORS = {
   blocked: { fill: "#e5e7eb", stroke: "#9ca3af", text: "#6b7280" },
   booked: { fill: "#1e2858", stroke: "#1e2858", text: "#ffffff" },
   ticked: { fill: "#fee2e2", stroke: "#b91c1c", text: "#991b1b" },
+  marked: { fill: "#dbeafe", stroke: "#1d4ed8", text: "#1e3a8a" },
 };
+const CHECK_BADGE = { pick: "#b91c1c", mark: "#1d4ed8" };
 
 let uidCounter = 0;
 function uid(prefix) {
@@ -375,10 +377,14 @@ function ResizeHandles({ shape, zoom }) {
   );
 }
 
+/** `checkMode` is "pick" (tick to delete; booked seats can't be ticked) or "mark" (mark to move; any seat). */
 const SeatItem = memo(function SeatItem({ seat, size, selected, locked, cursor, checkMode }) {
   const blocked = !locked && seat.bookable === false;
-  const ticked = checkMode && selected && !locked;
-  const colors = locked ? DESIGN_COLORS.booked : ticked ? DESIGN_COLORS.ticked : blocked ? DESIGN_COLORS.blocked : DESIGN_COLORS.available;
+  const showBox = !!checkMode && (checkMode === "mark" || !locked);
+  const ticked = showBox && selected;
+  const tickedColors = checkMode === "mark" ? DESIGN_COLORS.marked : DESIGN_COLORS.ticked;
+  const badge = CHECK_BADGE[checkMode];
+  const colors = locked ? DESIGN_COLORS.booked : ticked ? tickedColors : blocked ? DESIGN_COLORS.blocked : DESIGN_COLORS.available;
   const r = Math.max(5, size * 0.22);
   const bx = seat.x + size / 2 - r * 0.4;
   const by = seat.y - size / 2 + r * 0.4;
@@ -388,7 +394,7 @@ const SeatItem = memo(function SeatItem({ seat, size, selected, locked, cursor, 
   return (
     <g data-kind="seat" data-id={seat.id} style={{ cursor }}>
       <SeatGraphic seat={seat} size={size} colors={colors} selected={selected && !checkMode} />
-      {checkMode && !locked ? (
+      {showBox ? (
         <g style={{ pointerEvents: "none" }}>
           <rect
             x={cx - cr}
@@ -396,7 +402,7 @@ const SeatItem = memo(function SeatItem({ seat, size, selected, locked, cursor, 
             width={cr * 2}
             height={cr * 2}
             rx={cr * 0.45}
-            fill={ticked ? "#b91c1c" : "#fff"}
+            fill={ticked ? badge : "#fff"}
             stroke={ticked ? "#fff" : "#94a3b8"}
             strokeWidth={1.4}
           />
@@ -608,6 +614,45 @@ function TickBar({ count, lockedCount, total, onAll, onClear, onDelete }) {
   );
 }
 
+/** Bottom bar of the mark tool: how many seats will travel together when one of them is dragged. */
+function MarkBar({ count, total, onAll, onClear, onDone }) {
+  const btn = { minWidth: 0, px: 1.4, py: 0.6, borderRadius: "10px", fontFamily: fontBody, fontWeight: 700, fontSize: "0.8rem", textTransform: "none" };
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+      onPointerDown={(e) => e.stopPropagation()}
+      sx={{
+        pointerEvents: "auto",
+        px: 1.25,
+        py: 0.9,
+        bgcolor: "var(--kd-surface)",
+        borderRadius: "16px",
+        border: "1px solid rgba(29,78,216,0.22)",
+        boxShadow: "0 18px 40px -20px rgba(20,26,58,0.5)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Typography sx={{ fontFamily: fontBody, fontWeight: 800, fontSize: "0.86rem", color: textPrimary, px: 0.75 }}>
+        {count ? `${count} seat${count === 1 ? "" : "s"} marked` : "No seats marked"}
+        <Box component="span" sx={{ color: textMuted, fontWeight: 600, fontSize: "0.76rem" }}>
+          {count ? " · drag any marked seat to move them all" : " · click seats or box them"}
+        </Box>
+      </Typography>
+      <Button size="small" onClick={onAll} disabled={count >= total} sx={{ ...btn, color: primaryGreen, bgcolor: "rgba(27,94,168,0.07)" }}>
+        Mark all
+      </Button>
+      <Button size="small" onClick={onClear} disabled={!count} sx={{ ...btn, color: textSecondary, bgcolor: "rgba(100,116,139,0.08)" }}>
+        Clear
+      </Button>
+      <Button size="small" onClick={onDone} sx={{ ...btn, color: "#fff", bgcolor: "#1d4ed8", "&:hover": { bgcolor: "#1e40af" } }}>
+        Done
+      </Button>
+    </Stack>
+  );
+}
+
 // Doors, windows and pillars are only a few pixels thick when zoomed out, so they get a wider invisible grab area.
 const THIN_TYPES = new Set(["door", "window", "pillar"]);
 const THIN_GRAB = 12;
@@ -703,14 +748,21 @@ export default function ChurchDesigner() {
     setDirty(true);
   }, [past, future]);
 
+  // While true the plan refits whenever the canvas changes size; any manual zoom turns it off.
+  const autoFitRef = useRef(true);
   const fit = useCallback((l = layoutRef.current) => {
     const el = scrollRef.current;
     if (!el) return;
+    autoFitRef.current = true;
     const cs = getComputedStyle(el);
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
     const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
     const z = Math.min((el.clientWidth - padX) / l.width, (el.clientHeight - padY) / l.height);
-    setZoom(Math.max(0.2, Math.min(2, Math.floor(z * 20) / 20)));
+    setZoom(Math.max(0.2, Math.min(2, Math.floor(z * 100) / 100)));
+  }, []);
+  const zoomBy = useCallback((update) => {
+    autoFitRef.current = false;
+    setZoom(update);
   }, []);
 
   const loadLocks = useCallback(async (svc) => {
@@ -792,8 +844,9 @@ export default function ChurchDesigner() {
 
   const prevToolRef = useRef(tool);
   useEffect(() => {
-    if (tool === "pick") setSelection((s) => (s.shapes.length ? { ...s, shapes: [] } : s));
-    else if (prevToolRef.current === "pick") setSelection({ shapes: [], seats: [] });
+    // Ticks and marks mean different things, so they never carry over from one of these tools to another.
+    if (prevToolRef.current === "pick" || prevToolRef.current === "mark") setSelection({ shapes: [], seats: [] });
+    else if (tool === "pick" || tool === "mark") setSelection((s) => (s.shapes.length ? { ...s, shapes: [] } : s));
     prevToolRef.current = tool;
   }, [tool]);
 
@@ -820,6 +873,33 @@ export default function ChurchDesigner() {
   }, []);
 
   // ---- pointer interaction --------------------------------------------------
+
+  const beginMove = (p, l, seatIds, shapeIds, extra = {}) => {
+    const half = l.seat_size / 2;
+    let minX = Infinity;
+    let minY = Infinity;
+    for (const s of l.seats) {
+      if (!seatIds.has(s.id)) continue;
+      minX = Math.min(minX, s.x - half);
+      minY = Math.min(minY, s.y - half);
+    }
+    for (const s of l.shapes) {
+      if (!shapeIds.has(s.id)) continue;
+      minX = Math.min(minX, s.x);
+      minY = Math.min(minY, s.y);
+    }
+    dragRef.current = {
+      kind: "move",
+      start: p,
+      before: l,
+      moved: false,
+      minX: Math.max(0, minX),
+      minY: Math.max(0, minY),
+      seats: new Map(l.seats.filter((s) => seatIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
+      shapes: new Map(l.shapes.filter((s) => shapeIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
+      ...extra,
+    };
+  };
 
   const onPointerDown = (e) => {
     if (readOnly || e.button !== 0) return;
@@ -878,6 +958,22 @@ export default function ChurchDesigner() {
         const value = !selectedSet.seats.has(seat.id);
         setSelection((cur) => tickSeats(cur, [seat.id], value));
         dragRef.current = { kind: "pick", value, done: new Set([seat.id]) };
+        return;
+      }
+      dragRef.current = { kind: "marquee", start: p, additive: true, base: selection, seatsOnly: true, skipLocked: true };
+      setMarquee({ x: p.x, y: p.y, w: 0, h: 0 });
+      return;
+    }
+
+    // Mark tool: pressing a seat marks it and grabs the whole marked group; a click without dragging unmarks it.
+    // Empty space, the hall floor included, boxes seats instead of grabbing the hall.
+    if (tool === "mark") {
+      const seat = onSeat ? l.seats.find((s) => s.id === target.dataset.id) : null;
+      if (seat) {
+        const marked = selectedSet.seats.has(seat.id);
+        const ids = marked ? selection.seats : [...selection.seats, seat.id];
+        if (!marked) setSelection({ shapes: [], seats: ids });
+        beginMove(p, l, new Set(ids), new Set(), marked ? { unmark: seat.id } : {});
         return;
       }
       dragRef.current = { kind: "marquee", start: p, additive: true, base: selection, seatsOnly: true };
@@ -939,29 +1035,7 @@ export default function ChurchDesigner() {
           inside.shapes.forEach((sid) => shapeIds.add(sid));
         }
       }
-      const half = l.seat_size / 2;
-      let minX = Infinity;
-      let minY = Infinity;
-      for (const s of l.seats) {
-        if (!seatIds.has(s.id)) continue;
-        minX = Math.min(minX, s.x - half);
-        minY = Math.min(minY, s.y - half);
-      }
-      for (const s of l.shapes) {
-        if (!shapeIds.has(s.id)) continue;
-        minX = Math.min(minX, s.x);
-        minY = Math.min(minY, s.y);
-      }
-      dragRef.current = {
-        kind: "move",
-        start: p,
-        before: l,
-        moved: false,
-        minX: Math.max(0, minX),
-        minY: Math.max(0, minY),
-        seats: new Map(l.seats.filter((s) => seatIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
-        shapes: new Map(l.shapes.filter((s) => shapeIds.has(s.id)).map((s) => [s.id, { x: s.x, y: s.y }])),
-      };
+      beginMove(p, l, seatIds, shapeIds);
       return;
     }
 
@@ -1121,6 +1195,11 @@ export default function ChurchDesigner() {
     if (!d) return;
     const l = layoutRef.current;
 
+    if (d.kind === "move" && d.unmark && !d.moved) {
+      setSelection((cur) => ({ ...cur, seats: cur.seats.filter((x) => x !== d.unmark) }));
+      return;
+    }
+
     if (d.kind === "draw") {
       const meta = SHAPE_TYPES.find((t) => t.type === d.type);
       let rect = preview;
@@ -1147,7 +1226,7 @@ export default function ChurchDesigner() {
       setMarquee(null);
       if (!m || (m.w < 3 && m.h < 3)) return;
       const inside = (x, y) => x >= m.x && x <= m.x + m.w && y >= m.y && y <= m.y + m.h;
-      const seats = l.seats.filter((s) => inside(s.x, s.y) && !(d.seatsOnly && lockedSeats.has(s.id))).map((s) => s.id);
+      const seats = l.seats.filter((s) => inside(s.x, s.y) && !(d.skipLocked && lockedSeats.has(s.id))).map((s) => s.id);
       const shapes = d.seatsOnly ? [] : l.shapes.filter((s) => inside(s.x, s.y) && inside(s.x + s.w, s.y + s.h)).map((s) => s.id);
       const base = d.additive ? d.base : { shapes: [], seats: [] };
       setSelection({
@@ -1160,7 +1239,7 @@ export default function ChurchDesigner() {
 
   const onWheel = (e) => {
     if (!e.ctrlKey) return;
-    setZoom((z) => Math.max(0.2, Math.min(3, +(z * (e.deltaY > 0 ? 0.9 : 1.1)).toFixed(2))));
+    zoomBy((z) => Math.max(0.2, Math.min(3, +(z * (e.deltaY > 0 ? 0.9 : 1.1)).toFixed(2))));
   };
 
   useEffect(() => {
@@ -1178,6 +1257,11 @@ export default function ChurchDesigner() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [loading]);
+
+  // Refit after the side menu folds or the window resizes, unless someone has zoomed by hand.
+  useEffect(() => {
+    if (autoFitRef.current && !dragRef.current && viewSize.w) fit();
+  }, [viewSize.w, viewSize.h, fit]);
 
   // ---- edit operations ------------------------------------------------------
 
@@ -1318,6 +1402,7 @@ export default function ChurchDesigner() {
       else if (!mod && e.key.toLowerCase() === "s") setTool((t) => (t === "seat" ? "select" : "seat"));
       else if (!mod && e.key.toLowerCase() === "k") setTool((t) => (t === "block" ? "select" : "block"));
       else if (!mod && e.key.toLowerCase() === "c") setTool((t) => (t === "pick" ? "select" : "pick"));
+      else if (!mod && e.key.toLowerCase() === "m") setTool((t) => (t === "mark" ? "select" : "mark"));
       else if (!mod && e.key.toLowerCase() === "b") setBlockOpen(true);
     };
     window.addEventListener("keydown", onKey);
@@ -1594,7 +1679,8 @@ export default function ChurchDesigner() {
 
   const status = service?.status || "draft";
   const size = layout.seat_size;
-  const seatCursor = tool === "block" ? "cell" : tool === "select" || tool === "seat" || tool === "pick" ? "pointer" : "crosshair";
+  const seatCursor =
+    tool === "block" ? "cell" : tool === "select" || tool === "seat" || tool === "pick" || tool === "mark" ? "pointer" : "crosshair";
   const selectedSeats = layout.seats.filter((s) => selectedSet.seats.has(s.id));
   const singleShape =
     selection.shapes.length === 1 && !selection.seats.length ? layout.shapes.find((s) => s.id === selection.shapes[0]) : null;
@@ -1683,7 +1769,7 @@ export default function ChurchDesigner() {
           </Tooltip>
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
           <Tooltip title="Zoom out">
-            <IconButton size="small" onClick={() => setZoom((z) => Math.max(0.2, +(z - 0.1).toFixed(2)))}>
+            <IconButton size="small" onClick={() => zoomBy((z) => Math.max(0.2, +(z - 0.1).toFixed(2)))}>
               <ZoomOutIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -1691,7 +1777,7 @@ export default function ChurchDesigner() {
             {Math.round(zoom * 100)}%
           </Typography>
           <Tooltip title="Zoom in">
-            <IconButton size="small" onClick={() => setZoom((z) => Math.min(3, +(z + 0.1).toFixed(2)))}>
+            <IconButton size="small" onClick={() => zoomBy((z) => Math.min(3, +(z + 0.1).toFixed(2)))}>
               <ZoomInIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -1765,6 +1851,17 @@ export default function ChurchDesigner() {
               />
             </Box>
           ) : null}
+          {!readOnly && tool === "mark" ? (
+            <Box sx={{ position: "absolute", left: 0, right: PANEL_SPACE, bottom: 18, zIndex: 6, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+              <MarkBar
+                count={selectedSeats.length}
+                total={layout.seats.length}
+                onAll={() => setSelection({ shapes: [], seats: layout.seats.map((s) => s.id) })}
+                onClear={() => setSelection({ shapes: [], seats: [] })}
+                onDone={() => setTool("select")}
+              />
+            </Box>
+          ) : null}
           {!readOnly && !layout.seats.length && !layout.shapes.length ? (
             <Box sx={{ position: "absolute", top: 0, bottom: 0, left: 0, right: PANEL_SPACE, zIndex: 4, pointerEvents: "none" }}>
               <EmptyPlanCard onTemplate={applyTemplate} onCopyFrom={openCopy} />
@@ -1823,7 +1920,7 @@ export default function ChurchDesigner() {
                   selected={selectedSet.seats.has(s.id)}
                   locked={lockedSeats.has(s.id)}
                   cursor={seatCursor}
-                  checkMode={tool === "pick"}
+                  checkMode={tool === "pick" || tool === "mark" ? tool : null}
                 />
               ))}
               {singleShape && !readOnly ? <ResizeHandles shape={singleShape} zoom={zoom} /> : null}
@@ -1838,7 +1935,7 @@ export default function ChurchDesigner() {
             {!readOnly && !marquee && singleShape && !HALL_TYPES.has(singleShape.type) ? (
               <ShapeBar shape={singleShape} zoom={zoom} onRotate={rotateSelection} onDelete={deleteSelection} />
             ) : null}
-            {!readOnly && !marquee && tool !== "block" && tool !== "pick" && selectedSeats.length > 0 && !selection.shapes.length ? (
+            {!readOnly && !marquee && tool !== "block" && tool !== "pick" && tool !== "mark" && selectedSeats.length > 0 && !selection.shapes.length ? (
               <QuickBar
                 seats={selectedSeats}
                 size={size}

@@ -34,6 +34,7 @@ import {
   Category as PartsIcon,
   RotateRight as RotateIcon,
   LibraryAddCheck as TickIcon,
+  OpenWith as MarkMoveIcon,
 } from "@mui/icons-material";
 import { PremiumDialog } from "../Users/usersUi";
 import {
@@ -207,6 +208,7 @@ export function FloatingToolbar({ tool, setTool, onAddBlock, seatRow, setSeatRow
         <RailButton active={tool === "seat"} onClick={() => toggle("seat")} icon={<SeatIcon sx={{ fontSize: 20 }} />} title={tool === "seat" ? "Single seat (click to turn off)" : "Single seat"} shortcut="S" />
         <RailButton active={false} onClick={onAddBlock} icon={<BlockIcon sx={{ fontSize: 20 }} />} title="Rows of seats" shortcut="B" />
         <RailButton active={tool === "block"} onClick={() => toggle("block")} icon={<BlockSeatIcon sx={{ fontSize: 20 }} />} title={tool === "block" ? "Block / unblock seats (click to turn off)" : "Block / unblock seats"} shortcut="K" />
+        <RailButton active={tool === "mark"} onClick={() => toggle("mark")} icon={<MarkMoveIcon sx={{ fontSize: 20 }} />} title={tool === "mark" ? "Mark seats to move (click to turn off)" : "Mark seats to move together"} shortcut="M" />
         <RailButton active={tool === "pick"} onClick={() => toggle("pick")} icon={<TickIcon sx={{ fontSize: 20 }} />} title={tool === "pick" ? "Tick seats (click to turn off)" : "Tick seats to delete many"} shortcut="C" />
         <Divider flexItem sx={{ my: 0.25, borderColor: "rgba(27,94,168,0.12)" }} />
         <RailButton
@@ -234,6 +236,14 @@ export function FloatingToolbar({ tool, setTool, onAddBlock, seatRow, setSeatRow
         <Box sx={{ ...floatingCardSx, px: 1.5, py: 1.1, maxWidth: 340, bgcolor: "#fff8ee", borderColor: "rgba(180,83,9,0.25)" }}>
           <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: "#92400e", lineHeight: 1.45 }}>
             Click or drag across seats to <b>block</b> them. Start on a blocked seat to <b>unblock</b>. Booked seats are skipped.
+          </Typography>
+        </Box>
+      ) : null}
+      {tool === "mark" ? (
+        <Box sx={{ ...floatingCardSx, px: 1.5, py: 1.1, maxWidth: 360, bgcolor: "#eff6ff", borderColor: "rgba(29,78,216,0.22)" }}>
+          <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: "#1e3a8a", lineHeight: 1.45 }}>
+            Click seats to <b>mark</b> them, or box a group from empty space. Then <b>drag any marked seat</b> and they all move together. Click a
+            marked seat to unmark it. Arrow keys nudge.
           </Typography>
         </Box>
       ) : null}
@@ -545,7 +555,7 @@ export function PropertiesPanel({
         </Box>
         <Box sx={{ borderRadius: "12px", bgcolor: "rgba(200,168,64,0.1)", px: 1.5, py: 1.1 }}>
           <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", color: textSecondary, lineHeight: 1.55 }}>
-            <b>Shortcuts</b> · drag empty space to box-select · Shift+click adds · C ticks seats to delete many · arrows nudge · R rotates a part · Delete removes · Ctrl+D duplicate · Ctrl+Z / Ctrl+Y ·
+            <b>Shortcuts</b> · drag empty space to box-select · Shift+click adds · M marks seats to move together · C ticks seats to delete many · arrows nudge · R rotates a part · Delete removes · Ctrl+D duplicate · Ctrl+Z / Ctrl+Y ·
             Ctrl+scroll zooms
           </Typography>
         </Box>
