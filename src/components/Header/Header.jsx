@@ -25,7 +25,6 @@ import UserAccount from "./userAccount";
 import EditUserDetails from "./editUserDetails";
 import ChangePassword from "./changePassword";
 import { useNavigate, useLocation } from "react-router-dom";
-import BrandPageLoader from "../Util/BrandPageLoader";
 import { RoleBadge } from "../Users/usersUi";
 import {
   clearPortalSession,
@@ -106,7 +105,6 @@ export default function Header(props) {
   const [toggleAccount, setToggleAccount] = useState(false);
   const [toggleEditDetails, setToggleEditDetails] = useState(false);
   const [toggleChangePass, setToggleChangePass] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [themeMode, setThemeMode] = useState(getStoredThemeMode);
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,8 +141,6 @@ export default function Header(props) {
       } else {
         window.location.href = "/";
       }
-    } finally {
-      setLoading(false);
     }
   }, [props.setUser]);
 
@@ -189,7 +185,6 @@ export default function Header(props) {
 
   return (
     <>
-      {loading && <BrandPageLoader message="Loading your account..." />}
       <Box
         sx={{
           display: "flex",

@@ -17,6 +17,10 @@ import {
   CircularProgress,
   FormControlLabel,
   Switch,
+  Chip,
+  OutlinedInput,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -36,6 +40,9 @@ import {
   getActorFromStorage,
   getPortalToken,
   creatableRolesForKind,
+  createRoleActionLabel,
+  isAdminPortalRole,
+  roleTabFor,
   primaryGreen,
   textSecondary,
   inputSx,
@@ -46,16 +53,16 @@ import {
 import { UsersHero, FormSection, fadeUp, UserAvatar } from "./usersUi";
 import useProgrammeEnrolmentOptions from "./useProgrammeEnrolmentOptions";
 
-const initialForm = (kind = "admin") => ({
+const initialForm = (kind = "admin", lockedRole = null) => ({
   email: "",
   password: kind === "student" ? "123456" : "",
   full_name: "",
   phone: "",
   admission_number: "",
-  role: kind === "student" ? "student" : "staff",
+  role: kind === "student" ? "student" : lockedRole || "lecturer",
   position: "",
   is_public: false,
-  department_id: "",
+  department_ids: [],
   programme_id: "",
   year_of_study: "",
   semester: "",
@@ -70,8 +77,14 @@ export default function UsersCreate() {
   const [searchParams] = useSearchParams();
   const createKind = searchParams.get("for") === "student" ? "student" : "admin";
   const isStudentCreate = createKind === "student";
+  const roleParam = String(searchParams.get("role") || "").trim().toLowerCase();
+  const lockedRole = isStudentCreate
+    ? "student"
+    : isAdminPortalRole(roleParam)
+      ? roleParam
+      : "admin";
 
-  const [form, setForm] = useState(() => initialForm(createKind));
+  const [form, setForm] = useState(() => initialForm(createKind, lockedRole));
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [programmes, setProgrammes] = useState([]);
@@ -82,13 +95,27 @@ export default function UsersCreate() {
     () => creatableRolesForKind(actor?.role, createKind),
     [actor?.role, createKind]
   );
+  const allowedRoles = useMemo(() => {
+    if (isStudentCreate) return creatableRoles.includes("student") ? ["student"] : [];
+    if (lockedRole && creatableRoles.includes(lockedRole)) return [lockedRole];
+    return creatableRoles;
+  }, [creatableRoles, isStudentCreate, lockedRole]);
+  const createLabel = createRoleActionLabel(form.role || lockedRole || "lecturer");
+  const lockedRoleTab = roleTabFor(form.role || lockedRole);
   const enrolment = useProgrammeEnrolmentOptions(
     form.role === "student" ? form.programme_id : ""
   );
 
   useEffect(() => {
-    setForm(initialForm(createKind));
-  }, [createKind]);
+    setForm(initialForm(createKind, lockedRole));
+  }, [createKind, lockedRole]);
+
+  useEffect(() => {
+    if (!allowedRoles.length) return;
+    if (!allowedRoles.includes(form.role)) {
+      setForm((prev) => ({ ...prev, role: allowedRoles[0] }));
+    }
+  }, [allowedRoles, form.role]);
 
   useEffect(() => {
     if (form.role !== "student" || !form.programme_id || enrolment.loading) return;
@@ -135,7 +162,11 @@ export default function UsersCreate() {
     })();
   }, []);
 
-  const listPath = isStudentCreate ? "/students" : "/users";
+  const listPath = isStudentCreate
+    ? "/students"
+    : lockedRole
+      ? `/users?role=${encodeURIComponent(lockedRole)}`
+      : "/users";
   const goBack = () => navigate(listPath);
 
   const handleSubmit = async (e) => {
@@ -150,13 +181,15 @@ export default function UsersCreate() {
       });
       return;
     }
-    if (!creatableRoles.includes(form.role)) {
+    if (!allowedRoles.includes(form.role)) {
       Swal.fire({
         icon: "error",
         title: "Invalid role",
         text: isStudentCreate
           ? "Only the student role can be used here."
-          : "Only admin or staff roles can be used here.",
+          : lockedRole
+            ? `This page creates ${formatRole(lockedRole)} accounts only.`
+            : "Only admin or staff roles can be used here.",
         confirmButtonColor: primaryGreen,
       });
       return;
@@ -188,6 +221,15 @@ export default function UsersCreate() {
       });
       return;
     }
+    if ((form.role === "hod" || form.role === "lecturer") && !form.department_ids?.length) {
+      Swal.fire({
+        icon: "error",
+        title: "Department required",
+        text: "A head of department or lecturer must belong to at least one academic department.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
     if (form.role === "student" && (!form.gender || !form.boarding_status)) {
       Swal.fire({
         icon: "error",
@@ -212,7 +254,7 @@ export default function UsersCreate() {
       );
       if (form.role !== "student") {
         body.append("position", form.position?.trim() || "");
-        body.append("department_id", form.department_id || "");
+        body.append("department_ids", JSON.stringify(form.department_ids || []));
       }
       if (form.role === "student") {
         body.append("admission_number", form.admission_number.trim());
@@ -239,7 +281,9 @@ export default function UsersCreate() {
 
       await Swal.fire({
         icon: "success",
-        title: isStudentCreate ? "Student created" : "User created",
+        title: isStudentCreate
+          ? "Student created"
+          : `${lockedRoleTab?.label || formatRole(form.role)} created`,
         text: data.data?.full_name
           ? `${data.data.full_name} was added successfully.`
           : "The account was created.",
@@ -264,11 +308,13 @@ export default function UsersCreate() {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={pageShellSx}>
       <UsersHero
-        title={isStudentCreate ? "Create student" : "Create user"}
+        title={createLabel}
         subtitle={
           isStudentCreate
             ? "Add a new student account"
-            : "Add a new admin or staff account"
+            : lockedRole
+              ? `Add a new ${lockedRoleTab?.label || formatRole(lockedRole)} account`
+              : "Add a new admin or staff account"
         }
         icon={<PersonAddIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
@@ -580,56 +626,72 @@ export default function UsersCreate() {
                     }}
                     sx={inputSx}
                   />
-                  <FormControl fullWidth sx={inputSx}>
-                    <InputLabel>Department</InputLabel>
+                  <FormControl
+                    fullWidth
+                    required={form.role === "hod" || form.role === "lecturer"}
+                    sx={inputSx}
+                  >
+                    <InputLabel>Departments</InputLabel>
                     <Select
-                      label="Department"
-                      value={form.department_id}
-                      onChange={(e) => setForm({ ...form, department_id: e.target.value })}
+                      label="Departments"
+                      multiple
+                      value={form.department_ids}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          department_ids:
+                            typeof e.target.value === "string"
+                              ? e.target.value.split(",")
+                              : e.target.value,
+                        })
+                      }
+                      input={<OutlinedInput label="Departments" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                          {selected.map((id) => {
+                            const dept = departments.find((d) => d.id === id);
+                            return (
+                              <Chip
+                                key={id}
+                                size="small"
+                                label={dept ? `${dept.name}${dept.code ? ` (${dept.code})` : ""}` : id}
+                              />
+                            );
+                          })}
+                        </Box>
+                      )}
                     >
-                      <MenuItem value="">
-                        <em>Not assigned</em>
-                      </MenuItem>
                       {departments.map((dept) => (
                         <MenuItem key={dept.id} value={dept.id}>
-                          {dept.name}
-                          {dept.code ? ` (${dept.code})` : ""}
+                          <Checkbox checked={form.department_ids.includes(dept.id)} />
+                          <ListItemText
+                            primary={dept.name}
+                            secondary={dept.code || undefined}
+                          />
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
+                  {(form.role === "hod" || form.role === "lecturer") ? (
+                    <Typography sx={{ fontSize: "0.78rem", color: textSecondary, mt: -1 }}>
+                      Heads of department and lecturers can belong to more than one department.
+                    </Typography>
+                  ) : null}
                 </>
               )}
-              <FormControl fullWidth required sx={inputSx}>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  label="Role"
-                  value={form.role}
-                  onChange={(e) => {
-                    const role = e.target.value;
-                    setForm({
-                      ...form,
-                      role,
-                      admission_number: role === "student" ? form.admission_number : "",
-                      position: role === "student" ? "" : form.position,
-                      is_public: role === "student" ? false : form.is_public,
-                      department_id: role === "student" ? "" : form.department_id,
-                      programme_id: role === "student" ? form.programme_id : "",
-                      year_of_study: role === "student" ? form.year_of_study : "",
-                      semester: role === "student" ? form.semester : "",
-                      gender: role === "student" ? form.gender : "",
-                      boarding_status: role === "student" ? form.boarding_status : "",
-                      password: role === "student" && !form.password ? "123456" : form.password,
-                    });
-                  }}
-                >
-                  {(creatableRoles.length ? creatableRoles : ["staff"]).map((r) => (
-                    <MenuItem key={r} value={r}>
-                      {formatRole(r)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                label="Role"
+                fullWidth
+                required
+                value={formatRole(form.role)}
+                InputProps={{ readOnly: true }}
+                helperText={
+                  isStudentCreate
+                    ? "Student accounts are created from this page only."
+                    : "Role is fixed to the tab you created from. Switch tabs to create a different role."
+                }
+                sx={inputSx}
+              />
               {form.role !== "student" ? (
                 <FormControlLabel
                   control={
@@ -680,7 +742,7 @@ export default function UsersCreate() {
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <PersonAddIcon />}
             sx={{ ...primaryBtnSx, minWidth: 160 }}
           >
-            {saving ? "Creating…" : isStudentCreate ? "Create student" : "Create user"}
+            {saving ? "Creating…" : createLabel}
           </Button>
         </Box>
       </Stack>

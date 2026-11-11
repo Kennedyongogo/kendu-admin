@@ -41,6 +41,8 @@ import {
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 import ProgrammesTabs from "./ProgrammesTabs";
 import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
@@ -75,6 +77,7 @@ export default function Programmes() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const token = getPortalToken();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -165,7 +168,7 @@ export default function Programmes() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Programmes"
-        subtitle="Manage academic programmes"
+        subtitle={canManage ? "Manage academic programmes" : "Browse academic programmes"}
         icon={<MenuBookIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch
@@ -173,13 +176,15 @@ export default function Programmes() {
             onChange={setSearch}
             placeholder="Search programmes…"
           >
-            <HeroActionButton
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate("/programmes/create")}
-            >
-              Add programme
-            </HeroActionButton>
+            {canManage ? (
+              <HeroActionButton
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate("/programmes/create")}
+              >
+                Add programme
+              </HeroActionButton>
+            ) : null}
           </ProgrammeHeroSearch>
         }
       />
@@ -238,14 +243,16 @@ export default function Programmes() {
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>
                       No programmes in this tab.
                     </Typography>
-                    <Button
-                      variant="text"
-                      startIcon={<AddIcon />}
-                      onClick={() => navigate("/programmes/create")}
-                      sx={{ mt: 1, color: primaryGreen, fontWeight: 700, textTransform: "none" }}
-                    >
-                      Create first programme
-                    </Button>
+                    {canManage ? (
+                      <Button
+                        variant="text"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate("/programmes/create")}
+                        sx={{ mt: 1, color: primaryGreen, fontWeight: 700, textTransform: "none" }}
+                      >
+                        Create first programme
+                      </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -307,18 +314,22 @@ export default function Programmes() {
                               onClick: () => navigate(`/programmes/${row.id}`),
                               color: textSecondary,
                             },
-                            {
-                              title: "Edit",
-                              icon: <EditIcon fontSize="small" />,
-                              onClick: () => navigate(`/programmes/${row.id}/edit`),
-                              color: primaryGreen,
-                            },
-                            {
-                              title: "Delete",
-                              icon: <DeleteIcon fontSize="small" />,
-                              onClick: () => void deleteProgramme(row),
-                              color: primaryDark,
-                            },
+                            ...(canManage
+                              ? [
+                                  {
+                                    title: "Edit",
+                                    icon: <EditIcon fontSize="small" />,
+                                    onClick: () => navigate(`/programmes/${row.id}/edit`),
+                                    color: primaryGreen,
+                                  },
+                                  {
+                                    title: "Delete",
+                                    icon: <DeleteIcon fontSize="small" />,
+                                    onClick: () => void deleteProgramme(row),
+                                    color: primaryDark,
+                                  },
+                                ]
+                              : []),
                           ].map((action) => (
                             <Tooltip key={action.title} title={action.title}>
                               <IconButton

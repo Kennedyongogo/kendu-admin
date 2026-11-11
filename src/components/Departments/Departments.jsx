@@ -31,6 +31,8 @@ import {
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton, PremiumDialog } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 import {
   authJsonHeaders,
   getPortalToken,
@@ -65,6 +67,7 @@ function rowToForm(row) {
 export default function Departments() {
   const navigate = useNavigate();
   const location = useLocation();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,6 +79,7 @@ export default function Departments() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [viewing, setViewing] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,19 +115,22 @@ export default function Departments() {
   useEffect(() => {
     const editDepartment = location.state?.editDepartment;
     if (!editDepartment) return;
+    navigate(location.pathname, { replace: true, state: {} });
+    if (!canManage) return;
     setEditing(editDepartment);
     setForm(rowToForm(editDepartment));
     setDialogOpen(true);
-    navigate(location.pathname, { replace: true, state: {} });
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, canManage]);
 
   const openCreate = () => {
+    if (!canManage) return;
     setEditing(null);
     setForm(emptyForm());
     setDialogOpen(true);
   };
 
   const openEdit = (row) => {
+    if (!canManage) return;
     setEditing(row);
     setForm(rowToForm(row));
     setDialogOpen(true);
@@ -226,9 +233,11 @@ export default function Departments() {
         subtitle="Academic departments that own programmes and staff"
         icon={<AccountTreeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-            Add department
-          </HeroActionButton>
+          canManage ? (
+            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+              Add department
+            </HeroActionButton>
+          ) : null
         }
       />
 
@@ -270,11 +279,15 @@ export default function Departments() {
           </Alert>
         ) : null}
 
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={{ overflowX: "hidden" }}>
+          <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
             <TableHead>
               <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
-                {["No", "Name", "Code", "Programmes", "Staff", "Actions"].map((h) => (
+                {[
+                  { h: "Name", w: "auto" },
+                  { h: "Code", w: 120 },
+                  { h: "Actions", w: 132 },
+                ].map(({ h, w }) => (
                   <TableCell
                     key={h}
                     align={h === "Actions" ? "right" : "left"}
@@ -284,6 +297,7 @@ export default function Departments() {
                       color: textMuted,
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
+                      width: w,
                     }}
                   >
                     {h}
@@ -294,34 +308,20 @@ export default function Departments() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <CircularProgress size={28} sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
               ) : rows.length ? (
-                rows.map((row, idx) => (
+                rows.map((row) => (
                   <TableRow key={row.id} hover>
-                    <TableCell sx={{ fontWeight: 700, color: textMuted, fontSize: "0.85rem", width: 56 }}>
-                      {page * rowsPerPage + idx + 1}
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontWeight: 700, color: textPrimary, fontSize: "0.9rem" }}>
+                    <TableCell sx={{ overflow: "hidden" }}>
+                      <Typography sx={{ fontWeight: 700, color: textPrimary, fontSize: "0.9rem" }} noWrap>
                         {row.name}
                       </Typography>
-                      {row.description ? (
-                        <Typography sx={{ color: textSecondary, fontSize: "0.72rem" }} noWrap>
-                          {row.description}
-                        </Typography>
-                      ) : null}
                     </TableCell>
                     <TableCell sx={{ color: textSecondary, fontWeight: 600 }}>
                       {row.code || "—"}
-                    </TableCell>
-                    <TableCell sx={{ color: textPrimary, fontWeight: 700 }}>
-                      {row.programmes_count ?? row.programmes?.length ?? 0}
-                    </TableCell>
-                    <TableCell sx={{ color: textPrimary, fontWeight: 700 }}>
-                      {row.staff_count ?? row.staff?.length ?? 0}
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" spacing={0.25} justifyContent="flex-end">
@@ -329,21 +329,25 @@ export default function Departments() {
                           {
                             title: "View",
                             icon: <ViewIcon fontSize="small" />,
-                            onClick: () => navigate(`/departments/${row.id}`),
+                            onClick: () => setViewing(row),
                             color: textSecondary,
                           },
-                          {
-                            title: "Edit",
-                            icon: <EditIcon fontSize="small" />,
-                            onClick: () => openEdit(row),
-                            color: primaryGreen,
-                          },
-                          {
-                            title: "Delete",
-                            icon: <DeleteIcon fontSize="small" />,
-                            onClick: () => handleDelete(row),
-                            color: primaryDark,
-                          },
+                          ...(canManage
+                            ? [
+                                {
+                                  title: "Edit",
+                                  icon: <EditIcon fontSize="small" />,
+                                  onClick: () => openEdit(row),
+                                  color: primaryGreen,
+                                },
+                                {
+                                  title: "Delete",
+                                  icon: <DeleteIcon fontSize="small" />,
+                                  onClick: () => handleDelete(row),
+                                  color: primaryDark,
+                                },
+                              ]
+                            : []),
                         ].map((action) => (
                           <Tooltip key={action.title} title={action.title}>
                             <IconButton
@@ -365,9 +369,11 @@ export default function Departments() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
                     <Typography sx={{ color: textMuted }}>
-                      No departments yet. Create one to start linking programmes and staff.
+                      {canManage
+                        ? "No departments yet. Create one to start linking programmes and staff."
+                        : "No departments yet."}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -389,6 +395,112 @@ export default function Departments() {
           rowsPerPageOptions={[5, 10, 25]}
         />
       </Box>
+
+      <PremiumDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        maxWidth="sm"
+        title={viewing?.name || "Department"}
+        subtitle="Department details"
+        icon={<AccountTreeIcon />}
+        footer={
+          <Stack direction="row" justifyContent="flex-end" spacing={1.25} flexWrap="wrap" useFlexGap>
+            <Button onClick={() => setViewing(null)} sx={ghostBtnSx}>
+              Close
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                const id = viewing?.id;
+                setViewing(null);
+                if (id) navigate(`/departments/${id}`);
+              }}
+              sx={{ ...ghostBtnSx, border: "1px solid rgba(27,94,168,0.22)" }}
+            >
+              Full page
+            </Button>
+            {canManage ? (
+              <Button
+                variant="contained"
+                startIcon={<EditIcon />}
+                onClick={() => {
+                  const row = viewing;
+                  setViewing(null);
+                  if (row) openEdit(row);
+                }}
+                sx={primaryBtnSx}
+              >
+                Edit
+              </Button>
+            ) : null}
+          </Stack>
+        }
+      >
+        {viewing ? (
+          <Stack spacing={2}>
+            {[
+              { label: "Name", value: viewing.name || "—" },
+              { label: "Code", value: viewing.code || "—" },
+              { label: "Description", value: viewing.description || "—" },
+              {
+                label: "Programmes",
+                value: String(viewing.programmes_count ?? viewing.programmes?.length ?? 0),
+              },
+              {
+                label: "HOD",
+                value: (() => {
+                  const count =
+                    viewing.hod_count ??
+                    (Array.isArray(viewing.hods)
+                      ? viewing.hods.length
+                      : (viewing.staff || []).filter((s) => s.role === "hod").length);
+                  const names = (viewing.hods || (viewing.staff || []).filter((s) => s.role === "hod"))
+                    .map((s) => s.full_name || s.email)
+                    .filter(Boolean);
+                  if (!count) return "0";
+                  return names.length ? `${count} · ${names.join(", ")}` : String(count);
+                })(),
+              },
+              {
+                label: "Lecturers",
+                value: (() => {
+                  const count =
+                    viewing.lecturer_count ??
+                    (Array.isArray(viewing.lecturers)
+                      ? viewing.lecturers.length
+                      : (viewing.staff || []).filter((s) => s.role === "lecturer").length);
+                  const names = (
+                    viewing.lecturers || (viewing.staff || []).filter((s) => s.role === "lecturer")
+                  )
+                    .map((s) => s.full_name || s.email)
+                    .filter(Boolean);
+                  if (!count) return "0";
+                  return names.length ? `${count} · ${names.join(", ")}` : String(count);
+                })(),
+              },
+              { label: "Status", value: viewing.is_active === false ? "Inactive" : "Active" },
+            ].map((item) => (
+              <Box key={item.label}>
+                <Typography
+                  sx={{
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: textMuted,
+                    mb: 0.5,
+                  }}
+                >
+                  {item.label}
+                </Typography>
+                <Typography sx={{ fontWeight: 600, color: textPrimary, fontSize: "0.95rem", lineHeight: 1.45 }}>
+                  {item.value}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        ) : null}
+      </PremiumDialog>
 
       <PremiumDialog
         open={dialogOpen}

@@ -40,11 +40,14 @@ import {
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 import ProgrammesTabs from "./ProgrammesTabs";
 import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function SubjectList() {
   const navigate = useNavigate();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,6 +137,7 @@ export default function SubjectList() {
         icon={<GradeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search subjects…">
+            {canManage ? (
             <HeroActionButton
               variant="contained"
               startIcon={<AddIcon />}
@@ -147,6 +151,7 @@ export default function SubjectList() {
             >
               Add subject
             </HeroActionButton>
+            ) : null}
           </ProgrammeHeroSearch>
         }
       />
@@ -215,7 +220,8 @@ export default function SubjectList() {
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>
                       No subject requirements yet.
                     </Typography>
-                    <Button
+                    {canManage ? (
+                      <Button
                       variant="text"
                       startIcon={<AddIcon />}
                       onClick={() => navigate("/programmes/subjects/create")}
@@ -223,6 +229,7 @@ export default function SubjectList() {
                     >
                       Add first subject
                     </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -281,18 +288,22 @@ export default function SubjectList() {
                             onClick: () => navigate(`/programmes/subjects/${row.id}`),
                             color: textSecondary,
                           },
-                          {
-                            title: "Edit",
-                            icon: <EditIcon fontSize="small" />,
-                            onClick: () => navigate(`/programmes/subjects/${row.id}/edit`),
-                            color: primaryGreen,
-                          },
-                          {
-                            title: "Delete",
-                            icon: <DeleteIcon fontSize="small" />,
-                            onClick: () => void handleDelete(row),
-                            color: primaryDark,
-                          },
+                          ...(canManage
+                            ? [
+                                {
+                                  title: "Edit",
+                                  icon: <EditIcon fontSize="small" />,
+                                  onClick: () => navigate(`/programmes/subjects/${row.id}/edit`),
+                                  color: primaryGreen,
+                                },
+                                {
+                                  title: "Delete",
+                                  icon: <DeleteIcon fontSize="small" />,
+                                  onClick: () => void handleDelete(row),
+                                  color: primaryDark,
+                                },
+                              ]
+                            : []),
                         ].map((action) => (
                           <Tooltip key={action.title} title={action.title}>
                             <IconButton

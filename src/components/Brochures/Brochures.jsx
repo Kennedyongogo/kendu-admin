@@ -33,6 +33,7 @@ import { UsersHero, HeroActionButton, PremiumDialog } from "../Users/usersUi";
 import {
   authJsonHeaders,
   getPortalToken,
+  getPortalUser,
   fontBody,
   ghostBtnSx,
   inputSx,
@@ -44,6 +45,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { canManageBrochures } from "../../auth/roleAccess";
 
 const emptyForm = () => ({
   title: "",
@@ -75,6 +77,7 @@ function formatBytes(n) {
 
 export default function Brochures() {
   const token = getPortalToken();
+  const canManage = canManageBrochures(getPortalUser()?.role);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -115,12 +118,14 @@ export default function Brochures() {
   }, [loadItems]);
 
   const openAdd = () => {
+    if (!canManage) return;
     setEditingId(null);
     setForm(emptyForm());
     setDialogOpen(true);
   };
 
   const openEdit = (row) => {
+    if (!canManage) return;
     setEditingId(row.id);
     setForm(rowToForm(row));
     setDialogOpen(true);
@@ -136,6 +141,7 @@ export default function Brochures() {
 
   const handleSave = async (e) => {
     e?.preventDefault?.();
+    if (!canManage) return;
     if (!form.title.trim()) {
       Swal.fire({
         icon: "warning",
@@ -197,6 +203,7 @@ export default function Brochures() {
   };
 
   const handleDelete = async (row) => {
+    if (!canManage) return;
     const result = await Swal.fire({
       icon: "warning",
       title: "Delete brochure?",
@@ -243,12 +250,18 @@ export default function Brochures() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Brochures"
-        subtitle="Upload school brochures and prospectuses for the public website."
+        subtitle={
+          canManage
+            ? "Upload school brochures and prospectuses for the public website."
+            : "School brochures and prospectuses (view only)."
+        }
         icon={<PictureAsPdfIcon />}
         actions={
-          <HeroActionButton startIcon={<AddIcon />} onClick={openAdd}>
-            Upload brochure
-          </HeroActionButton>
+          canManage ? (
+            <HeroActionButton startIcon={<AddIcon />} onClick={openAdd}>
+              Upload brochure
+            </HeroActionButton>
+          ) : null
         }
       />
 
@@ -321,12 +334,23 @@ export default function Brochures() {
                   >
                     <OpenInNewIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" onClick={() => openEdit(row)}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: "#c62828" }}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  {canManage ? (
+                    <>
+                      <IconButton size="small" onClick={() => openEdit(row)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: "#c62828" }}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <Typography
+                      component="span"
+                      sx={{ color: textMuted, fontSize: "0.78rem", ml: 1, fontFamily: fontBody }}
+                    >
+                      View only
+                    </Typography>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -354,6 +378,7 @@ export default function Brochures() {
         />
       </TableContainer>
 
+      {canManage ? (
       <PremiumDialog
         open={dialogOpen}
         onClose={() => closeDialog()}
@@ -436,6 +461,7 @@ export default function Brochures() {
           </Stack>
         </Box>
       </PremiumDialog>
+      ) : null}
     </Box>
   );
 }

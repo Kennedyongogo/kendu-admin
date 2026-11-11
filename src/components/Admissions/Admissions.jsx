@@ -32,6 +32,7 @@ import { UsersHero, RoleTabs } from "../Users/usersUi";
 import {
   authJsonHeaders,
   getPortalToken,
+  getPortalUser,
   fontBody,
   fontDisplay,
   inputSx,
@@ -42,6 +43,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { canManageAdmissions } from "../../auth/roleAccess";
 import {
   ADMISSION_STATUS_TABS,
   admissionStatusChipSx,
@@ -52,6 +54,7 @@ import StatusUpdateDialog from "./StatusUpdateDialog";
 
 export default function Admissions() {
   const navigate = useNavigate();
+  const canManage = canManageAdmissions(getPortalUser()?.role);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -114,6 +117,7 @@ export default function Admissions() {
   }, [debouncedSearch, activeTab]);
 
   const handleDelete = async (row) => {
+    if (!canManage) return;
     const result = await Swal.fire({
       icon: "warning",
       title: "Delete application?",
@@ -309,30 +313,38 @@ export default function Admissions() {
                             <ViewIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Update status" arrow>
-                          <IconButton
-                            onClick={() => setStatusTarget(row)}
-                            sx={{
-                              color: "#1e2858",
-                              bgcolor: "rgba(30,40,88,0.08)",
-                              "&:hover": { bgcolor: "rgba(30,40,88,0.14)" },
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete" arrow>
-                          <IconButton
-                            onClick={() => void handleDelete(row)}
-                            sx={{
-                              color: "#b91c1c",
-                              bgcolor: "rgba(185,28,28,0.08)",
-                              "&:hover": { bgcolor: "rgba(185,28,28,0.16)" },
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
+                        {canManage ? (
+                          <>
+                            <Tooltip title="Update status" arrow>
+                              <IconButton
+                                onClick={() => setStatusTarget(row)}
+                                sx={{
+                                  color: "#1e2858",
+                                  bgcolor: "rgba(30,40,88,0.08)",
+                                  "&:hover": { bgcolor: "rgba(30,40,88,0.14)" },
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete" arrow>
+                              <IconButton
+                                onClick={() => void handleDelete(row)}
+                                sx={{
+                                  color: "#b91c1c",
+                                  bgcolor: "rgba(185,28,28,0.08)",
+                                  "&:hover": { bgcolor: "rgba(185,28,28,0.16)" },
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        ) : (
+                          <Typography sx={{ color: textMuted, fontSize: "0.78rem", pr: 1 }}>
+                            View only
+                          </Typography>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -359,12 +371,14 @@ export default function Admissions() {
         />
       </TableContainer>
 
-      <StatusUpdateDialog
-        open={Boolean(statusTarget)}
-        application={statusTarget}
-        onClose={() => setStatusTarget(null)}
-        onSaved={() => void load()}
-      />
+      {canManage ? (
+        <StatusUpdateDialog
+          open={Boolean(statusTarget)}
+          application={statusTarget}
+          onClose={() => setStatusTarget(null)}
+          onSaved={() => void load()}
+        />
+      ) : null}
     </Box>
   );
 }

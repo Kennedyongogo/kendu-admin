@@ -28,6 +28,8 @@ import {
 } from "@mui/icons-material";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 import {
   authJsonHeaders,
   getPortalToken,
@@ -50,6 +52,7 @@ export default function DepartmentViewPage() {
   const [error, setError] = useState(null);
 
   const token = getPortalToken();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const goBack = () => navigate("/departments");
 
   useEffect(() => {
@@ -112,19 +115,21 @@ export default function DepartmentViewPage() {
         icon={<AccountTreeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Edit department">
-              <IconButton
-                onClick={openEditDialog}
-                sx={{
-                  color: "#fff",
-                  bgcolor: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.28)" },
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
+            {canManage ? (
+              <Tooltip title="Edit department">
+                <IconButton
+                  onClick={openEditDialog}
+                  sx={{
+                    color: "#fff",
+                    bgcolor: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.28)" },
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            ) : null}
             <Tooltip title="Back to departments">
               <IconButton
                 onClick={goBack}

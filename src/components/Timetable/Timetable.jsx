@@ -14,6 +14,7 @@ import {
   accentGoldMuted,
   fontBody,
   fontDisplay,
+  getPortalUser,
   inputSx,
   navy,
   pageShellSx,
@@ -25,6 +26,7 @@ import {
   warmCream,
 } from "../Users/usersShared";
 import { RoleTabs } from "../Users/usersUi";
+import { canManageTimetables } from "../../auth/roleAccess";
 
 const GAP_PX = 16;
 
@@ -287,6 +289,7 @@ const filterFieldSx = {
 export default function Timetable() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const canManage = canManageTimetables(getPortalUser()?.role);
   const today = useMemo(() => new Date(), []);
   const scrollerRef = useRef(null);
   const syncingScroll = useRef(false);
@@ -430,38 +433,40 @@ export default function Timetable() {
             </Typography>
           </Box>
         </Stack>
-        <Button
-          variant="contained"
-          startIcon={<AddRoundedIcon sx={{ fontSize: "1.05rem !important" }} />}
-          onClick={() => {
-            const params = new URLSearchParams({
-              tab: activeTab.key,
-              year: String(selectedYear),
-              month: String(visibleMonth),
-            });
-            navigate(`/timetable/create?${params.toString()}`);
-          }}
-          sx={{
-            textTransform: "none",
-            fontFamily: fontBody,
-            fontWeight: 800,
-            fontSize: { xs: "0.76rem", sm: "0.84rem" },
-            borderRadius: "11px",
-            px: { xs: 1.4, sm: 2 },
-            py: 0.85,
-            flexShrink: 0,
-            whiteSpace: "nowrap",
-            transition: "none",
-            background: `linear-gradient(135deg, ${accentGold} 0%, ${accentGoldMuted} 100%)`,
-            color: navy,
-            boxShadow: "0 8px 22px -8px rgba(160,128,40,0.55)",
-            "&:hover": {
-              background: `linear-gradient(135deg, ${accentGoldMuted} 0%, ${accentGold} 100%)`,
-            },
-          }}
-        >
-          {activeTab.createLabel}
-        </Button>
+        {canManage ? (
+          <Button
+            variant="contained"
+            startIcon={<AddRoundedIcon sx={{ fontSize: "1.05rem !important" }} />}
+            onClick={() => {
+              const params = new URLSearchParams({
+                tab: activeTab.key,
+                year: String(selectedYear),
+                month: String(visibleMonth),
+              });
+              navigate(`/timetable/create?${params.toString()}`);
+            }}
+            sx={{
+              textTransform: "none",
+              fontFamily: fontBody,
+              fontWeight: 800,
+              fontSize: { xs: "0.76rem", sm: "0.84rem" },
+              borderRadius: "11px",
+              px: { xs: 1.4, sm: 2 },
+              py: 0.85,
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+              transition: "none",
+              background: `linear-gradient(135deg, ${accentGold} 0%, ${accentGoldMuted} 100%)`,
+              color: navy,
+              boxShadow: "0 8px 22px -8px rgba(160,128,40,0.55)",
+              "&:hover": {
+                background: `linear-gradient(135deg, ${accentGoldMuted} 0%, ${accentGold} 100%)`,
+              },
+            }}
+          >
+            {activeTab.createLabel}
+          </Button>
+        ) : null}
       </Box>
 
       <Stack

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -25,6 +25,9 @@ import {
   InputAdornment,
   FormControlLabel,
   Switch,
+  OutlinedInput,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -52,6 +55,8 @@ import {
   getActorFromStorage,
   assignableRoles,
   profileImageSrc,
+  createRoleActionLabel,
+  editRoleActionLabel,
   primaryGreen,
   primaryDark,
   warmCream,
@@ -81,10 +86,10 @@ const emptyForm = () => ({
   full_name: "",
   phone: "",
   admission_number: "",
-  role: "staff",
+  role: "lecturer",
   position: "",
   is_public: false,
-  department_id: "",
+  department_ids: [],
   programme_id: "",
   year_of_study: "",
   semester: "",
@@ -95,13 +100,18 @@ const emptyForm = () => ({
 
 export default function UsersTable() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const initialTab = Math.max(
+    0,
+    ROLE_TABS.findIndex((tab) => tab.value === searchParams.get("role"))
+  );
+  const [activeTab, setActiveTab] = useState(initialTab >= 0 ? initialTab : 0);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
   const [openView, setOpenView] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -111,8 +121,11 @@ export default function UsersTable() {
   const [departments, setDepartments] = useState([]);
 
   const actor = getActorFromStorage();
-  const editableRoles = assignableRoles(actor?.role).filter((r) => r !== "student");
-  const canEditRole = editableRoles.length > 0;
+  const activeRoleTab = ROLE_TABS[activeTab] || ROLE_TABS[0];
+  const activeRole = activeRoleTab.value;
+  const createButtonLabel = createRoleActionLabel(activeRole);
+  const editDialogTitle = editRoleActionLabel(form.role || selectedUser?.role || activeRole);
+  const canAssignActiveRole = assignableRoles(actor?.role).includes(activeRole);
   const enrolment = useProgrammeEnrolmentOptions(
     form.role === "student" ? form.programme_id : ""
   );
@@ -206,6 +219,13 @@ export default function UsersTable() {
   }, [fetchUsers]);
 
   useEffect(() => {
+    const roleFromUrl = searchParams.get("role");
+    const idx = ROLE_TABS.findIndex((tab) => tab.value === roleFromUrl);
+    if (idx < 0) return;
+    setActiveTab((prev) => (prev === idx ? prev : idx));
+  }, [searchParams]);
+
+  useEffect(() => {
     (async () => {
       try {
         const token = getPortalToken();
@@ -231,6 +251,14 @@ export default function UsersTable() {
   const handleTabChange = (_, newValue) => {
     setActiveTab(newValue);
     setPage(0);
+    const role = ROLE_TABS[newValue]?.value;
+    if (role) {
+      setSearchParams({ role }, { replace: true });
+    }
+  };
+
+  const goCreateForActiveTab = () => {
+    navigate(`/users/create?role=${encodeURIComponent(activeRole)}`);
   };
 
   const mapUserToForm = (u) => ({
@@ -239,10 +267,16 @@ export default function UsersTable() {
     full_name: u.full_name ?? "",
     phone: u.phone ?? "",
     admission_number: u.admission_number ?? "",
-    role: u.role ?? "staff",
+    role: u.role ?? "lecturer",
     position: u.position ?? "",
     is_public: Boolean(u.is_public),
-    department_id: u.department_id || u.department?.id || "",
+    department_ids: Array.isArray(u.department_ids)
+      ? u.department_ids
+      : Array.isArray(u.departments)
+        ? u.departments.map((d) => d.id)
+        : u.department_id || u.department?.id
+          ? [u.department_id || u.department.id]
+          : [],
     programme_id: u.programme_id || u.programme?.id || "",
     year_of_study: u.year_of_study != null ? String(u.year_of_study) : "",
     semester: u.semester != null ? String(u.semester) : "",
@@ -351,6 +385,15 @@ export default function UsersTable() {
         return;
       }
     }
+    if ((form.role === "hod" || form.role === "lecturer") && !form.department_ids?.length) {
+      Swal.fire({
+        icon: "warning",
+        title: "Department required",
+        text: "A head of department or lecturer must belong to at least one academic department.",
+        confirmButtonColor: primaryGreen,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -369,13 +412,13 @@ export default function UsersTable() {
       );
       if (form.role !== "student") {
         body.append("position", form.position?.trim() || "");
-        body.append("department_id", form.department_id || "");
+        body.append("department_ids", JSON.stringify(form.department_ids || []));
         body.append("programme_id", "");
         body.append("year_of_study", "");
         body.append("semester", "");
       } else {
         body.append("position", "");
-        body.append("department_id", "");
+        body.append("department_ids", JSON.stringify([]));
         body.append("programme_id", form.programme_id);
         body.append("year_of_study", form.year_of_study);
         body.append("semester", form.semester);
@@ -440,12 +483,14 @@ export default function UsersTable() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Admin"
-        subtitle="Create and manage admin and staff accounts"
+        subtitle={`Create and manage ${activeRoleTab.label.toLowerCase()} accounts`}
         icon={<GroupsIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/users/create")}>
-            Create user
-          </HeroActionButton>
+          canAssignActiveRole ? (
+            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={goCreateForActiveTab}>
+              {createButtonLabel}
+            </HeroActionButton>
+          ) : null
         }
       />
 
@@ -501,14 +546,16 @@ export default function UsersTable() {
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>No users in this tab.</Typography>
-                    <Button
-                      variant="text"
-                      startIcon={<AddIcon />}
-                      onClick={() => navigate("/users/create")}
-                      sx={{ mt: 1, color: primaryGreen, fontWeight: 700, textTransform: "none" }}
-                    >
-                      Create first user
-                    </Button>
+                    {canAssignActiveRole ? (
+                      <Button
+                        variant="text"
+                        startIcon={<AddIcon />}
+                        onClick={goCreateForActiveTab}
+                        sx={{ mt: 1, color: primaryGreen, fontWeight: 700, textTransform: "none" }}
+                      >
+                        {createButtonLabel}
+                      </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -690,8 +737,14 @@ export default function UsersTable() {
                 />
                 <DetailField
                   icon={<BadgeIcon fontSize="small" />}
-                  label="Department"
-                  value={selectedUser.department?.name || "—"}
+                  label="Departments"
+                  value={
+                    (selectedUser.departments || [])
+                      .map((d) => `${d.name}${d.code ? ` (${d.code})` : ""}`)
+                      .join(", ") ||
+                    selectedUser.department?.name ||
+                    "—"
+                  }
                 />
                 <DetailField
                   icon={<PublicIcon fontSize="small" />}
@@ -715,8 +768,8 @@ export default function UsersTable() {
       <PremiumDialog
         open={openEdit}
         onClose={closeDialogs}
-        title="Edit user"
-        subtitle="Update account details and role"
+        title={editDialogTitle}
+        subtitle={`Update this ${formatRole(form.role || activeRole).toLowerCase()} account`}
         icon={<EditIcon />}
         footer={
           <>
@@ -956,58 +1009,64 @@ export default function UsersTable() {
                 }}
                 sx={inputSx}
               />
-              <FormControl fullWidth sx={inputSx}>
-                <InputLabel>Department</InputLabel>
+              <FormControl
+                fullWidth
+                required={form.role === "hod" || form.role === "lecturer"}
+                sx={inputSx}
+              >
+                <InputLabel>Departments</InputLabel>
                 <Select
-                  label="Department"
-                  value={form.department_id}
-                  onChange={(e) => setForm({ ...form, department_id: e.target.value })}
+                  label="Departments"
+                  multiple
+                  value={form.department_ids}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      department_ids:
+                        typeof e.target.value === "string"
+                          ? e.target.value.split(",")
+                          : e.target.value,
+                    })
+                  }
+                  input={<OutlinedInput label="Departments" />}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {selected.map((id) => {
+                        const dept = departments.find((d) => d.id === id);
+                        return (
+                          <Chip
+                            key={id}
+                            size="small"
+                            label={dept ? `${dept.name}${dept.code ? ` (${dept.code})` : ""}` : id}
+                          />
+                        );
+                      })}
+                    </Box>
+                  )}
                 >
-                  <MenuItem value="">
-                    <em>Not assigned</em>
-                  </MenuItem>
                   {departments.map((dept) => (
                     <MenuItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                      {dept.code ? ` (${dept.code})` : ""}
+                      <Checkbox checked={form.department_ids.includes(dept.id)} />
+                      <ListItemText primary={dept.name} secondary={dept.code || undefined} />
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              {(form.role === "hod" || form.role === "lecturer") ? (
+                <Typography sx={{ fontSize: "0.78rem", color: textSecondary, mt: -0.5 }}>
+                  Heads of department and lecturers can belong to more than one department.
+                </Typography>
+              ) : null}
             </>
           )}
-          <FormControl fullWidth sx={inputSx} disabled={!canEditRole}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              label="Role"
-              value={form.role}
-              onChange={(e) => {
-                const role = e.target.value;
-                setForm({
-                  ...form,
-                  role,
-                  admission_number: role === "student" ? form.admission_number : "",
-                  position: role === "student" ? "" : form.position,
-                  is_public: role === "student" ? false : form.is_public,
-                  department_id: role === "student" ? "" : form.department_id,
-                  programme_id: role === "student" ? form.programme_id : "",
-                  year_of_study: role === "student" ? form.year_of_study : "",
-                  semester: role === "student" ? form.semester : "",
-                });
-              }}
-            >
-              {editableRoles.map((r) => (
-                <MenuItem key={r} value={r}>
-                  {formatRole(r)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {!canEditRole ? (
-            <Typography sx={{ fontSize: "0.78rem", color: textSecondary }}>
-              Your account cannot change user roles.
-            </Typography>
-          ) : null}
+          <TextField
+            label="Role"
+            fullWidth
+            value={formatRole(form.role || activeRole)}
+            InputProps={{ readOnly: true }}
+            helperText="Role is fixed to this tab. Switch tabs to manage a different role."
+            sx={inputSx}
+          />
           {form.role !== "student" ? (
             <FormControlLabel
               control={

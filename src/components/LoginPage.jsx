@@ -14,6 +14,8 @@ import {
   useMediaQuery,
   Dialog,
   DialogContent,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Visibility,
@@ -31,11 +33,12 @@ import {
   LightModeRounded,
 } from "@mui/icons-material";
 import { savePortalSession } from "../auth/portalAuth";
+import { homeForRole } from "../auth/roleAccess";
 import { applyThemeMode, getStoredThemeMode } from "../theme/themeMode";
 
 const BRAND = {
   navy: "#1e2858",
-  navyDeep: "#141a3a",
+  navyDeep: "#0c1228",
   green: "#1B5EA8",
   greenDark: "#0E3D73",
   gold: "#c8a840",
@@ -43,20 +46,17 @@ const BRAND = {
   goldMuted: "#d4c078",
   name: "Kendu Adventist School of Medical Sciences",
   shortName: "Kendu Adventist School",
+  mark: "Kendu",
 };
 
-// Field outlines keep at least 3:1 contrast against the page in both modes.
 const LIGHT = {
-  page: `
-    radial-gradient(ellipse 90% 70% at 12% 88%, rgba(27, 94, 168, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 78% 8%, rgba(200, 168, 64, 0.14) 0%, transparent 50%),
-    linear-gradient(165deg, #ffffff 0%, #f5f8fc 48%, #eef3fa 100%)`,
-  base: "#fbfcfa",
+  panel: "rgba(255, 255, 255, 0.92)",
+  panelBorder: "rgba(255, 255, 255, 0.55)",
   paper: "#ffffff",
   ink: BRAND.navy,
-  inkSoft: "rgba(30, 40, 88, 0.7)",
-  inkMute: "rgba(30, 40, 88, 0.55)",
-  border: "rgba(30, 40, 88, 0.3)",
+  inkSoft: "rgba(30, 40, 88, 0.72)",
+  inkMute: "rgba(30, 40, 88, 0.52)",
+  border: "rgba(30, 40, 88, 0.22)",
   accent: BRAND.green,
   accentStrong: BRAND.greenDark,
   accentWash: "rgba(27, 94, 168, 0.1)",
@@ -66,20 +66,18 @@ const LIGHT = {
   warn: "#b45309",
   warnWash: "rgba(180, 83, 9, 0.08)",
   warnLine: "rgba(180, 83, 9, 0.25)",
-  logoShadow: "0 10px 28px -10px rgba(8, 24, 40, 0.35)",
+  logoShadow: "0 12px 32px -12px rgba(8, 24, 40, 0.45)",
+  panelShadow: "0 32px 80px -24px rgba(8, 16, 40, 0.55), 0 0 0 1px rgba(255,255,255,0.4) inset",
 };
 
 const DARK = {
-  page: `
-    radial-gradient(ellipse 90% 70% at 12% 88%, rgba(74, 138, 212, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 78% 8%, rgba(200, 168, 64, 0.1) 0%, transparent 50%),
-    linear-gradient(165deg, #171e2f 0%, #121826 48%, #0f1420 100%)`,
-  base: "#10151f",
+  panel: "rgba(18, 24, 40, 0.88)",
+  panelBorder: "rgba(233, 237, 248, 0.12)",
   paper: "#1b2232",
   ink: "#e9edf8",
   inkSoft: "rgba(233, 237, 248, 0.74)",
-  inkMute: "rgba(233, 237, 248, 0.56)",
-  border: "rgba(233, 237, 248, 0.3)",
+  inkMute: "rgba(233, 237, 248, 0.52)",
+  border: "rgba(233, 237, 248, 0.28)",
   accent: "#7cb3f0",
   accentStrong: "#a9cdf6",
   accentWash: "rgba(124, 179, 240, 0.16)",
@@ -89,7 +87,8 @@ const DARK = {
   warn: "#fcd34d",
   warnWash: "rgba(252, 211, 77, 0.08)",
   warnLine: "rgba(252, 211, 77, 0.28)",
-  logoShadow: "0 10px 28px -10px rgba(0, 0, 0, 0.7)",
+  logoShadow: "0 12px 32px -12px rgba(0, 0, 0, 0.7)",
+  panelShadow: "0 32px 80px -20px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255,255,255,0.06) inset",
 };
 
 const fontDisplay = '"Fraunces", "Georgia", serif';
@@ -97,18 +96,18 @@ const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 
 const ADMIN_PORTAL_LOGIN_BLOCKED_ROLES = ["student"];
 const LAST_EMAIL_KEY = "kendu-admin-last-email";
-// Long enough to register the success state, short enough not to feel like a wait.
 const SUCCESS_PAUSE_MS = 450;
 
 const HERO_IMAGES = [
-  { file: "kendu 1.jpg", caption: "Celebrating excellence in medical education" },
-  { file: "kendu 2.jpg", caption: "Hands-on clinical training that shapes careers" },
-  { file: "kendu 3.jpg", caption: "Classrooms built for curious minds" },
-  { file: "kendu 4.jpg", caption: "A campus rooted in service and community" },
+  { file: "kendu 1.jpg", caption: "Where future clinicians learn, grow, and celebrate together" },
+  { file: "kendu 2.jpg", caption: "Hands-on training that turns calling into care" },
+  { file: "kendu 3.jpg", caption: "Classrooms filled with curiosity and purpose" },
+  { file: "kendu 4.jpg", caption: "A campus rooted in faith, service, and community" },
 ];
 
-const SLIDE_INTERVAL_MS = 7000;
-const SLIDE_CROSSFADE_MS = 1600;
+const SLIDE_INTERVAL_MS = 7500;
+const SLIDE_CROSSFADE_MS = 1800;
+const ICON_GUTTER = 46;
 
 function heroImageSrc(filename) {
   return `/images/${encodeURIComponent(filename)}`;
@@ -131,14 +130,10 @@ function greeting(now) {
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
-// The icon is drawn over the field rather than as an adornment, because an adornment would pin the
-// label in the raised position; this way the label rests centred like a placeholder until focus or input.
-const ICON_GUTTER = 46;
-
 function fieldSx(t) {
   return {
     "& .MuiOutlinedInput-root": {
-      borderRadius: "12px",
+      borderRadius: "14px",
       bgcolor: t.paper,
       fontFamily: fontBody,
       fontSize: "0.95rem",
@@ -156,7 +151,6 @@ function fieldSx(t) {
       fontWeight: 500,
       color: t.ink,
       letterSpacing: "0.01em",
-      // Browser autofill paints its own pale background; keep the field on-theme instead.
       "&:-webkit-autofill": {
         WebkitBoxShadow: `0 0 0 100px ${t.paper} inset`,
         WebkitTextFillColor: t.ink,
@@ -231,61 +225,17 @@ function IconField({ t, icon, error, hint, endAdornment, inputRef, ...props }) {
   );
 }
 
-function Notice({ t, message, tone = "error", icon }) {
-  const color = tone === "warn" ? t.warn : t.danger;
-  return (
-    <AnimatePresence initial={false}>
-      {message ? (
-        <Box
-          component={motion.div}
-          key={tone}
-          role={tone === "warn" ? "status" : "alert"}
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.22 }}
-          sx={{ overflow: "hidden" }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1.25,
-              alignItems: "flex-start",
-              px: 1.75,
-              py: 1.4,
-              borderRadius: "12px",
-              bgcolor: tone === "warn" ? t.warnWash : t.dangerWash,
-              border: `1px solid ${tone === "warn" ? t.warnLine : t.dangerLine}`,
-              color,
-              "& svg": { fontSize: 20, mt: "1px", flexShrink: 0 },
-            }}
-          >
-            {icon || <ErrorOutline />}
-            <Typography sx={{ fontFamily: fontBody, fontSize: "0.86rem", fontWeight: 600, lineHeight: 1.45 }}>{message}</Typography>
-          </Box>
-        </Box>
-      ) : null}
-    </AnimatePresence>
-  );
-}
-
-function HeroImagePanel({ activeSlide, compact = false, onSelectSlide }) {
+/** Full-bleed campus slideshow — the visual plane of the whole page. */
+function HeroBackdrop({ activeSlide }) {
   return (
     <Box
-      component={motion.div}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      aria-hidden
       sx={{
-        position: "relative",
+        position: "absolute",
+        inset: 0,
+        zIndex: 0,
         overflow: "hidden",
-        height: compact ? "clamp(160px, 26vh, 240px)" : "100%",
-        minHeight: compact ? undefined : "100dvh",
-        flex: compact ? "0 0 auto" : "1 1 auto",
-        minWidth: 0,
-        bgcolor: BRAND.greenDark,
-        // Slides under the form's slanted edge so the photo meets it along one clean diagonal.
-        ml: compact ? 0 : { lg: "-10%" },
+        bgcolor: BRAND.navyDeep,
       }}
     >
       {HERO_IMAGES.map((img, index) => (
@@ -293,10 +243,13 @@ function HeroImagePanel({ activeSlide, compact = false, onSelectSlide }) {
           key={img.file}
           component={motion.img}
           src={heroImageSrc(img.file)}
-          alt={index === activeSlide ? img.caption : ""}
+          alt=""
           loading={index === 0 ? "eager" : "lazy"}
           decoding="async"
-          animate={{ opacity: index === activeSlide ? 1 : 0, scale: index === activeSlide ? 1.05 : 1 }}
+          animate={{
+            opacity: index === activeSlide ? 1 : 0,
+            scale: index === activeSlide ? 1.1 : 1.03,
+          }}
           transition={{
             opacity: { duration: SLIDE_CROSSFADE_MS / 1000, ease: "easeInOut" },
             scale: { duration: SLIDE_INTERVAL_MS / 1000, ease: "linear" },
@@ -308,107 +261,36 @@ function HeroImagePanel({ activeSlide, compact = false, onSelectSlide }) {
             height: "100%",
             objectFit: "cover",
             objectPosition: "center",
-            filter: "saturate(1.08) contrast(1.05)",
+            filter: "saturate(1.12) contrast(1.06) brightness(1.02)",
           }}
         />
       ))}
 
-      {/* Brand tint keeps photos of varying quality looking like one set, and keeps the caption readable. */}
+      {/* Lighter wash so campus life stays visible, while type and the panel stay readable. */}
       <Box
         sx={{
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
           background: `
-            linear-gradient(180deg, rgba(14, 30, 58, 0.25) 0%, rgba(14, 30, 58, 0) 30%, rgba(14, 30, 58, 0) 50%, rgba(14, 30, 58, 0.85) 100%),
-            linear-gradient(90deg, rgba(14, 61, 115, 0.35) 0%, rgba(14, 61, 115, 0) 45%)
+            linear-gradient(108deg, rgba(10, 18, 42, 0.72) 0%, rgba(10, 18, 42, 0.42) 42%, rgba(10, 18, 42, 0.18) 68%, rgba(10, 18, 42, 0.4) 100%),
+            linear-gradient(180deg, rgba(10, 18, 42, 0.28) 0%, transparent 32%, transparent 62%, rgba(10, 18, 42, 0.5) 100%)
           `,
         }}
       />
 
-      {!compact && (
-        <Box
-          sx={{
-            position: "absolute",
-            left: { lg: "22%" },
-            right: { lg: "7%" },
-            bottom: { lg: "7%" },
-            zIndex: 3,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.75,
-            alignItems: "flex-start",
-          }}
-        >
-          <Typography
-            sx={{ fontFamily: fontBody, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: BRAND.goldSoft }}
-          >
-            Life at KASMS
-          </Typography>
-          <AnimatePresence mode="wait">
-            <Typography
-              key={activeSlide}
-              component={motion.p}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45 }}
-              aria-live="polite"
-              sx={{
-                fontFamily: fontDisplay,
-                color: "#fff",
-                fontSize: "clamp(1.3rem, 2vw, 1.75rem)",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                lineHeight: 1.25,
-                maxWidth: 440,
-                textShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                mt: -0.75,
-              }}
-            >
-              {HERO_IMAGES[activeSlide].caption}
-            </Typography>
-          </AnimatePresence>
-          {/* Each bar fills over the slide's lifetime, so it doubles as a countdown to the next photo. */}
-          <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }}>
-            {HERO_IMAGES.map((_, i) => (
-              <Box
-                key={i}
-                component="button"
-                type="button"
-                aria-label={`Show campus image ${i + 1}`}
-                aria-current={i === activeSlide ? "true" : undefined}
-                onClick={() => onSelectSlide?.(i)}
-                sx={{
-                  position: "relative",
-                  overflow: "hidden",
-                  border: "none",
-                  p: 0,
-                  cursor: "pointer",
-                  height: 4,
-                  width: i === activeSlide ? 36 : 12,
-                  borderRadius: 2,
-                  bgcolor: "rgba(255,255,255,0.4)",
-                  transition: "width 0.35s ease, background-color 0.35s ease",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.65)" },
-                  "&:focus-visible": { outline: "2px solid #fff", outlineOffset: 3 },
-                }}
-              >
-                {i === activeSlide ? (
-                  <Box
-                    component={motion.span}
-                    key={activeSlide}
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: SLIDE_INTERVAL_MS / 1000, ease: "linear" }}
-                    sx={{ position: "absolute", left: 0, top: 0, bottom: 0, bgcolor: BRAND.gold, borderRadius: 2 }}
-                  />
-                ) : null}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
+      {/* Warm gold + sky wash — makes the campus feel inviting rather than clinical */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: `
+            radial-gradient(ellipse 70% 55% at 18% 88%, rgba(200, 168, 64, 0.28) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 40% at 88% 12%, rgba(27, 94, 168, 0.22) 0%, transparent 60%)
+          `,
+        }}
+      />
     </Box>
   );
 }
@@ -416,7 +298,7 @@ function HeroImagePanel({ activeSlide, compact = false, onSelectSlide }) {
 export default function LoginPage() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const formControls = useAnimationControls();
 
   const rfEmail = useRef();
@@ -443,14 +325,13 @@ export default function LoginPage() {
   const [resetError, setResetError] = useState("");
   const [resetSentTo, setResetSentTo] = useState("");
 
-  // A timeout per slide (rather than one interval) restarts the clock when someone picks a slide.
   useEffect(() => {
     const id = setTimeout(() => setActiveSlide((i) => (i + 1) % HERO_IMAGES.length), SLIDE_INTERVAL_MS);
     return () => clearTimeout(id);
   }, [activeSlide]);
 
   useEffect(() => {
-    const id = setTimeout(() => (rememberedEmail ? rfPassword : rfEmail).current?.focus(), 450);
+    const id = setTimeout(() => (rememberedEmail ? rfPassword : rfEmail).current?.focus(), 520);
     return () => clearTimeout(id);
   }, [rememberedEmail]);
 
@@ -485,11 +366,10 @@ export default function LoginPage() {
   const trackCaps = (e) => setCapsOn(!!e.getModifierState?.("CapsLock"));
 
   const fail = (message) => {
-    setFormError(message);
+    setFormError(message || "Something went wrong. Try again.");
     formControls.start({ x: [0, -10, 9, -6, 4, 0], transition: { duration: 0.42, ease: "easeOut" } });
   };
 
-  // Enter in the email field moves on to the password instead of flagging the empty password.
   const onEmailKeyDown = (e) => {
     if (e.key !== "Enter" || rfPassword.current?.value) return;
     e.preventDefault();
@@ -544,9 +424,18 @@ export default function LoginPage() {
         /* remembering the email is a convenience only */
       }
       setSuccess(true);
-      setTimeout(() => navigate(authed.role === "staff" ? "/units" : "/dashboard", { replace: true }), SUCCESS_PAUSE_MS);
-    } catch {
-      fail(navigator.onLine ? "Can't reach the server. Check your connection and try again." : "You're offline. Reconnect and try again.");
+      setTimeout(() => navigate(homeForRole(authed.role), { replace: true }), SUCCESS_PAUSE_MS);
+    } catch (err) {
+      const msg = String(err?.message || "");
+      if (!navigator.onLine) {
+        fail("You're offline. Reconnect and try again.");
+      } else if (/invalid admin portal role/i.test(msg)) {
+        fail("This account can't sign in to the admin portal.");
+      } else if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        fail("Can't reach the server. Check your connection and try again.");
+      } else {
+        fail(msg || "Can't reach the server. Check your connection and try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -598,19 +487,21 @@ export default function LoginPage() {
     fontWeight: 700,
     fontSize: "0.95rem",
     letterSpacing: "0.01em",
-    borderRadius: "12px",
+    borderRadius: "14px",
     textTransform: "none",
-    boxShadow: "0 10px 28px -8px rgba(160, 128, 40, 0.45)",
-    transition: "box-shadow 0.25s ease, background 0.3s ease, color 0.3s ease",
+    boxShadow: "0 12px 30px -10px rgba(160, 128, 40, 0.55)",
+    transition: "box-shadow 0.25s ease, transform 0.2s ease, background 0.3s ease",
     "&:hover": {
       background: `linear-gradient(135deg, ${BRAND.goldMuted} 0%, ${BRAND.gold} 100%)`,
-      boxShadow: "0 14px 32px -8px rgba(160, 128, 40, 0.5)",
+      boxShadow: "0 16px 36px -10px rgba(160, 128, 40, 0.6)",
+      transform: "translateY(-1px)",
     },
     "&:focus-visible": { outline: `3px solid ${t.accent}`, outlineOffset: 2 },
     "&.Mui-disabled": {
       background: `linear-gradient(135deg, ${BRAND.gold} 0%, ${BRAND.goldMuted} 100%)`,
       color: BRAND.navyDeep,
       opacity: 0.75,
+      transform: "none",
     },
   };
 
@@ -645,127 +536,317 @@ export default function LoginPage() {
     <MotionConfig reducedMotion="user">
       <Box
         sx={{
-          display: "flex",
-          flexDirection: isDesktop ? "row" : "column",
+          position: "relative",
           height: "100dvh",
           maxHeight: "100dvh",
           width: "100%",
           overflow: "hidden",
           fontFamily: fontBody,
-          bgcolor: t.base,
-          transition: "background-color 0.3s ease",
+          bgcolor: BRAND.navyDeep,
         }}
       >
-        {/* Form panel */}
+        <HeroBackdrop activeSlide={activeSlide} />
+
+        {/* Top chrome */}
         <Box
-          component={motion.div}
-          initial={{ opacity: 0, x: isDesktop ? -28 : 0 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
           sx={{
-            flex: isDesktop ? "0 0 44%" : "1 1 auto",
-            minHeight: 0,
-            minWidth: 0,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 3,
             display: "flex",
-            flexDirection: "column",
-            position: "relative",
-            zIndex: 2,
-            order: isDesktop ? 0 : 1,
-            clipPath: isDesktop ? "polygon(0 0, 100% 0, 82% 100%, 0 100%)" : "none",
-            background: t.page,
-            overflow: "hidden",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: { xs: 2, md: 4 },
+            py: { xs: 1.75, md: 2.25 },
+            pointerEvents: "none",
+            "& > *": { pointerEvents: "auto" },
           }}
         >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Box
+              component="img"
+              src="/images/logo.png"
+              alt=""
+              sx={{
+                width: { xs: 40, md: 46 },
+                height: { xs: 40, md: 46 },
+                borderRadius: "50%",
+                objectFit: "cover",
+                flexShrink: 0,
+                boxShadow: t.logoShadow,
+                bgcolor: "#fff",
+              }}
+            />
+            <Box sx={{ display: { xs: "none", sm: "block" }, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.88)",
+                  lineHeight: 1.2,
+                }}
+              >
+                Admin portal
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.7rem",
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.55)",
+                  mt: 0.35,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Kendu Adventist School
+              </Typography>
+            </Box>
+          </Box>
+
           <Tooltip title={themeMode === "dark" ? "Light mode" : "Dark mode"}>
             <IconButton
               onClick={toggleTheme}
               aria-label={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               sx={{
-                position: "absolute",
-                top: 18,
-                right: isDesktop ? 26 : 16,
-                zIndex: 3,
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 borderRadius: "12px",
-                color: t.inkSoft,
-                border: `1px solid ${t.border}`,
-                bgcolor: t.paper,
-                "&:hover": { color: t.accent, bgcolor: t.accentWash, borderColor: t.accent },
+                color: "rgba(255,255,255,0.85)",
+                border: "1px solid rgba(255,255,255,0.22)",
+                bgcolor: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(10px)",
+                "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.16)", borderColor: "rgba(255,255,255,0.4)" },
               }}
             >
               {themeMode === "dark" ? <LightModeRounded sx={{ fontSize: 20 }} /> : <DarkModeRounded sx={{ fontSize: 20 }} />}
             </IconButton>
           </Tooltip>
+        </Box>
 
+        {/* Main composition: brand + sign-in */}
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 2,
+            height: "100%",
+            display: "grid",
+            gridTemplateColumns: isDesktop ? "minmax(0, 1.15fr) minmax(340px, 440px)" : "1fr",
+            alignItems: isDesktop ? "center" : "stretch",
+            gap: { xs: 0, md: 4 },
+            px: { xs: 2, sm: 3, md: 5, lg: 7 },
+            py: { xs: 9, md: 4 },
+            pb: { xs: 5, md: 4 },
+            overflow: "auto",
+          }}
+        >
+          {/* Brand column — hero-level identity */}
           <Box
+            component={motion.div}
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
             sx={{
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
+              display: isDesktop ? "flex" : "none",
               flexDirection: "column",
               justifyContent: "center",
-              px: isDesktop ? "clamp(36px, 5.5vw, 64px)" : "clamp(22px, 6vw, 40px)",
-              pr: isDesktop ? "clamp(56px, 11%, 110px)" : "clamp(22px, 6vw, 40px)",
-              py: "clamp(18px, 3vh, 36px)",
-              overflow: "auto",
+              pr: { md: 2, lg: 6 },
+              minWidth: 0,
+              color: "#fff",
             }}
           >
             <Box
               component={motion.div}
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              sx={{ width: "100%", maxWidth: 400, mx: isDesktop ? 0 : "auto" }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              sx={{
+                width: 64,
+                height: 3,
+                borderRadius: 2,
+                background: `linear-gradient(90deg, ${BRAND.gold} 0%, ${BRAND.goldSoft} 100%)`,
+                mb: 3,
+                transformOrigin: "left",
+                boxShadow: "0 0 24px rgba(200,168,64,0.45)",
+              }}
+            />
+            <Typography
+              component="p"
+              sx={{
+                fontFamily: fontDisplay,
+                fontWeight: 800,
+                fontSize: "clamp(3.6rem, 7.5vw, 5.8rem)",
+                letterSpacing: "-0.045em",
+                lineHeight: 0.9,
+                color: "#fff",
+                textShadow: "0 18px 50px rgba(0,0,0,0.35)",
+                mb: 1.75,
+              }}
             >
-              {/* Brand mark */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 4 }}>
-                <Box
-                  component="img"
-                  src="/images/logo.png"
-                  alt=""
-                  sx={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0, boxShadow: t.logoShadow, bgcolor: "#fff" }}
-                />
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: fontDisplay,
-                      fontWeight: 700,
-                      fontSize: "clamp(0.95rem, 1.5vw, 1.1rem)",
-                      color: t.ink,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {BRAND.shortName}
-                  </Typography>
-                  <Typography
-                    sx={{ fontFamily: fontBody, fontSize: "0.7rem", fontWeight: 700, color: t.accent, letterSpacing: "0.08em", textTransform: "uppercase", mt: 0.35 }}
-                  >
-                    Admin portal
-                  </Typography>
-                </Box>
-              </Box>
+              {BRAND.mark}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: fontDisplay,
+                fontWeight: 600,
+                fontSize: "clamp(1.2rem, 2.1vw, 1.65rem)",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.25,
+                color: "rgba(255,255,255,0.95)",
+                maxWidth: 480,
+                mb: 2.25,
+              }}
+            >
+              {BRAND.name}
+            </Typography>
+            {/* Fixed slot so longer captions never nudge Kendu, the school name, or the motto. */}
+            <Box
+              sx={{
+                position: "relative",
+                maxWidth: 420,
+                height: "3.5em",
+                mb: 3,
+                fontFamily: fontBody,
+                fontSize: "1.12rem",
+                lineHeight: 1.55,
+              }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <Typography
+                  key={activeSlide}
+                  component={motion.p}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.4 }}
+                  aria-live="polite"
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    m: 0,
+                    fontFamily: fontBody,
+                    fontSize: "inherit",
+                    fontWeight: 500,
+                    lineHeight: "inherit",
+                    color: "rgba(255,255,255,0.78)",
+                  }}
+                >
+                  {HERO_IMAGES[activeSlide].caption}
+                </Typography>
+              </AnimatePresence>
+            </Box>
+            <Typography
+              sx={{
+                fontFamily: fontBody,
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: BRAND.goldSoft,
+              }}
+            >
+              Faith · Service · Excellence
+            </Typography>
+          </Box>
 
-              <Typography sx={{ fontFamily: fontBody, fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: t.inkMute, mb: 0.75 }}>
+          {/* Sign-in panel — the interaction surface */}
+          <Box
+            component={motion.div}
+            initial={{ opacity: 0, y: 36, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.18, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            sx={{
+              width: "100%",
+              maxWidth: 440,
+              mx: isDesktop ? 0 : "auto",
+              my: isDesktop ? 0 : "auto",
+              alignSelf: isDesktop ? "center" : "auto",
+              borderRadius: { xs: "24px", md: "28px" },
+              bgcolor: t.panel,
+              border: `1px solid ${t.panelBorder}`,
+              boxShadow: t.panelShadow,
+              backdropFilter: "blur(24px) saturate(1.25)",
+              WebkitBackdropFilter: "blur(24px) saturate(1.25)",
+              overflow: "hidden",
+              transition: "background-color 0.3s ease, border-color 0.3s ease",
+              position: "relative",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 3,
+                background: `linear-gradient(90deg, ${BRAND.gold} 0%, ${BRAND.green} 55%, ${BRAND.goldMuted} 100%)`,
+              },
+            }}
+          >
+            <Box sx={{ px: { xs: 2.5, sm: 3.4 }, pt: { xs: 3.25, sm: 3.75 }, pb: { xs: 2.75, sm: 3.25 } }}>
+              {/* Mobile brand mark inside the panel */}
+              {!isDesktop ? (
+                <Box sx={{ mb: 2.75, display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Box
+                    component="img"
+                    src="/images/logo.png"
+                    alt=""
+                    sx={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", boxShadow: t.logoShadow, bgcolor: "#fff" }}
+                  />
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontFamily: fontDisplay,
+                        fontWeight: 800,
+                        fontSize: "1.65rem",
+                        letterSpacing: "-0.04em",
+                        color: t.ink,
+                        lineHeight: 1,
+                        mb: 0.35,
+                      }}
+                    >
+                      {BRAND.mark}
+                    </Typography>
+                    <Typography sx={{ fontFamily: fontBody, fontSize: "0.74rem", fontWeight: 600, color: t.inkSoft, lineHeight: 1.3 }}>
+                      {BRAND.shortName}
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : null}
+
+              <Typography
+                sx={{
+                  fontFamily: fontBody,
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: t.inkMute,
+                  mb: 0.85,
+                }}
+              >
                 {dateLine}
               </Typography>
               <Typography
                 component="h1"
                 sx={{
                   fontFamily: fontDisplay,
-                  fontSize: "clamp(1.85rem, 3.2vw, 2.4rem)",
+                  fontSize: "clamp(1.7rem, 3vw, 2.1rem)",
                   fontWeight: 700,
                   color: t.ink,
-                  letterSpacing: "-0.035em",
-                  lineHeight: 1.1,
-                  mb: 1,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.12,
+                  mb: 0.9,
                 }}
               >
                 {greeting(now)}
               </Typography>
-              <Typography sx={{ fontFamily: fontBody, color: t.inkSoft, fontSize: "0.95rem", fontWeight: 500, lineHeight: 1.55, mb: 3.5, maxWidth: 340 }}>
-                {rememberedEmail ? "Welcome back. Enter your password to continue." : "Sign in to manage campus operations, staff, and student records."}
+              <Typography sx={{ fontFamily: fontBody, color: t.inkSoft, fontSize: "0.94rem", fontWeight: 500, lineHeight: 1.55, mb: 3.1, maxWidth: 360 }}>
+                {rememberedEmail
+                  ? "Welcome back to campus. Enter your password to continue."
+                  : "Welcome. Sign in to support teaching, care, and campus life at KASMS."}
               </Typography>
 
               <Box
@@ -773,10 +854,8 @@ export default function LoginPage() {
                 animate={formControls}
                 noValidate
                 onSubmit={login}
-                sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}
+                sx={{ display: "flex", flexDirection: "column", gap: 2.1 }}
               >
-                <Notice t={t} tone="warn" icon={<WifiOff />} message={online ? "" : "You're offline. You can sign in once your connection is back."} />
-
                 <IconField
                   t={t}
                   inputRef={rfEmail}
@@ -834,8 +913,6 @@ export default function LoginPage() {
                   </Box>
                 </Box>
 
-                <Notice t={t} message={formError} />
-
                 <Button
                   type="submit"
                   fullWidth
@@ -850,45 +927,29 @@ export default function LoginPage() {
                       <ArrowForward sx={{ fontSize: 20 }} />
                     )
                   }
-                  sx={{ ...goldBtnSx, ...(success ? successBtnSx : null), py: 1.65 }}
+                  sx={{ ...goldBtnSx, ...(success ? successBtnSx : null), py: 1.7 }}
                 >
                   {success ? "Signed in" : loading ? "Signing in…" : "Sign in"}
                 </Button>
               </Box>
 
               <Typography
-                sx={{ mt: 3, fontFamily: fontBody, fontSize: "0.74rem", color: t.inkMute, fontWeight: 500, letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: 0.75 }}
+                sx={{
+                  mt: 2.75,
+                  fontFamily: fontBody,
+                  fontSize: "0.74rem",
+                  color: t.inkMute,
+                  fontWeight: 500,
+                  letterSpacing: "0.02em",
+                  textAlign: "center",
+                  lineHeight: 1.45,
+                }}
               >
-                <Lock sx={{ fontSize: 14 }} />
-                Encrypted session · Admin &amp; staff access only
+                © {now.getFullYear()} {BRAND.name}
               </Typography>
             </Box>
-
-            <Typography
-              sx={{
-                position: isDesktop ? "absolute" : "relative",
-                bottom: isDesktop ? 28 : undefined,
-                left: isDesktop ? "clamp(36px, 5.5vw, 64px)" : undefined,
-                mt: isDesktop ? 0 : 3,
-                textAlign: isDesktop ? "left" : "center",
-                fontFamily: fontBody,
-                fontSize: "0.7rem",
-                color: t.inkMute,
-                fontWeight: 500,
-              }}
-            >
-              © {now.getFullYear()} {BRAND.name}
-            </Typography>
           </Box>
         </Box>
-
-        {isDesktop ? (
-          <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>
-            <HeroImagePanel activeSlide={activeSlide} onSelectSlide={setActiveSlide} />
-          </Box>
-        ) : (
-          <HeroImagePanel activeSlide={activeSlide} compact />
-        )}
 
         {/* Reset dialog */}
         <Dialog
@@ -897,19 +958,19 @@ export default function LoginPage() {
           maxWidth="xs"
           fullWidth
           slotProps={{
-            backdrop: { sx: { bgcolor: "rgba(10, 14, 30, 0.4)", backdropFilter: "blur(6px)" } },
+            backdrop: { sx: { bgcolor: "rgba(8, 12, 28, 0.55)", backdropFilter: "blur(8px)" } },
             paper: {
               component: motion.div,
               initial: { opacity: 0, scale: 0.97, y: 14 },
               animate: { opacity: 1, scale: 1, y: 0 },
               transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
               sx: {
-                borderRadius: "20px",
+                borderRadius: "22px",
                 overflow: "hidden",
                 bgcolor: t.paper,
                 backgroundImage: "none",
                 border: themeMode === "dark" ? `1px solid ${t.border}` : "none",
-                boxShadow: "0 28px 64px -16px rgba(10, 14, 30, 0.45)",
+                boxShadow: "0 32px 72px -16px rgba(8, 12, 28, 0.55)",
                 m: 2,
               },
             },
@@ -1007,6 +1068,35 @@ export default function LoginPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        <Snackbar
+          open={Boolean(formError) || !online}
+          autoHideDuration={online ? 7000 : null}
+          onClose={(_, reason) => {
+            if (reason === "clickaway") return;
+            if (online) setFormError("");
+          }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={online ? () => setFormError("") : undefined}
+            severity={!online ? "warning" : "error"}
+            variant="filled"
+            icon={!online ? <WifiOff /> : <ErrorOutline />}
+            sx={{
+              width: "100%",
+              maxWidth: 440,
+              fontFamily: fontBody,
+              fontWeight: 600,
+              alignItems: "center",
+              boxShadow: "0 12px 32px -12px rgba(8, 16, 40, 0.45)",
+            }}
+          >
+            {!online
+              ? "You're offline. You can sign in once your connection is back."
+              : formError}
+          </Alert>
+        </Snackbar>
       </Box>
     </MotionConfig>
   );

@@ -43,6 +43,7 @@ import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {
   accentGold,
   authJsonHeaders,
@@ -60,6 +61,8 @@ import {
 } from "../Users/usersShared";
 import { HeroActionButton, PremiumDialog, UsersHero } from "../Users/usersUi";
 import BrandPageLoader from "../Util/BrandPageLoader";
+import BookImportDialog from "./BookImportDialog";
+import ElearningImportDialog from "./ElearningImportDialog";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -80,7 +83,10 @@ const cardSx = {
 
 const ROLE_COLORS = {
   student: primaryGreen,
-  staff: navy,
+  lecturer: navy,
+  hod: navy,
+  principal: primaryDark,
+  deputy_principal: primaryDark,
   admin: accentGold,
 };
 
@@ -444,6 +450,7 @@ export default function Library() {
   const [bookTotal, setBookTotal] = useState(0);
   const [bookSearch, setBookSearch] = useState("");
   const [bookDialog, setBookDialog] = useState(false);
+  const [bookImportOpen, setBookImportOpen] = useState(false);
   const [bookForm, setBookForm] = useState(emptyBookForm);
   const [editingBook, setEditingBook] = useState(null);
   const [viewingBook, setViewingBook] = useState(null);
@@ -468,6 +475,7 @@ export default function Library() {
   const [elearnTotal, setElearnTotal] = useState(0);
   const [elearnSearch, setElearnSearch] = useState("");
   const [elearnDialog, setElearnDialog] = useState(false);
+  const [elearnImportOpen, setElearnImportOpen] = useState(false);
   const [elearnForm, setElearnForm] = useState(emptyElearnForm);
   const [editingElearn, setEditingElearn] = useState(null);
   const [savingElearn, setSavingElearn] = useState(false);
@@ -629,7 +637,9 @@ export default function Library() {
       (stats?.by_borrower_role || []).map((row, index) => ({
         id: index,
         value: Number(row.count) || 0,
-        label: row.role.charAt(0).toUpperCase() + row.role.slice(1),
+        label: String(row.role || "")
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (letter) => letter.toUpperCase()),
         color: ROLE_COLORS[row.role] || primaryGreen,
       })),
     [stats]
@@ -1011,9 +1021,24 @@ export default function Library() {
         icon={<LocalLibraryRoundedIcon sx={{ fontSize: 28 }} />}
         actions={
           tab === 1 ? (
-            <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openBookCreate}>
-              Add book
-            </HeroActionButton>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+              <HeroActionButton
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => setBookImportOpen(true)}
+                sx={{
+                  color: "#fff",
+                  borderColor: "rgba(255,255,255,0.45)",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.16)" },
+                }}
+              >
+                Import Excel
+              </HeroActionButton>
+              <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openBookCreate}>
+                Add book
+              </HeroActionButton>
+            </Stack>
           ) : tab === 2 ? (
             <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openRuleCreate}>
               Add rule
@@ -1027,9 +1052,24 @@ export default function Library() {
               Issue book
             </HeroActionButton>
           ) : tab === 4 ? (
-            <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openElearnCreate}>
-              Add resource
-            </HeroActionButton>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
+              <HeroActionButton
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => setElearnImportOpen(true)}
+                sx={{
+                  color: "#fff",
+                  borderColor: "rgba(255,255,255,0.45)",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.16)" },
+                }}
+              >
+                Import Excel
+              </HeroActionButton>
+              <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openElearnCreate}>
+                Add resource
+              </HeroActionButton>
+            </Stack>
           ) : tab === 5 ? (
             <HeroActionButton variant="contained" startIcon={<AddRoundedIcon />} onClick={openServiceCreate}>
               Add service
@@ -1362,7 +1402,7 @@ export default function Library() {
                 {!books.length ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 5, fontFamily: fontBody, color: textSecondary }}>
-                      No books yet. Add your first title.
+                      No books yet. Add a title or import from Excel.
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -1631,7 +1671,7 @@ export default function Library() {
                 {!elearn.length ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 5, fontFamily: fontBody, color: textSecondary }}>
-                      No e-learning resources yet.
+                      No e-learning resources yet. Add one or import from Excel.
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -2063,6 +2103,26 @@ export default function Library() {
           />
         </Stack>
       </PremiumDialog>
+
+      <BookImportDialog
+        open={bookImportOpen}
+        onClose={() => setBookImportOpen(false)}
+        onImported={async () => {
+          setBookImportOpen(false);
+          setBookPage(0);
+          await Promise.all([loadBooks(), loadStats()]);
+        }}
+      />
+
+      <ElearningImportDialog
+        open={elearnImportOpen}
+        onClose={() => setElearnImportOpen(false)}
+        onImported={async () => {
+          setElearnImportOpen(false);
+          setElearnPage(0);
+          await Promise.all([loadElearn(), loadStats()]);
+        }}
+      />
     </Box>
   );
 }

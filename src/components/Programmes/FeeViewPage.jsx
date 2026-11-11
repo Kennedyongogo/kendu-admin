@@ -22,6 +22,8 @@ import {
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 
 export default function FeeViewPage() {
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ export default function FeeViewPage() {
   const [error, setError] = useState(null);
 
   const token = getPortalToken();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const goBack = () => navigate("/programmes/fees");
 
   useEffect(() => {
@@ -77,7 +80,9 @@ export default function FeeViewPage() {
         icon={<PaymentsIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Edit fee">
+            {canManage ? (
+
+              <Tooltip title="Edit fee">
               <IconButton
                 onClick={() => navigate(`/programmes/fees/${id}/edit`)}
                 sx={{ color: "#fff", bgcolor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.22)", "&:hover": { bgcolor: "rgba(255,255,255,0.28)" } }}
@@ -85,6 +90,9 @@ export default function FeeViewPage() {
                 <EditIcon />
               </IconButton>
             </Tooltip>
+
+            ) : null}
+
             <Tooltip title="Back to fees">
               <IconButton
                 onClick={goBack}

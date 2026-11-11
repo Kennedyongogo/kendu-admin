@@ -48,6 +48,7 @@ import {
   textPrimary,
   textSecondary,
 } from "../Users/usersShared";
+import { canManageTimetables } from "../../auth/roleAccess";
 import {
   STATUS_META,
   formatPeriodRange,
@@ -141,7 +142,8 @@ export default function ExamTimetablePlan() {
   const navigate = useNavigate();
   const token = getPortalToken();
   const user = getPortalUser();
-  const isAdmin = user?.role === "admin";
+  const canManage = canManageTimetables(user?.role);
+  const canApproveExam = user?.role === "admin" || user?.role === "examinations";
 
   const [period, setPeriod] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -157,7 +159,8 @@ export default function ExamTimetablePlan() {
   const [savingPlan, setSavingPlan] = useState(false);
   const [programmes, setProgrammes] = useState([]);
 
-  const editable = period && ["draft", "rejected"].includes(period.status);
+  const periodEditable = period && ["draft", "rejected"].includes(period.status);
+  const editable = Boolean(periodEditable && canManage);
   const enrolment = useProgrammeEnrolmentOptions(planForm.programme_id);
   const slots = useMemo(
     () => (Array.isArray(period?.slots) ? period.slots : []),
@@ -531,7 +534,7 @@ export default function ExamTimetablePlan() {
                 Submit for approval
               </HeroActionButton>
             ) : null}
-            {isAdmin && period.status === "pending" ? (
+            {canApproveExam && period.status === "pending" ? (
               <>
                 <HeroActionButton
                   variant="contained"

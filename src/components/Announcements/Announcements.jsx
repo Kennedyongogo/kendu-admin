@@ -34,6 +34,7 @@ import {
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton, PremiumDialog } from "../Users/usersUi";
+import { canManageAnnouncements } from "../../auth/roleAccess";
 import {
   authJsonHeaders,
   getPortalToken,
@@ -117,7 +118,7 @@ function formatDate(value) {
 
 export default function Announcements() {
   const currentUser = getPortalUser();
-  const isAdmin = currentUser?.role === "admin";
+  const canManage = canManageAnnouncements(currentUser?.role);
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -304,7 +305,7 @@ export default function Announcements() {
         subtitle="Publish news, events and notices for the public site and the student portal."
         icon={<CampaignIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          isAdmin ? (
+          canManage ? (
             <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={openAddDialog}>
               New post
             </HeroActionButton>
@@ -386,7 +387,7 @@ export default function Announcements() {
                   <Typography sx={{ color: textSecondary, fontWeight: 500, mb: 1.5 }}>
                     Share news, upcoming events or exam notices with your audience.
                   </Typography>
-                  {isAdmin ? (
+                  {canManage ? (
                     <Button
                       variant="text"
                       startIcon={<AddIcon />}
@@ -507,7 +508,7 @@ export default function Announcements() {
                   </TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                      {isAdmin ? (
+                      {canManage ? (
                         <>
                           <Tooltip title="Edit" arrow>
                             <IconButton

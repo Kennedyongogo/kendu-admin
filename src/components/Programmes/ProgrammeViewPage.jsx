@@ -28,6 +28,8 @@ import {
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 
 export default function ProgrammeViewPage() {
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ export default function ProgrammeViewPage() {
   const [error, setError] = useState(null);
 
   const token = getPortalToken();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const goBack = () => navigate("/programmes");
 
   useEffect(() => {
@@ -94,19 +97,21 @@ export default function ProgrammeViewPage() {
         icon={<MenuBookIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Edit programme">
-              <IconButton
-                onClick={() => navigate(`/programmes/${id}/edit`)}
-                sx={{
-                  color: "#fff",
-                  bgcolor: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.28)" },
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-            </Tooltip>
+            {canManage ? (
+              <Tooltip title="Edit programme">
+                <IconButton
+                  onClick={() => navigate(`/programmes/${id}/edit`)}
+                  sx={{
+                    color: "#fff",
+                    bgcolor: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.28)" },
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            ) : null}
             <Tooltip title="Back to programmes">
               <IconButton
                 onClick={goBack}

@@ -758,6 +758,7 @@ export default function Accounting() {
                 {hasMethodCollections ? (
                   <PieChart
                     height={230}
+                    hideLegend
                     series={[{
                       data: methodChart,
                       innerRadius: 62,
@@ -768,7 +769,6 @@ export default function Accounting() {
                     }]}
                     colors={PAYMENT_METHODS.map((method) => method.color)}
                     margin={{ top: 20, bottom: 10, left: 20, right: 20 }}
-                    slotProps={{ legend: { hidden: true } }}
                   />
                 ) : (
                   <Stack sx={{ height: 230 }} alignItems="center" justifyContent="center" spacing={1}>

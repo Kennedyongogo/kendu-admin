@@ -31,6 +31,7 @@ import { UsersHero, FormSection, DetailField, fadeUp, HeroActionButton, PremiumD
 import {
   fontBody,
   getPortalToken,
+  getPortalUser,
   fontDisplay,
   ghostBtnSx,
   pageShellSx,
@@ -41,6 +42,7 @@ import {
   warmCream,
   navy,
 } from "../Users/usersShared";
+import { canManageAdmissions } from "../../auth/roleAccess";
 import {
   admissionStatusChipSx,
   formatAdmissionStatus,
@@ -137,6 +139,7 @@ function DocumentViewDialog({ open, doc, onClose }) {
 export default function AdmissionViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const canManage = canManageAdmissions(getPortalUser()?.role);
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -229,9 +232,11 @@ export default function AdmissionViewPage() {
                 "& .MuiChip-label": { px: 1.5 },
               }}
             />
-            <HeroActionButton variant="contained" startIcon={<EditIcon />} onClick={() => setStatusOpen(true)}>
-              Update status
-            </HeroActionButton>
+            {canManage ? (
+              <HeroActionButton variant="contained" startIcon={<EditIcon />} onClick={() => setStatusOpen(true)}>
+                Update status
+              </HeroActionButton>
+            ) : null}
           </Stack>
         }
       />
@@ -413,12 +418,14 @@ export default function AdmissionViewPage() {
         </FormSection>
       </Box>
 
-      <StatusUpdateDialog
-        open={statusOpen}
-        application={app}
-        onClose={() => setStatusOpen(false)}
-        onSaved={(updated) => setApp(updated)}
-      />
+      {canManage ? (
+        <StatusUpdateDialog
+          open={statusOpen}
+          application={app}
+          onClose={() => setStatusOpen(false)}
+          onSaved={(updated) => setApp(updated)}
+        />
+      ) : null}
 
       <DocumentViewDialog open={Boolean(viewDoc)} doc={viewDoc} onClose={() => setViewDoc(null)} />
     </Box>

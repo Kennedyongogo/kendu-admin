@@ -17,7 +17,7 @@ import DepartmentRegistrations from "./DepartmentRegistrations";
 export default function Registrations() {
   const actor = useMemo(() => getPortalUser(), []);
   const isAdmin = actor?.role === "admin";
-  const isStaff = actor?.role === "staff";
+  const isStaff = actor?.role === "hod" || actor?.role === "lecturer";
 
   const [departments, setDepartments] = useState([]);
 

@@ -24,6 +24,7 @@ import {
   accentGold,
   authJsonHeaders,
   getPortalToken,
+  getPortalUser,
   fontBody,
   fontDisplay,
   navy,
@@ -35,6 +36,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { canManageTimetables } from "../../auth/roleAccess";
 
 const CATEGORY_META = {
   class: {
@@ -100,7 +102,7 @@ function formatDuration(startsAt, endsAt) {
   return `${minutes}m`;
 }
 
-function EntryCard({ entry, meta, index, onEdit }) {
+function EntryCard({ entry, meta, index, onEdit, canManage = false }) {
   const Icon = meta.icon;
   return (
     <Box
@@ -223,25 +225,27 @@ function EntryCard({ entry, meta, index, onEdit }) {
           <Typography sx={{ fontFamily: fontBody, color: textMuted, fontSize: "0.74rem", fontWeight: 600 }}>
             {formatDuration(entry.starts_at, entry.ends_at)}
           </Typography>
-          <Tooltip title={`Edit ${meta.singular}`}>
-            <IconButton
-              onClick={() => onEdit(entry)}
-              size="small"
-              sx={{
-                width: 30,
-                height: 30,
-                color: meta.accent,
-                bgcolor: `color-mix(in srgb, ${meta.accent} 10%, var(--kd-surface))`,
-                border: `1px solid color-mix(in srgb, ${meta.accent} 22%, transparent)`,
-                "&:hover": {
-                  color: "#fff",
-                  bgcolor: meta.accent,
-                },
-              }}
-            >
-              <EditRoundedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
+          {canManage ? (
+            <Tooltip title={`Edit ${meta.singular}`}>
+              <IconButton
+                onClick={() => onEdit(entry)}
+                size="small"
+                sx={{
+                  width: 30,
+                  height: 30,
+                  color: meta.accent,
+                  bgcolor: `color-mix(in srgb, ${meta.accent} 10%, var(--kd-surface))`,
+                  border: `1px solid color-mix(in srgb, ${meta.accent} 22%, transparent)`,
+                  "&:hover": {
+                    color: "#fff",
+                    bgcolor: meta.accent,
+                  },
+                }}
+              >
+                <EditRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          ) : null}
         </Stack>
       </Stack>
     </Box>
@@ -252,6 +256,7 @@ export default function TimetableDayPage() {
   const navigate = useNavigate();
   const { dateKey } = useParams();
   const [searchParams] = useSearchParams();
+  const canManage = canManageTimetables(getPortalUser()?.role);
   const parsed = useMemo(() => parseDateKey(dateKey), [dateKey]);
   const categoryKey = CATEGORY_META[searchParams.get("tab")] ? searchParams.get("tab") : "class";
   const meta = CATEGORY_META[categoryKey];
@@ -482,6 +487,7 @@ export default function TimetableDayPage() {
               meta={meta}
               index={index}
               onEdit={editEntry}
+              canManage={canManage}
             />
           ))}
         </Stack>

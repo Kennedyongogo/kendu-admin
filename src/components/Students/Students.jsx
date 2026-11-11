@@ -54,6 +54,7 @@ import useProgrammeEnrolmentOptions from "../Users/useProgrammeEnrolmentOptions"
 import {
   authJsonHeaders,
   getPortalToken,
+  getPortalUser,
   ghostBtnSx,
   inputSx,
   pageShellSx,
@@ -65,6 +66,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { canManageStudents } from "../../auth/roleAccess";
 
 const STUDENT_TABS = [
   { label: "Dashboard", value: "dashboard" },
@@ -135,6 +137,7 @@ export default function Students() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = tabIndexFromSearch(searchParams);
   const isListTab = activeTab === 1;
+  const canManage = canManageStudents(getPortalUser()?.role);
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -437,7 +440,7 @@ export default function Students() {
         }
         icon={<SchoolIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          isListTab ? (
+          isListTab && canManage ? (
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
               <HeroActionButton
                 variant="outlined"
@@ -647,29 +650,33 @@ export default function Students() {
                                   <ViewIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Edit">
-                                <IconButton size="small" onClick={() => handleEditOpen(row)} sx={{ color: textSecondary }}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title={active ? "Deactivate" : "Activate"}>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleToggleActive(row)}
-                                  sx={{ color: active ? "#c8a840" : textMuted }}
-                                >
-                                  {active ? (
-                                    <ToggleOnIcon fontSize="small" />
-                                  ) : (
-                                    <ToggleOffIcon fontSize="small" />
-                                  )}
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: "#b42318" }}>
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              {canManage ? (
+                                <>
+                                  <Tooltip title="Edit">
+                                    <IconButton size="small" onClick={() => handleEditOpen(row)} sx={{ color: textSecondary }}>
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title={active ? "Deactivate" : "Activate"}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleToggleActive(row)}
+                                      sx={{ color: active ? "#c8a840" : textMuted }}
+                                    >
+                                      {active ? (
+                                        <ToggleOnIcon fontSize="small" />
+                                      ) : (
+                                        <ToggleOffIcon fontSize="small" />
+                                      )}
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton size="small" onClick={() => handleDelete(row)} sx={{ color: "#b42318" }}>
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </>
+                              ) : null}
                             </>
                           );
                         })()}
@@ -713,18 +720,20 @@ export default function Students() {
             <Button onClick={closeDialogs} sx={ghostBtnSx}>
               Close
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<EditIcon />}
-              onClick={() => {
-                if (!selected) return;
-                setOpenView(false);
-                handleEditOpen(selected);
-              }}
-              sx={primaryBtnSx}
-            >
-              Edit
-            </Button>
+            {canManage ? (
+              <Button
+                variant="contained"
+                startIcon={<EditIcon />}
+                onClick={() => {
+                  if (!selected) return;
+                  setOpenView(false);
+                  handleEditOpen(selected);
+                }}
+                sx={primaryBtnSx}
+              >
+                Edit
+              </Button>
+            ) : null}
           </>
         }
       >

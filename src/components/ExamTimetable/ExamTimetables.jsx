@@ -43,6 +43,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { canManageTimetables } from "../../auth/roleAccess";
 import {
   STATUS_META,
   cohortLabel,
@@ -402,16 +403,15 @@ export default function ExamTimetables() {
   const navigate = useNavigate();
   const token = getPortalToken();
   const user = getPortalUser();
-  const isAdmin = user?.role === "admin";
+  const canManage = canManageTimetables(user?.role);
 
   const canDeletePlan = useCallback(
     (row) => {
+      if (!canManage) return false;
       if (row.status === "approved") return false;
-      if (isAdmin) return true;
-      const slotCount = row.slot_count ?? (Array.isArray(row.slots) ? row.slots.length : 0);
-      return slotCount <= 1;
+      return true;
     },
-    [isAdmin]
+    [canManage]
   );
   const scrollerRef = useRef(null);
 
@@ -606,13 +606,15 @@ export default function ExamTimetables() {
         subtitle="Scroll cohort plans — open to add papers or submit."
         icon={<FactCheckRoundedIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
-          <HeroActionButton
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/exam-timetables/create")}
-          >
-            New exam timetable
-          </HeroActionButton>
+          canManage ? (
+            <HeroActionButton
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/exam-timetables/create")}
+            >
+              New exam timetable
+            </HeroActionButton>
+          ) : null
         }
       />
 
@@ -691,7 +693,7 @@ export default function ExamTimetables() {
         </Stack>
         <Typography sx={{ fontFamily: fontBody, fontSize: "0.78rem", color: textMuted, mt: 1.25 }}>
           Viewing {selectedProgramme ? selectedProgramme.name : "all programmes"} · {academicYearFilter} ·
-          signed in as {user?.role || "staff"}
+          signed in as {user?.role || "user"}
         </Typography>
       </Box>
 
@@ -733,22 +735,26 @@ export default function ExamTimetables() {
             Create a plan for a programme cohort (e.g. Year 2 · Semester 1 · {academicYearFilter}). Each plan
             appears here as a card you can browse with the arrows.
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/exam-timetables/create")}
-            sx={{
-              textTransform: "none",
-              fontWeight: 700,
-              borderRadius: "12px",
-              px: 3,
-              bgcolor: primaryGreen,
-              boxShadow: "0 8px 20px -8px rgba(27,94,168,0.5)",
-              "&:hover": { bgcolor: primaryDark },
-            }}
-          >
-            Create first plan
-          </Button>
+          {canManage ? (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/exam-timetables/create")}
+              sx={{
+                textTransform: "none",
+                fontWeight: 700,
+                borderRadius: "12px",
+                px: 3,
+                bgcolor: primaryGreen,
+                boxShadow: "0 8px 20px -8px rgba(27,94,168,0.5)",
+                "&:hover": { bgcolor: primaryDark },
+              }}
+            >
+              Create first plan
+            </Button>
+          ) : (
+            <Typography sx={{ color: textMuted, fontWeight: 600 }}>View only</Typography>
+          )}
         </Box>
       ) : (
         <Box>

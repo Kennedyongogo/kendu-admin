@@ -13,6 +13,8 @@ import {
 import { primaryGreen, primaryDark, textSecondary, pageShellSx, fetchResourceOne, getPortalToken } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, FormSection, DetailField, fadeUp } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 
 export default function SubjectViewPage() {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ export default function SubjectViewPage() {
   const [error, setError] = useState(null);
 
   const token = getPortalToken();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const goBack = () => navigate("/programmes/subjects");
 
   useEffect(() => {
@@ -74,7 +77,9 @@ export default function SubjectViewPage() {
         icon={<GradeIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Edit subject">
+            {canManage ? (
+
+              <Tooltip title="Edit subject">
               <IconButton
                 onClick={() => navigate(`/programmes/subjects/${id}/edit`)}
                 sx={{
@@ -87,6 +92,9 @@ export default function SubjectViewPage() {
                 <EditIcon />
               </IconButton>
             </Tooltip>
+
+            ) : null}
+
             <Tooltip title="Back to subjects">
               <IconButton
                 onClick={goBack}

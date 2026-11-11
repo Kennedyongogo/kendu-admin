@@ -67,6 +67,7 @@ import {
   getProgrammeSemesterOptions,
   defaultScheduleForProgramme,
 } from "../Programmes/programmesShared";
+import { canManageUnits } from "../../auth/roleAccess";
 
 const STATUS_META = {
   draft: { label: "Draft", color: textSecondary, bg: "rgba(30,40,88,0.06)" },
@@ -343,6 +344,7 @@ function ProgrammeGallery({
   selectedId,
   department,
   isStaff,
+  canManage = false,
   fitViewport = false,
   onSelect,
   onPreview,
@@ -629,25 +631,27 @@ function ProgrammeGallery({
               >
                 View units
               </Button>
-              <Button
-                variant="outlined"
-                size={fitViewport ? "small" : "medium"}
-                startIcon={<AddIcon />}
-                onClick={() => onAddUnit(active)}
-                sx={{
-                  fontFamily: fontBody,
-                  fontWeight: 700,
-                  textTransform: "none",
-                  borderRadius: "11px",
-                  px: 2,
-                  py: fitViewport ? 0.85 : 1.05,
-                  borderColor: "rgba(255,255,255,0.45)",
-                  color: "#fff",
-                  "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.1)" },
-                }}
-              >
-                Add unit
-              </Button>
+              {canManage ? (
+                <Button
+                  variant="outlined"
+                  size={fitViewport ? "small" : "medium"}
+                  startIcon={<AddIcon />}
+                  onClick={() => onAddUnit(active)}
+                  sx={{
+                    fontFamily: fontBody,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    borderRadius: "11px",
+                    px: 2,
+                    py: fitViewport ? 0.85 : 1.05,
+                    borderColor: "rgba(255,255,255,0.45)",
+                    color: "#fff",
+                    "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.1)" },
+                  }}
+                >
+                  Add unit
+                </Button>
+              ) : null}
             </Stack>
           </Box>
 
@@ -788,7 +792,8 @@ function ProgrammeGallery({
 export default function Units() {
   const actor = useMemo(() => readActor(), []);
   const isAdmin = actor?.role === "admin";
-  const isStaff = actor?.role === "staff";
+  const isStaff = actor?.role === "hod" || actor?.role === "lecturer";
+  const canManage = canManageUnits(actor?.role);
 
   const [tab, setTab] = useState("programmes");
   const [selectedProgrammeId, setSelectedProgrammeId] = useState("");
@@ -932,6 +937,7 @@ export default function Units() {
   const selectedProgramme = programmes.find((p) => p.id === selectedProgrammeId) || null;
 
   const openCreate = (programme) => {
+    if (!canManage) return;
     setEditing(null);
     const base = emptyForm();
     const picked =
@@ -1000,6 +1006,7 @@ export default function Units() {
   };
 
   const openEdit = (row) => {
+    if (!canManage) return;
     setEditing(row);
     setForm(rowToForm(row));
     setDialogOpen(true);
@@ -1316,9 +1323,11 @@ export default function Units() {
               </Typography>
             </Stack>
           </Box>
-          <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
-            Add unit
-          </HeroActionButton>
+          {canManage ? (
+            <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
+              Add unit
+            </HeroActionButton>
+          ) : null}
         </Stack>
       ) : (
         <UsersHero
@@ -1326,7 +1335,9 @@ export default function Units() {
           subtitle={
             isStaff
               ? "Browse programmes in your department, then list units for approval"
-              : "Review department programmes and approve unit offerings"
+              : canManage
+                ? "Browse programmes and manage unit offerings"
+                : "Browse programmes and view unit offerings"
           }
           icon={<SchoolIcon sx={{ fontSize: 28, color: "#fff" }} />}
           actions={
@@ -1402,9 +1413,11 @@ export default function Units() {
                   </Select>
                 </FormControl>
               ) : null}
-              <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
-                Add unit
-              </HeroActionButton>
+              {canManage ? (
+                <HeroActionButton variant="contained" startIcon={<AddIcon />} onClick={() => openCreate()}>
+                  Add unit
+                </HeroActionButton>
+              ) : null}
             </Stack>
           }
         />
@@ -1503,6 +1516,7 @@ export default function Units() {
             onSelect={goToProgrammeUnits}
             onPreview={previewProgramme}
             onAddUnit={openCreate}
+            canManage={canManage}
           />
         ) : (
           <>
@@ -1595,7 +1609,7 @@ export default function Units() {
                     rows.map((row, idx) => {
                       const isCreator = row.created_by === actor?.id || row.creator?.id === actor?.id;
                       const editable =
-                        ["draft", "rejected"].includes(row.status) && isCreator;
+                        canManage && ["draft", "rejected"].includes(row.status) && (isCreator || isAdmin);
                       const canSubmit = editable;
                       return (
                         <TableRow key={row.id} hover>
@@ -1675,7 +1689,7 @@ export default function Units() {
                                   </Tooltip>
                                 </>
                               ) : null}
-                              {editable || (isAdmin && row.status !== "draft") ? (
+                              {canManage && (editable || (isAdmin && row.status !== "draft")) ? (
                                 <Tooltip title="Delete">
                                   <IconButton size="small" onClick={() => deleteUnit(row)} sx={{ color: primaryDark }}>
                                     <DeleteIcon fontSize="small" />
@@ -1733,9 +1747,10 @@ export default function Units() {
         loading={viewLoading}
         error={viewError}
         onEdit={
+          canManage &&
           viewUnit &&
           ["draft", "rejected"].includes(viewUnit.status) &&
-          (viewUnit.created_by === actor?.id || viewUnit.creator?.id === actor?.id)
+          (isAdmin || viewUnit.created_by === actor?.id || viewUnit.creator?.id === actor?.id)
             ? editFromView
             : undefined
         }

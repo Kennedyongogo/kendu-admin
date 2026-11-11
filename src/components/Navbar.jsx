@@ -23,6 +23,7 @@ import {
   BubbleChart,
   Restaurant,
   Church,
+  Assignment,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -40,6 +41,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import { Box, Typography } from "@mui/material";
 import Header from "./Header/Header";
 import { clearPortalSession } from "../auth/portalAuth";
+import { canShowNavPath } from "../auth/roleAccess";
 
 const drawerWidth = 280;
 const drawerCollapsedWidth = 100;
@@ -172,6 +174,7 @@ const MENU_SECTIONS = [
       { text: "Library", icon: <LocalLibrary />, path: "/library" },
       { text: "Timetable", icon: <CalendarMonth />, path: "/timetable" },
       { text: "Exam Timetables", icon: <FactCheck />, path: "/exam-timetables" },
+      { text: "Assignments", icon: <Assignment />, path: "/assignments" },
       { text: "News & Events", icon: <Campaign />, path: "/announcements" },
       { text: "Chat", icon: <Chat />, path: "/staff-chat" },
     ],
@@ -353,25 +356,7 @@ const Navbar = (props) => {
       setMenuItems([]);
       return;
     }
-    if (user.role === "staff") {
-      setMenuItems(
-        flatMenuItems.filter(
-          (item) =>
-            item.path === "/settings" ||
-            item.path === "/units" ||
-            item.path === "/registrations" ||
-            item.path === "/timetable" ||
-            item.path === "/exam-timetables" ||
-            item.path === "/announcements" ||
-            item.path === "/staff-chat" ||
-            item.path === "/library" ||
-            item.path === "/church" ||
-            item.path === "/upcoming-activities"
-        )
-      );
-      return;
-    }
-    setMenuItems(flatMenuItems);
+    setMenuItems(flatMenuItems.filter((item) => canShowNavPath(user.role, item.path)));
   }, [user]);
 
   useEffect(() => {

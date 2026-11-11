@@ -1,14 +1,29 @@
 /**
  * Admin portal auth — separate session per browser tab.
- * Admin and staff use different sessionStorage keys so two accounts can stay
+ * Each office uses its own sessionStorage keys so two accounts can stay
  * signed in on the same browser (different tabs) without clashing.
  */
 
 const PORTAL_ROLE_KEY = "kendu_portal_role";
 const LEGACY_KEYS = ["token", "user", "userRole"];
 
+const PORTAL_ROLES = new Set([
+  "admin",
+  "principal",
+  "deputy_principal",
+  "hod",
+  "academic_registrar",
+  "examinations",
+  "library",
+  "lecturer",
+  "secretary",
+  "dean",
+  "finance",
+  "catering",
+]);
+
 function isPortalRole(role) {
-  return role === "admin" || role === "staff";
+  return PORTAL_ROLES.has(role);
 }
 
 function roleKey(role, suffix) {

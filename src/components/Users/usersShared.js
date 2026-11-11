@@ -22,7 +22,21 @@ export const primaryRed = primaryGreen;
 export const fontBody = '"Plus Jakarta Sans", system-ui, sans-serif';
 export const fontDisplay = '"Fraunces", "Georgia", serif';
 
-export const ALL_ROLES = ["admin", "staff", "student", "catering"];
+export const ALL_ROLES = [
+  "admin",
+  "principal",
+  "deputy_principal",
+  "hod",
+  "academic_registrar",
+  "examinations",
+  "library",
+  "lecturer",
+  "secretary",
+  "dean",
+  "finance",
+  "student",
+  "catering",
+];
 
 import {
   getPortalToken,
@@ -39,13 +53,13 @@ export function getActorFromStorage() {
 /** Roles the signed-in user may assign when creating or editing users. */
 export function assignableRoles(actorRole) {
   if (actorRole === "admin") return [...ALL_ROLES];
-  if (actorRole === "staff") return ["staff", "student"];
+  if (actorRole === "secretary" || actorRole === "academic_registrar") return ["student"];
   return [];
 }
 
 /**
  * Roles shown on create screens.
- * kind: "admin" → admin/staff/catering; "student" → student only.
+ * kind: "admin" → offices and catering; "student" → student only.
  */
 export function creatableRolesForKind(actorRole, kind = "admin") {
   const allowed = assignableRoles(actorRole);
@@ -57,9 +71,38 @@ export function creatableRolesForKind(actorRole, kind = "admin") {
 
 export const ROLE_TABS = [
   { label: "Admin", value: "admin" },
-  { label: "Staff", value: "staff" },
+  { label: "Principal", value: "principal" },
+  { label: "Deputy Principal", value: "deputy_principal" },
+  { label: "HOD", value: "hod" },
+  { label: "Registrar", value: "academic_registrar" },
+  { label: "Exams", value: "examinations" },
+  { label: "Library", value: "library" },
+  { label: "Lecturer", value: "lecturer" },
+  { label: "Secretary", value: "secretary" },
+  { label: "Dean", value: "dean" },
+  { label: "Finance", value: "finance" },
   { label: "Catering", value: "catering" },
 ];
+
+export function roleTabFor(role) {
+  return ROLE_TABS.find((tab) => tab.value === role) || null;
+}
+
+export function createRoleActionLabel(role) {
+  if (role === "student") return "Create student";
+  const tab = roleTabFor(role);
+  return tab ? `Create ${tab.label}` : `Create ${formatRole(role)}`;
+}
+
+export function editRoleActionLabel(role) {
+  if (role === "student") return "Edit student";
+  const tab = roleTabFor(role);
+  return tab ? `Edit ${tab.label}` : `Edit ${formatRole(role)}`;
+}
+
+export function isAdminPortalRole(role) {
+  return ROLE_TABS.some((tab) => tab.value === role);
+}
 
 export const authJsonHeaders = (token) => {
   const resolved = token || getPortalToken();
@@ -79,8 +122,18 @@ export function roleChipColor(role) {
   switch (role) {
     case "admin":
       return { bg: primaryGreen, color: "#fff" };
-    case "staff":
+    case "lecturer":
+    case "hod":
       return { bg: navy, color: "#fff" };
+    case "principal":
+    case "deputy_principal":
+    case "academic_registrar":
+    case "examinations":
+    case "secretary":
+    case "dean":
+    case "library":
+    case "finance":
+      return { bg: primaryDark, color: "#fff" };
     case "student":
       return { bg: accentGold, color: navy };
     case "catering":

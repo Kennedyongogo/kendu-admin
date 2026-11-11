@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Box,
@@ -11,7 +11,11 @@ import {
   Avatar,
   Button,
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from "@mui/icons-material";
 import {
   fontBody,
   fontDisplay,
@@ -150,6 +154,67 @@ export function UsersHero({ title, subtitle, actions, icon, leading, delay = 0 }
 }
 
 export function RoleTabs({ activeTab, onChange, tabs }) {
+  const scrollerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(maxScroll - el.scrollLeft > 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return undefined;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateScrollState) : null;
+    ro?.observe(el);
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      ro?.disconnect();
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [tabs, updateScrollState]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const chip = el.children[activeTab];
+    if (!chip || typeof chip.scrollIntoView !== "function") return;
+    chip.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }, [activeTab]);
+
+  const scrollByAmount = (direction) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const amount = Math.max(160, Math.floor(el.clientWidth * 0.6));
+    el.scrollBy({ left: direction * amount, behavior: "smooth" });
+  };
+
+  const arrowSx = {
+    flexShrink: 0,
+    width: 34,
+    height: 34,
+    color: textSecondary,
+    bgcolor: warmCream,
+    border: "1px solid rgba(27,94,168,0.12)",
+    "&:hover": { bgcolor: primaryLight, color: primaryGreen },
+    "&.Mui-disabled": {
+      opacity: 0.35,
+      bgcolor: "transparent",
+      borderColor: "transparent",
+    },
+  };
+
   return (
     <Box
       component={motion.div}
@@ -158,46 +223,79 @@ export function RoleTabs({ activeTab, onChange, tabs }) {
       initial="hidden"
       animate="visible"
       sx={{
-        display: "inline-flex",
-        gap: 0.5,
-        p: 0.6,
+        display: "flex",
+        alignItems: "center",
+        gap: 0.75,
         mb: 2.5,
-        borderRadius: "14px",
-        bgcolor: "var(--kd-surface)",
-        border: "1px solid rgba(27,94,168,0.1)",
-        boxShadow: "0 4px 16px rgba(20,26,58,0.04)",
-        overflowX: "auto",
         maxWidth: "100%",
-        "&::-webkit-scrollbar": { height: 0 },
       }}
     >
-      {tabs.map((tab, i) => {
-        const selected = activeTab === i;
-        return (
-          <Chip
-            key={tab.label}
-            label={tab.label}
-            onClick={() => onChange(null, i)}
-            sx={{
-              fontFamily: fontBody,
-              fontWeight: selected ? 700 : 600,
-              fontSize: "0.84rem",
-              height: 38,
-              px: 1,
-              flexShrink: 0,
-              borderRadius: "10px",
-              bgcolor: selected ? primaryGreen : "transparent",
-              color: selected ? "#fff" : textSecondary,
-              border: "none",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                bgcolor: selected ? primaryDark : warmCream,
-                color: selected ? "#fff" : textPrimary,
-              },
-            }}
-          />
-        );
-      })}
+      <IconButton
+        size="small"
+        aria-label="Scroll tabs left"
+        onClick={() => scrollByAmount(-1)}
+        disabled={!canScrollLeft}
+        sx={arrowSx}
+      >
+        <ChevronLeftIcon fontSize="small" />
+      </IconButton>
+
+      <Box
+        ref={scrollerRef}
+        sx={{
+          display: "flex",
+          gap: 0.5,
+          p: 0.6,
+          flex: 1,
+          minWidth: 0,
+          borderRadius: "14px",
+          bgcolor: "var(--kd-surface)",
+          border: "1px solid rgba(27,94,168,0.1)",
+          boxShadow: "0 4px 16px rgba(20,26,58,0.04)",
+          overflowX: "auto",
+          scrollBehavior: "smooth",
+          "&::-webkit-scrollbar": { height: 0 },
+          scrollbarWidth: "none",
+        }}
+      >
+        {tabs.map((tab, i) => {
+          const selected = activeTab === i;
+          return (
+            <Chip
+              key={tab.label}
+              label={tab.label}
+              onClick={() => onChange(null, i)}
+              sx={{
+                fontFamily: fontBody,
+                fontWeight: selected ? 700 : 600,
+                fontSize: "0.84rem",
+                height: 38,
+                px: 1,
+                flexShrink: 0,
+                borderRadius: "10px",
+                bgcolor: selected ? primaryGreen : "transparent",
+                color: selected ? "#fff" : textSecondary,
+                border: "none",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  bgcolor: selected ? primaryDark : warmCream,
+                  color: selected ? "#fff" : textPrimary,
+                },
+              }}
+            />
+          );
+        })}
+      </Box>
+
+      <IconButton
+        size="small"
+        aria-label="Scroll tabs right"
+        onClick={() => scrollByAmount(1)}
+        disabled={!canScrollRight}
+        sx={arrowSx}
+      >
+        <ChevronRightIcon fontSize="small" />
+      </IconButton>
     </Box>
   );
 }

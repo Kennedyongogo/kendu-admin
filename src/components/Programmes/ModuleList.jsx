@@ -35,11 +35,14 @@ import {
 } from "./programmesShared";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageProgrammesAndDepartments } from "../../auth/roleAccess";
 import ProgrammesTabs from "./ProgrammesTabs";
 import ProgrammeHeroSearch from "./ProgrammeHeroSearch";
 
 export default function ModuleList() {
   const navigate = useNavigate();
+  const canManage = canManageProgrammesAndDepartments(getPortalUser()?.role);
   const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,6 +127,7 @@ export default function ModuleList() {
         icon={<ModuleIcon sx={{ fontSize: 28, color: "#fff" }} />}
         actions={
           <ProgrammeHeroSearch value={search} onChange={setSearch} placeholder="Search modules…">
+            {canManage ? (
             <HeroActionButton
               variant="contained"
               startIcon={<AddIcon />}
@@ -137,6 +141,7 @@ export default function ModuleList() {
             >
               Add module
             </HeroActionButton>
+            ) : null}
           </ProgrammeHeroSearch>
         }
       />
@@ -198,7 +203,8 @@ export default function ModuleList() {
                 <TableRow>
                   <TableCell colSpan={9} align="center" sx={{ py: 8 }}>
                     <Typography sx={{ color: textSecondary, fontWeight: 600 }}>No modules yet.</Typography>
-                    <Button
+                    {canManage ? (
+                      <Button
                       variant="text"
                       startIcon={<AddIcon />}
                       onClick={() => navigate("/programmes/modules/create")}
@@ -206,6 +212,7 @@ export default function ModuleList() {
                     >
                       Add first module
                     </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -235,8 +242,8 @@ export default function ModuleList() {
                       <Stack direction="row" spacing={0.25} justifyContent="flex-end">
                         {[
                           { title: "View", icon: <ViewIcon fontSize="small" />, onClick: () => navigate(`/programmes/modules/${row.id}`), color: textSecondary },
-                          { title: "Edit", icon: <EditIcon fontSize="small" />, onClick: () => navigate(`/programmes/modules/${row.id}/edit`), color: primaryGreen },
-                          { title: "Delete", icon: <DeleteIcon fontSize="small" />, onClick: () => void handleDelete(row), color: primaryDark },
+                          ...(canManage ? [{ title: "Edit", icon: <EditIcon fontSize="small" />, onClick: () => navigate(`/programmes/modules/${row.id}/edit`), color: primaryGreen },
+                          { title: "Delete", icon: <DeleteIcon fontSize="small" />, onClick: () => void handleDelete(row), color: primaryDark }] : []),
                         ].map((action) => (
                           <Tooltip key={action.title} title={action.title}>
                             <IconButton size="small" onClick={action.onClick} sx={{ color: action.color, "&:hover": { bgcolor: warmCream } }}>

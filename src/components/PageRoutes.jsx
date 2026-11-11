@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import BrandPageLoader from "./Util/BrandPageLoader";
 import Navbar from "./Navbar";
@@ -54,7 +54,9 @@ import ExamTimetablePlan from "./ExamTimetable/ExamTimetablePlan";
 import Church from "./Church/Church";
 import ChurchDesigner from "./Church/ChurchDesigner";
 import ChurchMonitor from "./Church/ChurchMonitor";
+import Assignments from "./Assignments/Assignments";
 import { readStoredPortalSession } from "../auth/portalAuth";
+import { canOpenPath, homeForRole } from "../auth/roleAccess";
 
 const churchRoutes = (
   <>
@@ -71,8 +73,9 @@ function readStoredUser() {
 }
 
 function PageRoutes() {
+  const location = useLocation();
   const [user, setUser] = useState(() => readStoredUser());
-  const isStaff = user?.role === "staff";
+  const home = homeForRole(user?.role);
 
   useEffect(() => {
     if (!user) {
@@ -82,38 +85,16 @@ function PageRoutes() {
 
   // No session yet → single brand loader (redirecting). Do not flash a second page spinner.
   if (!user) {
-    return <BrandPageLoader message="Loading…" />;
+    return <BrandPageLoader fullscreen message="Loading…" />;
   }
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "var(--kd-page-b)" }}>
       <Navbar user={user} setUser={setUser} />
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 3, mt: 9, overflowX: "hidden" }}>
+        {canOpenPath(user.role, location.pathname) ? (
         <Routes>
-          {isStaff ? (
-            <>
-              <Route path="units" element={<Units />} />
-              <Route path="registrations" element={<Registrations />} />
-              <Route path="timetable/create" element={<TimetableCreatePage />} />
-              <Route path="timetable/:id/edit" element={<TimetableCreatePage />} />
-              <Route path="timetable/day/:dateKey" element={<TimetableDayPage />} />
-              <Route path="timetable" element={<Timetable />} />
-              <Route path="exam-timetables/create" element={<ExamTimetableCreate />} />
-              <Route path="exam-timetables/:id" element={<ExamTimetablePlan />} />
-              <Route path="exam-timetables" element={<ExamTimetables />} />
-              <Route path="announcements" element={<Announcements />} />
-              <Route path="upcoming-activities" element={<UpcomingActivities />} />
-              <Route path="staff-chat" element={<StaffChat />} />
-              <Route path="staff-commons" element={<StaffChat />} />
-              <Route path="library/issue" element={<IssueBookPage />} />
-              <Route path="library" element={<Library />} />
-              {churchRoutes}
-              <Route path="settings" element={<Settings user={user} />} />
-              <Route path="*" element={<Navigate to="/units" replace />} />
-            </>
-          ) : (
-            <>
-              <Route path="home" element={<Navigate to="/dashboard" replace />} />
+              <Route path="home" element={<Navigate to={home} replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="programmes/create" element={<ProgrammeFormPage />} />
               <Route path="programmes/fees/create" element={<FeeFormPage />} />
@@ -168,6 +149,7 @@ function PageRoutes() {
               <Route path="exam-timetables/create" element={<ExamTimetableCreate />} />
               <Route path="exam-timetables/:id" element={<ExamTimetablePlan />} />
               <Route path="exam-timetables" element={<ExamTimetables />} />
+              <Route path="assignments" element={<Assignments />} />
               <Route path="announcements" element={<Announcements />} />
               <Route path="staff-chat" element={<StaffChat />} />
               <Route path="staff-commons" element={<StaffChat />} />
@@ -176,10 +158,11 @@ function PageRoutes() {
               <Route path="upcoming-activities" element={<UpcomingActivities />} />
               <Route path="audit" element={<Audit />} />
               <Route path="settings" element={<Settings user={user} />} />
-              <Route path="*" element={<NotFound />} />
-            </>
-          )}
+              <Route path="*" element={<Navigate to={home} replace />} />
         </Routes>
+        ) : (
+          <Navigate to={home} replace />
+        )}
       </Box>
     </Box>
   );
