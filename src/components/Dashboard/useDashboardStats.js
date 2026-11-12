@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { cachedFetchJson } from "../../lib/cachedFetch";
 import { authJsonHeaders, getPortalToken } from "../Users/usersShared";
 import { buildFilterSummary } from "./dashboardTheme";
 
@@ -20,11 +21,10 @@ export function useDashboardStats() {
     try {
       const params = new URLSearchParams();
       if (programmeId) params.set("programme_id", programmeId);
-      const res = await fetch(`/api/dashboard/stats?${params}`, {
+      const { ok, data } = await cachedFetchJson(`/api/dashboard/stats?${params}`, {
         headers: authJsonHeaders(token),
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
+      if (!ok || !data.success) {
         throw new Error(data.message || "Could not load dashboard stats.");
       }
       setStats(data.data);

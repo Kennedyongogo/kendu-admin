@@ -51,6 +51,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getPortalUser } from "../../auth/portalAuth";
 import { canViewTranscripts } from "../../auth/roleAccess";
+import { cachedFetchJson } from "../../lib/cachedFetch";
 
 const DRAG_BODY_CLASS = "cohort-transfer-dragging";
 
@@ -1016,9 +1017,10 @@ export default function CohortTransferPage() {
     setLoadingProgrammes(true);
     setError("");
     try {
-      const res = await fetch("/api/cohort-transfer/programmes", { headers: authJsonHeaders(token) });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) throw new Error(data.message || "Could not load programmes.");
+      const { ok, data } = await cachedFetchJson("/api/cohort-transfer/programmes", {
+        headers: authJsonHeaders(token),
+      });
+      if (!ok || !data.success) throw new Error(data.message || "Could not load programmes.");
       const rows = Array.isArray(data.data) ? data.data : [];
       setProgrammes(rows);
       setActiveTab((prev) => (rows.length && prev >= rows.length ? 0 : prev));
@@ -1123,19 +1125,28 @@ export default function CohortTransferPage() {
     if (!selectedProgramme?.id || !years.length) return undefined;
     let cancelled = false;
     const prefetch = async () => {
-      for (const yearItem of years) {
-        if (cancelled) return;
-        if (semesterCacheRef.current[String(yearItem.year_of_study)]) continue;
-        try {
-          const rows = await fetchSemesters(selectedProgramme.id, yearItem.year_of_study, "");
-          if (!cancelled) {
-            semesterCacheRef.current[String(yearItem.year_of_study)] = cloneSemesters(rows);
-            setCacheTick((t) => t + 1);
+      const pending = years.filter(
+        (yearItem) => !semesterCacheRef.current[String(yearItem.year_of_study)]
+      );
+      if (!pending.length) return;
+      const results = await Promise.all(
+        pending.map(async (yearItem) => {
+          try {
+            const rows = await fetchSemesters(selectedProgramme.id, yearItem.year_of_study, "");
+            return { year: yearItem.year_of_study, rows };
+          } catch {
+            return null;
           }
-        } catch {
-          /* skip */
-        }
+        })
+      );
+      if (cancelled) return;
+      let wrote = false;
+      for (const item of results) {
+        if (!item) continue;
+        semesterCacheRef.current[String(item.year)] = cloneSemesters(item.rows);
+        wrote = true;
       }
+      if (wrote) setCacheTick((t) => t + 1);
     };
     void prefetch();
     return () => {

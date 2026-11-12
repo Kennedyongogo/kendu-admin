@@ -1,63 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import BrandPageLoader from "./Util/BrandPageLoader";
 import Navbar from "./Navbar";
-import Settings from "../Pages/Settings";
-import NotFound from "../Pages/NotFound";
-import Dashboard from "../Pages/Dashboard";
-import UsersTable from "./Users/UsersTable";
-import UsersCreate from "./Users/UsersCreate";
-import Students from "./Students/Students";
-import Audit from "./Audit/Audit";
-import Programmes from "./Programmes/Programmes";
-import ProgrammeFormPage from "./Programmes/ProgrammeFormPage";
-import ProgrammeViewPage from "./Programmes/ProgrammeViewPage";
-import FeeList from "./Programmes/FeeList";
-import FeeFormPage from "./Programmes/FeeFormPage";
-import FeeViewPage from "./Programmes/FeeViewPage";
-import HourList from "./Programmes/HourList";
-import HourFormPage from "./Programmes/HourFormPage";
-import HourViewPage from "./Programmes/HourViewPage";
-import ModuleList from "./Programmes/ModuleList";
-import ModuleFormPage from "./Programmes/ModuleFormPage";
-import ModuleViewPage from "./Programmes/ModuleViewPage";
-import SubjectList from "./Programmes/SubjectList";
-import SubjectFormPage from "./Programmes/SubjectFormPage";
-import SubjectViewPage from "./Programmes/SubjectViewPage";
-import Music from "./Music/Music";
-import Brochures from "./Brochures/Brochures";
-import UpcomingActivities from "./UpcomingActivities/UpcomingActivities";
-import Admissions from "./Admissions/Admissions";
-import AdmissionViewPage from "./Admissions/AdmissionViewPage";
-import Accounting from "./Accounting/Accounting";
-import RecordPaymentPage from "./Accounting/RecordPaymentPage";
-import Library from "./Library/Library";
-import IssueBookPage from "./Library/IssueBookPage";
-import Timetable from "./Timetable/Timetable";
-import TimetableDayPage from "./Timetable/TimetableDayPage";
-import TimetableCreatePage from "./Timetable/TimetableCreatePage";
-import Departments from "./Departments/Departments";
-import DepartmentViewPage from "./Departments/DepartmentViewPage";
-import Units from "./Units/Units";
-import Registrations from "./Units/Registrations";
-import Access from "./Access/Access";
-import Meals from "./Meals/Meals";
-import CohortTransferPage from "./CohortTransfer/CohortTransferPage";
-import ClassTranscriptSummaryPage from "./CohortTransfer/ClassTranscriptSummaryPage";
-import StudentTranscriptPage from "./CohortTransfer/StudentTranscriptPage";
-import StudentTranscriptEditorPage from "./CohortTransfer/StudentTranscriptEditorPage";
-import Announcements from "./Announcements/Announcements";
-import StaffChat from "./StaffCommons/StaffChat";
-import ExamTimetables from "./ExamTimetable/ExamTimetables";
-import ExamTimetableCreate from "./ExamTimetable/ExamTimetableCreate";
-import ExamTimetablePlan from "./ExamTimetable/ExamTimetablePlan";
-import Church from "./Church/Church";
-import ChurchDesigner from "./Church/ChurchDesigner";
-import ChurchMonitor from "./Church/ChurchMonitor";
-import Assignments from "./Assignments/Assignments";
 import { readStoredPortalSession } from "../auth/portalAuth";
 import { canOpenPath, homeForRole } from "../auth/roleAccess";
+
+const Settings = lazy(() => import("../Pages/Settings"));
+const Dashboard = lazy(() => import("../Pages/Dashboard"));
+const UsersTable = lazy(() => import("./Users/UsersTable"));
+const UsersCreate = lazy(() => import("./Users/UsersCreate"));
+const Students = lazy(() => import("./Students/Students"));
+const Audit = lazy(() => import("./Audit/Audit"));
+const Programmes = lazy(() => import("./Programmes/Programmes"));
+const ProgrammeFormPage = lazy(() => import("./Programmes/ProgrammeFormPage"));
+const ProgrammeViewPage = lazy(() => import("./Programmes/ProgrammeViewPage"));
+const FeeList = lazy(() => import("./Programmes/FeeList"));
+const FeeFormPage = lazy(() => import("./Programmes/FeeFormPage"));
+const FeeViewPage = lazy(() => import("./Programmes/FeeViewPage"));
+const HourList = lazy(() => import("./Programmes/HourList"));
+const HourFormPage = lazy(() => import("./Programmes/HourFormPage"));
+const HourViewPage = lazy(() => import("./Programmes/HourViewPage"));
+const ModuleList = lazy(() => import("./Programmes/ModuleList"));
+const ModuleFormPage = lazy(() => import("./Programmes/ModuleFormPage"));
+const ModuleViewPage = lazy(() => import("./Programmes/ModuleViewPage"));
+const SubjectList = lazy(() => import("./Programmes/SubjectList"));
+const SubjectFormPage = lazy(() => import("./Programmes/SubjectFormPage"));
+const SubjectViewPage = lazy(() => import("./Programmes/SubjectViewPage"));
+const Music = lazy(() => import("./Music/Music"));
+const Brochures = lazy(() => import("./Brochures/Brochures"));
+const UpcomingActivities = lazy(() => import("./UpcomingActivities/UpcomingActivities"));
+const Admissions = lazy(() => import("./Admissions/Admissions"));
+const AdmissionViewPage = lazy(() => import("./Admissions/AdmissionViewPage"));
+const Accounting = lazy(() => import("./Accounting/Accounting"));
+const RecordPaymentPage = lazy(() => import("./Accounting/RecordPaymentPage"));
+const Library = lazy(() => import("./Library/Library"));
+const IssueBookPage = lazy(() => import("./Library/IssueBookPage"));
+const Timetable = lazy(() => import("./Timetable/Timetable"));
+const TimetableDayPage = lazy(() => import("./Timetable/TimetableDayPage"));
+const TimetableCreatePage = lazy(() => import("./Timetable/TimetableCreatePage"));
+const Departments = lazy(() => import("./Departments/Departments"));
+const DepartmentViewPage = lazy(() => import("./Departments/DepartmentViewPage"));
+const Units = lazy(() => import("./Units/Units"));
+const Registrations = lazy(() => import("./Units/Registrations"));
+const Access = lazy(() => import("./Access/Access"));
+const Meals = lazy(() => import("./Meals/Meals"));
+const CohortTransferPage = lazy(() => import("./CohortTransfer/CohortTransferPage"));
+const ClassTranscriptSummaryPage = lazy(() => import("./CohortTransfer/ClassTranscriptSummaryPage"));
+const StudentTranscriptPage = lazy(() => import("./CohortTransfer/StudentTranscriptPage"));
+const StudentTranscriptEditorPage = lazy(() => import("./CohortTransfer/StudentTranscriptEditorPage"));
+const Announcements = lazy(() => import("./Announcements/Announcements"));
+const StaffChat = lazy(() => import("./StaffCommons/StaffChat"));
+const ExamTimetables = lazy(() => import("./ExamTimetable/ExamTimetables"));
+const ExamTimetableCreate = lazy(() => import("./ExamTimetable/ExamTimetableCreate"));
+const ExamTimetablePlan = lazy(() => import("./ExamTimetable/ExamTimetablePlan"));
+const Church = lazy(() => import("./Church/Church"));
+const ChurchDesigner = lazy(() => import("./Church/ChurchDesigner"));
+const ChurchMonitor = lazy(() => import("./Church/ChurchMonitor"));
+const Assignments = lazy(() => import("./Assignments/Assignments"));
 
 const churchRoutes = (
   <>
@@ -73,6 +73,10 @@ function readStoredUser() {
   return session?.user || null;
 }
 
+function PageFallback() {
+  return <BrandPageLoader message="Loading page…" />;
+}
+
 function PageRoutes() {
   const location = useLocation();
   const [user, setUser] = useState(() => readStoredUser());
@@ -84,7 +88,6 @@ function PageRoutes() {
     }
   }, [user]);
 
-  // No session yet → single brand loader (redirecting). Do not flash a second page spinner.
   if (!user) {
     return <BrandPageLoader fullscreen message="Loading…" />;
   }
@@ -94,7 +97,8 @@ function PageRoutes() {
       <Navbar user={user} setUser={setUser} />
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 3, mt: 9, overflowX: "hidden" }}>
         {canOpenPath(user.role, location.pathname) ? (
-        <Routes>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
               <Route path="home" element={<Navigate to={home} replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="programmes/create" element={<ProgrammeFormPage />} />
@@ -161,7 +165,8 @@ function PageRoutes() {
               <Route path="audit" element={<Audit />} />
               <Route path="settings" element={<Settings user={user} />} />
               <Route path="*" element={<Navigate to={home} replace />} />
-        </Routes>
+            </Routes>
+          </Suspense>
         ) : (
           <Navigate to={home} replace />
         )}

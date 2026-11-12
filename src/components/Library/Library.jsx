@@ -570,38 +570,72 @@ export default function Library() {
     setServices(data.data || []);
   }, [api]);
 
-  const loadAll = useCallback(async () => {
+  const [booksLoaded, setBooksLoaded] = useState(false);
+  const [rulesLoaded, setRulesLoaded] = useState(false);
+  const [loansLoaded, setLoansLoaded] = useState(false);
+  const [elearnLoaded, setElearnLoaded] = useState(false);
+  const [servicesLoaded, setServicesLoaded] = useState(false);
+
+  const loadShell = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      await Promise.all([
-        loadStats(),
-        loadWeekly(),
-        loadProgrammes(),
-        loadBooks(),
-        loadRules(),
-        loadLoans(),
-        loadElearn(),
-        loadServices(),
-      ]);
+      await Promise.all([loadStats(), loadWeekly(), loadProgrammes()]);
     } catch (err) {
       setError(err.message || "Failed to load library");
     } finally {
       setLoading(false);
     }
-  }, [loadStats, loadWeekly, loadProgrammes, loadBooks, loadRules, loadLoans, loadElearn, loadServices]);
+  }, [loadStats, loadWeekly, loadProgrammes]);
+
+  const loadTabData = useCallback(
+    async (tabIndex) => {
+      if (tabIndex === 1) {
+        await loadBooks();
+        setBooksLoaded(true);
+      } else if (tabIndex === 2) {
+        await loadRules();
+        setRulesLoaded(true);
+      } else if (tabIndex === 3) {
+        await loadLoans();
+        setLoansLoaded(true);
+      } else if (tabIndex === 4) {
+        await loadElearn();
+        setElearnLoaded(true);
+      } else if (tabIndex === 5) {
+        await loadServices();
+        setServicesLoaded(true);
+      }
+    },
+    [loadBooks, loadRules, loadLoans, loadElearn, loadServices]
+  );
+
+  const loadAll = useCallback(async () => {
+    setError("");
+    try {
+      await loadShell();
+      if (tab !== 0) await loadTabData(tab);
+    } catch (err) {
+      setError(err.message || "Failed to load library");
+    }
+  }, [loadShell, loadTabData, tab]);
 
   useEffect(() => {
-    void loadAll();
+    void loadShell();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (tab === 0) return;
+    loadTabData(tab).catch((err) => setError(err.message || "Failed to load library"));
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (loading || tab !== 1 || !booksLoaded) return;
     loadBooks().catch((err) => setError(err.message));
   }, [bookPage, bookRows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || tab !== 1 || !booksLoaded) return;
     const t = window.setTimeout(() => {
       setBookPage(0);
       loadBooks().catch((err) => setError(err.message));
@@ -610,12 +644,12 @@ export default function Library() {
   }, [bookSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || tab !== 3 || !loansLoaded) return;
     loadLoans().catch((err) => setError(err.message));
   }, [loanPage, loanRows, loanStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || tab !== 3 || !loansLoaded) return;
     const t = window.setTimeout(() => {
       setLoanPage(0);
       loadLoans().catch((err) => setError(err.message));
@@ -624,12 +658,12 @@ export default function Library() {
   }, [loanSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || tab !== 4 || !elearnLoaded) return;
     loadElearn().catch((err) => setError(err.message));
   }, [elearnPage, elearnRows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || tab !== 4 || !elearnLoaded) return;
     const t = window.setTimeout(() => {
       setElearnPage(0);
       loadElearn().catch((err) => setError(err.message));
@@ -1163,35 +1197,37 @@ export default function Library() {
             key: "books",
             label: "Books",
             hint: "Catalogue & stock",
-            count: bookTotal,
+            count: booksLoaded ? bookTotal : summary.book_titles ?? 0,
             icon: <MenuBookRoundedIcon />,
           },
           {
             key: "rules",
             label: "Rules",
             hint: "Loan policies",
-            count: rules.length,
+            count: rulesLoaded ? rules.length : summary.rules ?? 0,
             icon: <RuleRoundedIcon />,
           },
           {
             key: "loans",
             label: "Loans",
             hint: "Charge & discharge",
-            count: loanTotal,
+            count: loansLoaded
+              ? loanTotal
+              : (Number(summary.on_loan) || 0) + (Number(summary.returned) || 0),
             icon: <SwapHorizRoundedIcon />,
           },
           {
             key: "elearning",
             label: "E-learning",
             hint: "Digital resources",
-            count: elearnTotal,
+            count: elearnLoaded ? elearnTotal : summary.elearning ?? 0,
             icon: <AutoStoriesRoundedIcon />,
           },
           {
             key: "services",
             label: "Services",
             hint: "What the library offers",
-            count: services.length,
+            count: servicesLoaded ? services.length : summary.services ?? 0,
             icon: <MiscellaneousServicesRoundedIcon />,
           },
         ]}

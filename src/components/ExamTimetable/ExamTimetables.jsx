@@ -43,6 +43,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
+import { cachedFetchJson, invalidateApiCache } from "../../lib/cachedFetch";
 import { canManageExamTimetables } from "../../auth/roleAccess";
 import {
   STATUS_META,
@@ -275,6 +276,21 @@ function ExamPlanCard({
               No papers scheduled yet — open the plan to add exams.
             </Typography>
           </Box>
+        ) : slots.length === 0 ? (
+          <Box
+            sx={{
+              py: 3,
+              px: 2,
+              borderRadius: "16px",
+              bgcolor: warmCream,
+              border: "1px dashed rgba(27,94,168,0.18)",
+              textAlign: "center",
+            }}
+          >
+            <Typography sx={{ fontFamily: fontBody, fontSize: "0.85rem", color: textMuted }}>
+              Loading papers…
+            </Typography>
+          </Box>
         ) : (
           <Box
             sx={{
@@ -433,20 +449,31 @@ export default function ExamTimetables() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ include_slots: "true" });
-      if (programmeFilter) params.set("programme_id", programmeFilter);
-      if (academicYearFilter.trim()) params.set("academic_year", academicYearFilter.trim());
-      if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/exam-timetables?${params}`, {
-        headers: authJsonHeaders(token),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message || "Failed to load");
+      const base = new URLSearchParams();
+      if (programmeFilter) base.set("programme_id", programmeFilter);
+      if (academicYearFilter.trim()) base.set("academic_year", academicYearFilter.trim());
+      if (statusFilter) base.set("status", statusFilter);
+      const headers = authJsonHeaders(token);
+
+      const listParams = new URLSearchParams(base);
+      const { ok, data } = await cachedFetchJson(`/api/exam-timetables?${listParams}`, { headers }, { ttlMs: 20_000 });
+      if (!ok || !data.success) throw new Error(data.message || "Failed to load");
       setItems(Array.isArray(data.data) ? data.data : []);
+      setLoading(false);
+
+      try {
+        const slotParams = new URLSearchParams(base);
+        slotParams.set("include_slots", "true");
+        const slotted = await cachedFetchJson(`/api/exam-timetables?${slotParams}`, { headers }, { ttlMs: 20_000 });
+        if (slotted.ok && slotted.data?.success && Array.isArray(slotted.data.data)) {
+          setItems(slotted.data.data);
+        }
+      } catch {
+        /* keep lean list; slot tiles hydrate on next refresh */
+      }
     } catch (err) {
       setError(err.message || "Failed to load exam timetables");
       setItems([]);
-    } finally {
       setLoading(false);
     }
   }, [token, programmeFilter, academicYearFilter, statusFilter]);
@@ -566,6 +593,7 @@ export default function ExamTimetables() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Delete failed");
+      invalidateApiCache("/api/exam-timetables");
       await load();
     } catch (err) {
       Swal.fire({
