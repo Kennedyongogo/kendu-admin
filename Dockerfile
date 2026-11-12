@@ -12,6 +12,8 @@ RUN npm install
 # Copy the source code
 COPY . .
 
+# Cap Node heap so Vite does not thrash on small VPS RAM (build one service at a time).
+ENV NODE_OPTIONS=--max-old-space-size=1536
 # Build the project (Vite outputs to "dist")
 RUN npm run build
 

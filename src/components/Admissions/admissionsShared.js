@@ -40,3 +40,48 @@ export function formatDateTime(value) {
     return "—";
   }
 }
+
+export function toLocalInput(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function fromLocalInput(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** Short status for the Setup Admissions button (shows open and close timing). */
+export function admissionWindowLabel(window) {
+  if (!window) return "Unknown";
+  if (window.is_open) {
+    return window.ends_at ? `Open · closes ${formatDateTime(window.ends_at)}` : "Open";
+  }
+  switch (window.reason) {
+    case "not_started":
+      return window.starts_at
+        ? `Closed · opens ${formatDateTime(window.starts_at)}`
+        : "Closed · scheduled";
+    case "ended":
+      return window.ends_at
+        ? `Closed · ended ${formatDateTime(window.ends_at)}`
+        : "Closed · ended";
+    case "not_configured":
+    case "invalid_range":
+      return "Closed · needs dates";
+    case "disabled":
+    default:
+      return "Closed";
+  }
+}
+
+export function admissionWindowChipColor(window) {
+  if (!window) return "default";
+  if (window.is_open) return "success";
+  if (window.reason === "not_started") return "warning";
+  return "default";
+}

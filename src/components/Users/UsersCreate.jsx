@@ -68,6 +68,7 @@ const initialForm = (kind = "admin", lockedRole = null) => ({
   semester: "",
   gender: "",
   boarding_status: "",
+  student_status: "active",
   profileFile: null,
   profilePreview: "",
 });
@@ -263,6 +264,7 @@ export default function UsersCreate() {
         body.append("semester", form.semester);
         body.append("gender", form.gender);
         body.append("boarding_status", form.boarding_status);
+        body.append("student_status", form.student_status || "active");
       }
       if (form.profileFile) body.append("profile_image", form.profileFile);
 
@@ -608,6 +610,19 @@ export default function UsersCreate() {
                       <MenuItem value="non_boarder">Non-boarder</MenuItem>
                     </TextField>
                   </Stack>
+                  <TextField
+                    select
+                    fullWidth
+                    required
+                    label="Student status"
+                    value={form.student_status || "active"}
+                    onChange={(e) => setForm({ ...form, student_status: e.target.value })}
+                    sx={inputSx}
+                  >
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="suspended">Suspended</MenuItem>
+                    <MenuItem value="awaiting_semester">Awaiting semester</MenuItem>
+                  </TextField>
                 </>
               ) : (
                 <>

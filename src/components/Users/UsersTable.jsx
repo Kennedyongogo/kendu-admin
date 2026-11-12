@@ -93,6 +93,7 @@ const emptyForm = () => ({
   programme_id: "",
   year_of_study: "",
   semester: "",
+  student_status: "active",
   profileFile: null,
   profilePreview: "",
   removeProfileImage: false,
@@ -280,6 +281,7 @@ export default function UsersTable() {
     programme_id: u.programme_id || u.programme?.id || "",
     year_of_study: u.year_of_study != null ? String(u.year_of_study) : "",
     semester: u.semester != null ? String(u.semester) : "",
+    student_status: u.student_status || "active",
     profileFile: null,
     profilePreview: profileImageSrc(u),
     removeProfileImage: false,
@@ -422,6 +424,7 @@ export default function UsersTable() {
         body.append("programme_id", form.programme_id);
         body.append("year_of_study", form.year_of_study);
         body.append("semester", form.semester);
+        body.append("student_status", form.student_status || "active");
       }
       if (form.profileFile) {
         body.append("profile_image", form.profileFile);
@@ -991,6 +994,19 @@ export default function UsersTable() {
                   ))}
                 </TextField>
               </Stack>
+              <TextField
+                select
+                fullWidth
+                required
+                label="Student status"
+                value={form.student_status || "active"}
+                onChange={(e) => setForm({ ...form, student_status: e.target.value })}
+                sx={inputSx}
+              >
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="suspended">Suspended</MenuItem>
+                <MenuItem value="awaiting_semester">Awaiting semester</MenuItem>
+              </TextField>
             </>
           ) : (
             <>

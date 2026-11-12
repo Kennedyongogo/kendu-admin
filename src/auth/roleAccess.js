@@ -59,9 +59,29 @@ const NAV_EXTRA_BY_ROLE = {
   library: ["/library"],
   catering: ["/meals"],
   finance: ["/accounting", "/access"],
-  principal: ["/programmes", "/departments", "/units", "/admissions", "/assignments", "/church"],
-  deputy_principal: ["/programmes", "/departments", "/units", "/admissions", "/assignments", "/church"],
-  hod: ["/programmes", "/departments", "/units", "/assignments"],
+  principal: [
+    "/programmes",
+    "/departments",
+    "/units",
+    "/admissions",
+    "/assignments",
+    "/church",
+    "/students",
+    "/accounting",
+    "/library",
+  ],
+  deputy_principal: [
+    "/programmes",
+    "/departments",
+    "/units",
+    "/admissions",
+    "/assignments",
+    "/church",
+    "/students",
+    "/accounting",
+    "/library",
+  ],
+  hod: ["/programmes", "/departments", "/units", "/assignments", "/church", "/registrations", "/students"],
   lecturer: ["/programmes", "/departments", "/units", "/assignments"],
   secretary: ["/programmes", "/departments", "/units"],
   academic_registrar: [
@@ -86,6 +106,7 @@ const ROLE_PATHS = {
     "/timetable",
     "/exam-timetables",
     "/library",
+    "/church",
     "/announcements",
     "/programmes",
     "/registrations",
@@ -263,13 +284,14 @@ export function canManageChurch(role) {
   return role === "admin" || role === "dean";
 }
 
-/** Admin, dean, and school leadership may view church services and bookings. */
+/** Admin, dean, school leadership, and HOD may view church services and bookings. */
 export function canViewChurch(role) {
   return (
     role === "admin" ||
     role === "dean" ||
     role === "principal" ||
-    role === "deputy_principal"
+    role === "deputy_principal" ||
+    role === "hod"
   );
 }
 

@@ -117,6 +117,7 @@ export default function Assignments() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [weekly, setWeekly] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
@@ -205,18 +206,34 @@ export default function Assignments() {
       if (search.trim()) params.set("search", search.trim());
       if (!isAdmin && defaultDepartmentId) params.set("department_id", defaultDepartmentId);
 
-      const res = await fetch(`/api/assignments?${params}`, {
-        headers: authJsonHeaders(token),
-      });
+      const summaryParams = new URLSearchParams();
+      if (!isAdmin && defaultDepartmentId) summaryParams.set("department_id", defaultDepartmentId);
+
+      const [res, summaryRes] = await Promise.all([
+        fetch(`/api/assignments?${params}`, {
+          headers: authJsonHeaders(token),
+        }),
+        fetch(`/api/assignments/summary?${summaryParams}`, {
+          headers: authJsonHeaders(token),
+        }),
+      ]);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) throw new Error(data.message || "Could not load assignments");
 
       setRows(Array.isArray(data.data) ? data.data : []);
       setTotal(data.meta?.total || 0);
+
+      const summaryData = await summaryRes.json().catch(() => ({}));
+      if (summaryRes.ok && summaryData.success) {
+        setWeekly(summaryData.data);
+      } else {
+        setWeekly(null);
+      }
     } catch (err) {
       setError(err.message);
       setRows([]);
       setTotal(0);
+      setWeekly(null);
     } finally {
       setLoading(false);
     }
@@ -415,6 +432,42 @@ export default function Assignments() {
       />
 
       <Stack spacing={2} sx={{ mb: 2 }}>
+        {weekly ? (
+          <Box
+            sx={{
+              borderRadius: "18px",
+              border: "1px solid rgba(27,94,168,0.12)",
+              bgcolor: "var(--kd-surface)",
+              p: 2,
+            }}
+          >
+            <Typography sx={{ fontWeight: 800, color: textPrimary, mb: 0.5 }}>
+              Weekly assignment summary
+            </Typography>
+            <Typography sx={{ fontSize: "0.8rem", color: textMuted, mb: 1.5 }}>
+              {weekly.from ? new Date(weekly.from).toLocaleDateString() : "—"} →{" "}
+              {weekly.to ? new Date(weekly.to).toLocaleDateString() : "—"}
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
+              <Chip size="small" label={`${weekly.total || 0} created`} sx={{ fontWeight: 700 }} />
+              <Chip
+                size="small"
+                label={`${weekly.published || 0} published`}
+                sx={{ fontWeight: 700, bgcolor: "rgba(27,94,168,0.12)", color: primaryGreen }}
+              />
+              <Chip size="small" label={`${weekly.drafts || 0} drafts`} sx={{ fontWeight: 700 }} />
+              {(weekly.by_department || []).slice(0, 6).map((dept) => (
+                <Chip
+                  key={dept.department_id || dept.department_name}
+                  size="small"
+                  variant="outlined"
+                  label={`${dept.department_name}: ${dept.published}/${dept.total}`}
+                  sx={{ fontWeight: 600 }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        ) : null}
         <TextField
           size="small"
           placeholder="Search assignments"

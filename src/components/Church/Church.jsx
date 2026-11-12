@@ -378,6 +378,7 @@ export default function Church() {
   const filter = FILTERS.find((f) => f.value === searchParams.get("view")) || FILTERS[0];
   const [services, setServices] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [weekly, setWeekly] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [duplicating, setDuplicating] = useState(null);
@@ -387,12 +388,14 @@ export default function Church() {
     setLoading(true);
     setError("");
     try {
-      const [list, pending] = await Promise.all([
+      const [list, pending, week] = await Promise.all([
         churchApi(`/services?${filter.query}&limit=120`),
         churchApi(`/services?status=pending&limit=1`),
+        churchApi(`/summary/weekly`).catch(() => null),
       ]);
       setServices(list.data.services);
       setPendingCount(pending.data.total);
+      setWeekly(week?.data || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -595,6 +598,78 @@ export default function Church() {
         }}
       >
         <Box sx={{ maxWidth: 1280, mx: "auto" }}>
+          {weekly && !loading ? (
+            <Box
+              sx={{
+                mb: 2.5,
+                borderRadius: "18px",
+                bgcolor: "var(--kd-surface)",
+                border: "1px solid rgba(27,94,168,0.12)",
+                p: 2,
+              }}
+            >
+              <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, color: textPrimary, mb: 0.35 }}>
+                Weekly attendance summary
+              </Typography>
+              <Typography sx={{ fontFamily: fontBody, fontSize: "0.78rem", color: textMuted, mb: 1.25 }}>
+                {weekly.from ? new Date(weekly.from).toLocaleDateString() : "—"} →{" "}
+                {weekly.to ? new Date(weekly.to).toLocaleDateString() : "—"}
+                {weekly.totals?.services != null ? ` · ${weekly.totals.services} service(s)` : ""}
+              </Typography>
+              <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mb: 1.25 }}>
+                {[
+                  { label: "Booked", value: weekly.totals?.booked || 0 },
+                  { label: "Present", value: weekly.totals?.present || 0 },
+                  { label: "Absent", value: weekly.totals?.absent || 0 },
+                  { label: "Unmarked", value: weekly.totals?.unmarked || 0 },
+                ].map((c) => (
+                  <Box
+                    key={c.label}
+                    sx={{
+                      minWidth: 110,
+                      borderRadius: "12px",
+                      border: "1px solid rgba(27,94,168,0.1)",
+                      px: 1.5,
+                      py: 1,
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: "1.25rem", color: textPrimary, lineHeight: 1 }}>
+                      {c.value}
+                    </Typography>
+                    <Typography sx={{ fontFamily: fontBody, fontSize: "0.72rem", fontWeight: 700, color: textMuted }}>
+                      {c.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+              {(weekly.students || []).length ? (
+                <Box sx={{ maxHeight: 220, overflow: "auto", borderTop: "1px solid rgba(27,94,168,0.08)", pt: 1 }}>
+                  {(weekly.students || []).slice(0, 40).map((student) => (
+                    <Stack
+                      key={student.user_id}
+                      direction={{ xs: "column", sm: "row" }}
+                      justifyContent="space-between"
+                      spacing={0.5}
+                      sx={{ py: 0.65, borderBottom: "1px solid rgba(27,94,168,0.06)" }}
+                    >
+                      <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem", fontWeight: 700, color: textPrimary }}>
+                        {student.full_name}
+                        {student.admission_number ? ` · ${student.admission_number}` : ""}
+                      </Typography>
+                      <Typography sx={{ fontFamily: fontBody, fontSize: "0.76rem", color: textSecondary }}>
+                        {student.present} present · {student.absent} absent · {student.services_booked} booked
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Box>
+              ) : (
+                <Typography sx={{ fontFamily: fontBody, fontSize: "0.8rem", color: textMuted }}>
+                  No student bookings in this week yet.
+                </Typography>
+              )}
+            </Box>
+          ) : null}
+
           {filter.value === "upcoming" && !loading && services.length ? (
             <Stack direction="row" spacing={1.5} sx={{ mb: 2.5, flexWrap: "wrap", rowGap: 1.5 }}>
               {[

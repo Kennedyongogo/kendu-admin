@@ -205,6 +205,7 @@ export default function StudentsDashboard({ onOpenList }) {
     total: 0,
     active: 0,
     inactive: 0,
+    student_status: [],
     gender: [],
     boarding: [],
   });
@@ -223,6 +224,7 @@ export default function StudentsDashboard({ onOpenList }) {
         total: data.data?.total || 0,
         active: data.data?.active || 0,
         inactive: data.data?.inactive || 0,
+        student_status: Array.isArray(data.data?.student_status) ? data.data.student_status : [],
         gender: Array.isArray(data.data?.gender) ? data.data.gender : [],
         boarding: Array.isArray(data.data?.boarding) ? data.data.boarding : [],
       });
@@ -382,9 +384,11 @@ export default function StudentsDashboard({ onOpenList }) {
           delay={1}
         />
         <StatTile
-          label="Inactive"
-          value={stats.inactive}
-          hint="Access paused"
+          label="Suspended"
+          value={
+            stats.student_status?.find((r) => r.key === "suspended")?.count || 0
+          }
+          hint="Academic suspension"
           icon={<InactiveIcon />}
           accent="#b42318"
           delay={2}

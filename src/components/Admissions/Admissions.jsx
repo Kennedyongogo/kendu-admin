@@ -23,12 +23,13 @@ import {
   AssignmentInd as AssignmentIndIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  EventAvailable as EventAvailableIcon,
   Search as SearchIcon,
   Visibility as ViewIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
-import { UsersHero, RoleTabs } from "../Users/usersUi";
+import { UsersHero, RoleTabs, HeroActionButton } from "../Users/usersUi";
 import {
   authJsonHeaders,
   getPortalToken,
@@ -47,10 +48,13 @@ import { canManageAdmissions } from "../../auth/roleAccess";
 import {
   ADMISSION_STATUS_TABS,
   admissionStatusChipSx,
+  admissionWindowChipColor,
+  admissionWindowLabel,
   formatAdmissionStatus,
   formatDateTime,
 } from "./admissionsShared";
 import StatusUpdateDialog from "./StatusUpdateDialog";
+import AdmissionSetupDialog from "./AdmissionSetupDialog";
 
 export default function Admissions() {
   const navigate = useNavigate();
@@ -65,6 +69,8 @@ export default function Admissions() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusTarget, setStatusTarget] = useState(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [windowStatus, setWindowStatus] = useState(null);
 
   const token = getPortalToken();
   const statusFilter = ADMISSION_STATUS_TABS[activeTab]?.value;
@@ -116,6 +122,24 @@ export default function Admissions() {
     setPage(0);
   }, [debouncedSearch, activeTab]);
 
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/admissions/window", {
+          headers: authJsonHeaders(token),
+        });
+        const data = await res.json();
+        if (active && res.ok && data.success) setWindowStatus(data.data);
+      } catch {
+        if (active) setWindowStatus(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
   const handleDelete = async (row) => {
     if (!canManage) return;
     const result = await Swal.fire({
@@ -159,6 +183,37 @@ export default function Admissions() {
         title="Admissions"
         subtitle="Review and manage applications from the public admissions form"
         icon={<AssignmentIndIcon sx={{ fontSize: 28, color: "#fff" }} />}
+        actions={
+          canManage ? (
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+              {windowStatus ? (
+                <Chip
+                  size="small"
+                  color={admissionWindowChipColor(windowStatus)}
+                  label={admissionWindowLabel(windowStatus)}
+                  sx={{
+                    fontFamily: fontBody,
+                    fontWeight: 700,
+                    maxWidth: { xs: "100%", sm: 360 },
+                    height: "auto",
+                    py: 0.75,
+                    "& .MuiChip-label": {
+                      whiteSpace: "normal",
+                      lineHeight: 1.25,
+                    },
+                  }}
+                />
+              ) : null}
+              <HeroActionButton
+                variant="contained"
+                startIcon={<EventAvailableIcon />}
+                onClick={() => setSetupOpen(true)}
+              >
+                Setup Admissions
+              </HeroActionButton>
+            </Stack>
+          ) : null
+        }
       />
 
       <Box
@@ -368,12 +423,19 @@ export default function Admissions() {
       </TableContainer>
 
       {canManage ? (
-        <StatusUpdateDialog
-          open={Boolean(statusTarget)}
-          application={statusTarget}
-          onClose={() => setStatusTarget(null)}
-          onSaved={() => void load()}
-        />
+        <>
+          <StatusUpdateDialog
+            open={Boolean(statusTarget)}
+            application={statusTarget}
+            onClose={() => setStatusTarget(null)}
+            onSaved={() => void load()}
+          />
+          <AdmissionSetupDialog
+            open={setupOpen}
+            onClose={() => setSetupOpen(false)}
+            onSaved={(data) => setWindowStatus(data)}
+          />
+        </>
       ) : null}
     </Box>
   );

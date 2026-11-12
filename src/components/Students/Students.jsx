@@ -87,6 +87,7 @@ const emptyForm = () => ({
   semester: "",
   gender: "",
   boarding_status: "",
+  student_status: "active",
   profileFile: null,
   profilePreview: "",
   removeProfileImage: false,
@@ -103,6 +104,7 @@ function mapStudentToForm(student) {
     semester: student.semester != null ? String(student.semester) : "",
     gender: student.gender || "",
     boarding_status: student.boarding_status || "",
+    student_status: student.student_status || "active",
     profileFile: null,
     profilePreview: profileImageSrc(student),
     removeProfileImage: false,
@@ -119,6 +121,30 @@ function formatBoarding(value) {
   if (value === "boarder") return "Boarder";
   if (value === "non_boarder") return "Non-boarder";
   return "—";
+}
+
+function formatStudentStatus(value) {
+  switch (value) {
+    case "suspended":
+      return "Suspended";
+    case "awaiting_semester":
+      return "Awaiting semester";
+    case "active":
+    default:
+      return "Active";
+  }
+}
+
+function studentStatusChipSx(value) {
+  switch (value) {
+    case "suspended":
+      return { bgcolor: "rgba(180,35,24,0.1)", color: "#b42318" };
+    case "awaiting_semester":
+      return { bgcolor: "rgba(200,168,64,0.2)", color: "#8a7020" };
+    case "active":
+    default:
+      return { bgcolor: "rgba(46,125,50,0.12)", color: "#2e7d32" };
+  }
 }
 
 function formatDateTime(value) {
@@ -143,6 +169,7 @@ export default function Students() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
@@ -195,6 +222,7 @@ export default function Students() {
         limit: String(rowsPerPage),
       });
       if (search.trim()) params.set("search", search.trim());
+      if (statusFilter) params.set("student_status", statusFilter);
 
       const res = await fetch(`/api/users?${params}`, {
         headers: authJsonHeaders(token),
@@ -211,7 +239,7 @@ export default function Students() {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, search]);
+  }, [page, rowsPerPage, search, statusFilter]);
 
   useEffect(() => {
     if (!isListTab) return;
@@ -327,6 +355,56 @@ export default function Students() {
     }
   };
 
+  const handleToggleSuspended = async (student) => {
+    const token = getPortalToken();
+    if (!token || !canManage) return;
+    const currentlySuspended = student.student_status === "suspended";
+    const nextStatus = currentlySuspended ? "active" : "suspended";
+    const confirm = await Swal.fire({
+      title: currentlySuspended ? "Lift suspension?" : "Suspend student?",
+      text: currentlySuspended
+        ? `Mark "${student.full_name}" as active again.`
+        : `Mark "${student.full_name}" as suspended.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: primaryGreen,
+      confirmButtonText: currentlySuspended ? "Set active" : "Suspend",
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const body = new FormData();
+      body.append("student_status", nextStatus);
+      const res = await fetch(`/api/users/${student.id}`, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Could not update student status");
+      }
+      if (selected?.id === student.id && data.data) setSelected(data.data);
+      await load();
+      Swal.fire({
+        icon: "success",
+        title: currentlySuspended ? "Student active" : "Student suspended",
+        timer: 1400,
+        showConfirmButton: false,
+        confirmButtonColor: primaryGreen,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message,
+        confirmButtonColor: primaryGreen,
+      });
+    }
+  };
+
   const handleUpdate = async () => {
     if (!selected) return;
 
@@ -386,6 +464,7 @@ export default function Students() {
       body.append("semester", form.semester);
       body.append("gender", form.gender);
       body.append("boarding_status", form.boarding_status);
+      body.append("student_status", form.student_status || "active");
       if (form.profileFile) {
         body.append("profile_image", form.profileFile);
       } else if (form.removeProfileImage) {
@@ -491,16 +570,34 @@ export default function Students() {
           <Typography sx={{ fontFamily: '"Fraunces", serif', fontWeight: 700, color: textPrimary }}>
             All students
           </Typography>
-          <TextField
-            size="small"
-            placeholder="Search name, admission no, email…"
-            value={search}
-            onChange={(e) => {
-              setPage(0);
-              setSearch(e.target.value);
-            }}
-            sx={{ ...inputSx, minWidth: { sm: 280 } }}
-          />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ width: { xs: "100%", sm: "auto" } }}>
+            <FormControl size="small" sx={{ ...inputSx, minWidth: { sm: 180 } }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Status"
+                value={statusFilter}
+                onChange={(e) => {
+                  setPage(0);
+                  setStatusFilter(e.target.value);
+                }}
+              >
+                <MenuItem value="">All statuses</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="suspended">Suspended</MenuItem>
+                <MenuItem value="awaiting_semester">Awaiting semester</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              size="small"
+              placeholder="Search name, admission no, email…"
+              value={search}
+              onChange={(e) => {
+                setPage(0);
+                setSearch(e.target.value);
+              }}
+              sx={{ ...inputSx, minWidth: { sm: 280 } }}
+            />
+          </Stack>
         </Stack>
 
         {error ? (
@@ -513,7 +610,7 @@ export default function Students() {
           <Table size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: "rgba(27,94,168,0.04)" }}>
-                {["No", "Name", "Programme", "Gender", "Boarding", "Actions"].map((h) => (
+                {["No", "Name", "Programme", "Gender", "Boarding", "Status", "Actions"].map((h) => (
                   <TableCell
                     key={h}
                     align={h === "Actions" ? "right" : "left"}
@@ -533,13 +630,13 @@ export default function Students() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
                     <CircularProgress size={28} sx={{ color: primaryGreen }} />
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
                     <Typography sx={{ color: textSecondary, fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
                       No students found.
                     </Typography>
@@ -639,10 +736,23 @@ export default function Students() {
                         {formatBoarding(row.boarding_status)}
                       </Typography>
                     </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        label={formatStudentStatus(row.student_status)}
+                        sx={{
+                          height: 24,
+                          fontWeight: 700,
+                          fontSize: "0.68rem",
+                          ...studentStatusChipSx(row.student_status),
+                        }}
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" spacing={0.25} justifyContent="flex-end">
                         {(() => {
                           const active = row.is_active !== false;
+                          const suspended = row.student_status === "suspended";
                           return (
                             <>
                               <Tooltip title="View">
@@ -657,11 +767,24 @@ export default function Students() {
                                       <EditIcon fontSize="small" />
                                     </IconButton>
                                   </Tooltip>
-                                  <Tooltip title={active ? "Deactivate" : "Activate"}>
+                                  <Tooltip title={suspended ? "Lift suspension" : "Suspend"}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleToggleSuspended(row)}
+                                      sx={{ color: suspended ? "#b42318" : "#c8a840" }}
+                                    >
+                                      {suspended ? (
+                                        <ToggleOffIcon fontSize="small" />
+                                      ) : (
+                                        <ToggleOnIcon fontSize="small" />
+                                      )}
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title={active ? "Deactivate account" : "Activate account"}>
                                     <IconButton
                                       size="small"
                                       onClick={() => handleToggleActive(row)}
-                                      sx={{ color: active ? "#c8a840" : textMuted }}
+                                      sx={{ color: active ? textSecondary : textMuted }}
                                     >
                                       {active ? (
                                         <ToggleOnIcon fontSize="small" />
@@ -753,19 +876,30 @@ export default function Students() {
                 >
                   {selected.full_name}
                 </Typography>
-                <Chip
-                  size="small"
-                  label={selected.is_active !== false ? "Active" : "Inactive"}
-                  sx={{
-                    mt: 0.75,
-                    height: 24,
-                    fontWeight: 700,
-                    fontSize: "0.68rem",
-                    bgcolor:
-                      selected.is_active !== false ? "rgba(46,125,50,0.12)" : "rgba(180,35,24,0.1)",
-                    color: selected.is_active !== false ? "#2e7d32" : "#b42318",
-                  }}
-                />
+                <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    size="small"
+                    label={formatStudentStatus(selected.student_status)}
+                    sx={{
+                      height: 24,
+                      fontWeight: 700,
+                      fontSize: "0.68rem",
+                      ...studentStatusChipSx(selected.student_status),
+                    }}
+                  />
+                  <Chip
+                    size="small"
+                    label={selected.is_active !== false ? "Account on" : "Account off"}
+                    sx={{
+                      height: 24,
+                      fontWeight: 700,
+                      fontSize: "0.68rem",
+                      bgcolor:
+                        selected.is_active !== false ? "rgba(46,125,50,0.12)" : "rgba(180,35,24,0.1)",
+                      color: selected.is_active !== false ? "#2e7d32" : "#b42318",
+                    }}
+                  />
+                </Stack>
               </Box>
             </Stack>
 
@@ -809,7 +943,12 @@ export default function Students() {
             />
             <DetailField
               icon={<PersonIcon fontSize="small" />}
-              label="Account status"
+              label="Student status"
+              value={formatStudentStatus(selected.student_status)}
+            />
+            <DetailField
+              icon={<PersonIcon fontSize="small" />}
+              label="Account login"
               value={selected.is_active !== false ? "Active" : "Inactive"}
             />
             <DetailField
@@ -1090,6 +1229,20 @@ export default function Students() {
               <MenuItem value="non_boarder">Non-boarder</MenuItem>
             </TextField>
           </Stack>
+          <TextField
+            select
+            fullWidth
+            required
+            label="Student status"
+            value={form.student_status || "active"}
+            onChange={(e) => setForm({ ...form, student_status: e.target.value })}
+            helperText="Suspended / awaiting semester are academic standings (separate from account login)."
+            sx={inputSx}
+          >
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="suspended">Suspended</MenuItem>
+            <MenuItem value="awaiting_semester">Awaiting semester</MenuItem>
+          </TextField>
         </Stack>
       </PremiumDialog>
 
