@@ -50,6 +50,8 @@ import {
   textSecondary,
 } from "../Users/usersShared";
 import { alertError, confirmAction, EmptyNote, Panel, tableBodySx, tableHeadSx, toastSuccess } from "../Meals/mealsShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageChurch } from "../../auth/roleAccess";
 import {
   churchApi,
   formatServiceWhen,
@@ -323,7 +325,8 @@ export default function ChurchMonitor() {
 
   const selectedSeat = selected ? seats.find((s) => s.id === selected) : null;
   const service = data?.service;
-  const canCheck = service && service.status !== "cancelled";
+  const canManage = canManageChurch(getPortalUser()?.role);
+  const canCheck = Boolean(canManage && service && service.status !== "cancelled");
 
   const patchSeat = (seatId, patch) => {
     setData((d) => ({
@@ -449,7 +452,7 @@ export default function ChurchMonitor() {
               <RefreshIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          {service.status !== "cancelled" ? (
+          {canManage && service.status !== "cancelled" ? (
             <Button startIcon={<DesignIcon />} onClick={() => navigate(`/church/${id}/design`)} sx={{ ...ghostBtnSx, border: "1px solid rgba(27,94,168,0.16)", bgcolor: "var(--kd-surface)" }}>
               Edit seating
             </Button>

@@ -250,11 +250,7 @@ export default function Brochures() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Brochures"
-        subtitle={
-          canManage
-            ? "Upload school brochures and prospectuses for the public website."
-            : "School brochures and prospectuses (view only)."
-        }
+        subtitle="School brochures and prospectuses for the public website."
         icon={<PictureAsPdfIcon />}
         actions={
           canManage ? (
@@ -343,14 +339,7 @@ export default function Brochures() {
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </>
-                  ) : (
-                    <Typography
-                      component="span"
-                      sx={{ color: textMuted, fontSize: "0.78rem", ml: 1, fontFamily: fontBody }}
-                    >
-                      View only
-                    </Typography>
-                  )}
+                  ) : null}
                 </TableCell>
               </TableRow>
             ))}

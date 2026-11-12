@@ -537,11 +537,7 @@ export default function Announcements() {
                             </IconButton>
                           </Tooltip>
                         </>
-                      ) : (
-                        <Typography sx={{ color: textMuted, fontSize: "0.78rem", pr: 1 }}>
-                          View only
-                        </Typography>
-                      )}
+                      ) : null}
                     </Stack>
                   </TableCell>
                 </TableRow>

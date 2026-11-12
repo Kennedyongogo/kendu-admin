@@ -45,6 +45,8 @@ import {
   textSecondary,
 } from "../Users/usersShared";
 import { alertError, confirmAction, toastSuccess } from "../Meals/mealsShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageChurch } from "../../auth/roleAccess";
 import {
   churchApi,
   CROSS_WALL_LIST,
@@ -687,6 +689,13 @@ export default function ChurchDesigner() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id;
+  const canManage = canManageChurch(getPortalUser()?.role);
+
+  useEffect(() => {
+    if (!canManage) {
+      navigate(id ? `/church/${id}` : "/church", { replace: true });
+    }
+  }, [canManage, id, navigate]);
 
   const [service, setService] = useState(null);
   const [details, setDetailsRaw] = useState(detailsFrom(null));

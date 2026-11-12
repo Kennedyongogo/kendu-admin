@@ -59,10 +59,10 @@ const NAV_EXTRA_BY_ROLE = {
   library: ["/library"],
   catering: ["/meals"],
   finance: ["/accounting", "/access"],
-  principal: ["/programmes", "/departments", "/units", "/admissions"],
-  deputy_principal: ["/programmes", "/departments", "/units", "/admissions"],
-  hod: ["/programmes", "/departments", "/units"],
-  lecturer: ["/programmes", "/departments", "/units"],
+  principal: ["/programmes", "/departments", "/units", "/admissions", "/assignments", "/church"],
+  deputy_principal: ["/programmes", "/departments", "/units", "/admissions", "/assignments", "/church"],
+  hod: ["/programmes", "/departments", "/units", "/assignments"],
+  lecturer: ["/programmes", "/departments", "/units", "/assignments"],
   secretary: ["/programmes", "/departments", "/units"],
   academic_registrar: [
     "/programmes",
@@ -72,8 +72,8 @@ const NAV_EXTRA_BY_ROLE = {
     "/units",
     "/admissions",
   ],
-  examinations: ["/units"],
-  dean: ["/programmes", "/departments", "/units"],
+  examinations: ["/units", "/assignments"],
+  dean: ["/programmes", "/departments", "/units", "/church"],
 };
 
 const ROLE_PATHS = {
@@ -86,7 +86,6 @@ const ROLE_PATHS = {
     "/timetable",
     "/exam-timetables",
     "/library",
-    "/church",
     "/announcements",
     "/programmes",
     "/registrations",
@@ -242,6 +241,38 @@ export function canManageBrochures(role) {
   return role === "admin" || role === "secretary";
 }
 
+/** Admin and lecturer may create/edit/delete assignments (and upload documents). */
+export function canManageAssignments(role) {
+  return role === "admin" || role === "lecturer";
+}
+
+/** Leadership, HOD, examinations, lecturer, and admin may view assignments. Catering cannot. */
+export function canViewAssignments(role) {
+  return (
+    role === "admin" ||
+    role === "principal" ||
+    role === "deputy_principal" ||
+    role === "hod" ||
+    role === "examinations" ||
+    role === "lecturer"
+  );
+}
+
+/** Admin and dean may create/edit church services, seating, and attendance. */
+export function canManageChurch(role) {
+  return role === "admin" || role === "dean";
+}
+
+/** Admin, dean, and school leadership may view church services and bookings. */
+export function canViewChurch(role) {
+  return (
+    role === "admin" ||
+    role === "dean" ||
+    role === "principal" ||
+    role === "deputy_principal"
+  );
+}
+
 /** Admin, dean, lecturer, examinations, academic registrar, and HOD may manage timetables. */
 export function canManageTimetables(role) {
   return TIMETABLE_MANAGE_ROLES.has(role);
@@ -280,6 +311,18 @@ function isProgrammeWritePath(pathname) {
   return false;
 }
 
+function isChurchPath(pathname) {
+  const path = pathname || "/";
+  return path === "/church" || path.startsWith("/church/");
+}
+
+/** Designer / new service — write-only for admin and dean. */
+function isChurchWritePath(pathname) {
+  const path = pathname || "/";
+  if (path === "/church/new" || path.startsWith("/church/new/")) return true;
+  return /^\/church\/[^/]+\/design\/?$/.test(path);
+}
+
 export function homeForRole(role) {
   return ROLE_HOME[role] || "/dashboard";
 }
@@ -293,6 +336,10 @@ export function canOpenPath(role, pathname) {
   if (isTimetablePath(path)) {
     if (isTimetableWritePath(path) && !canManageTimetables(role)) return false;
     return canViewTimetables(role);
+  }
+  if (isChurchPath(path)) {
+    if (isChurchWritePath(path) && !canManageChurch(role)) return false;
+    return canViewChurch(role);
   }
   // All portal offices may open brochures (write is gated separately).
   if ((path === "/brochures" || path.startsWith("/brochures/")) && ROLE_PATHS[role]) {

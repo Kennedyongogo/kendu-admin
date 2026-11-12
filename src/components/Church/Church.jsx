@@ -52,6 +52,8 @@ import {
   textSecondary,
 } from "../Users/usersShared";
 import { alertError, confirmAction, EmptyNote, toastSuccess } from "../Meals/mealsShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageChurch } from "../../auth/roleAccess";
 import {
   CapacityBar,
   churchApi,
@@ -102,28 +104,30 @@ function DateBlock({ value, status }) {
   );
 }
 
-function ServiceCard({ service, index, onAction }) {
+function ServiceCard({ service, index, onAction, canManage = false }) {
   const navigate = useNavigate();
   const [anchor, setAnchor] = useState(null);
   const s = service;
   const primary =
-    s.status === "approved" || s.status === "cancelled"
+    !canManage || s.status === "approved" || s.status === "cancelled"
       ? { label: "Monitor bookings", icon: <VisibilityIcon />, go: () => navigate(`/church/${s.id}`) }
       : s.status === "pending"
         ? { label: "Review & approve", icon: <ApproveIcon />, go: () => navigate(`/church/${s.id}/design`) }
         : { label: "Open designer", icon: <DesignIcon />, go: () => navigate(`/church/${s.id}/design`) };
 
-  const items = [
-    s.status !== "cancelled" && { key: "design", label: "Design seating", icon: <DesignIcon fontSize="small" /> },
-    { key: "monitor", label: "Booking monitor", icon: <VisibilityIcon fontSize="small" /> },
-    { key: "duplicate", label: "Duplicate for another date", icon: <CopyIcon fontSize="small" /> },
-    ["draft", "rejected"].includes(s.status) && { key: "submit", label: "Submit for approval", icon: <SendIcon fontSize="small" /> },
-    ["draft", "pending"].includes(s.status) && { key: "approve", label: "Approve", icon: <ApproveIcon fontSize="small" /> },
-    s.status === "pending" && { key: "reject", label: "Reject", icon: <RejectIcon fontSize="small" /> },
-    "divider",
-    s.status !== "cancelled" && { key: "cancel", label: "Cancel service", icon: <CancelIcon fontSize="small" />, danger: true },
-    !s.booked_count && { key: "delete", label: "Delete", icon: <DeleteIcon fontSize="small" />, danger: true },
-  ].filter(Boolean);
+  const items = canManage
+    ? [
+        s.status !== "cancelled" && { key: "design", label: "Design seating", icon: <DesignIcon fontSize="small" /> },
+        { key: "monitor", label: "Booking monitor", icon: <VisibilityIcon fontSize="small" /> },
+        { key: "duplicate", label: "Duplicate for another date", icon: <CopyIcon fontSize="small" /> },
+        ["draft", "rejected"].includes(s.status) && { key: "submit", label: "Submit for approval", icon: <SendIcon fontSize="small" /> },
+        ["draft", "pending"].includes(s.status) && { key: "approve", label: "Approve", icon: <ApproveIcon fontSize="small" /> },
+        s.status === "pending" && { key: "reject", label: "Reject", icon: <RejectIcon fontSize="small" /> },
+        "divider",
+        s.status !== "cancelled" && { key: "cancel", label: "Cancel service", icon: <CancelIcon fontSize="small" />, danger: true },
+        !s.booked_count && { key: "delete", label: "Delete", icon: <DeleteIcon fontSize="small" />, danger: true },
+      ].filter(Boolean)
+    : [{ key: "monitor", label: "Booking monitor", icon: <VisibilityIcon fontSize="small" /> }];
 
   return (
     <Box
@@ -377,6 +381,7 @@ export default function Church() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [duplicating, setDuplicating] = useState(null);
+  const canManage = canManageChurch(getPortalUser()?.role);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -532,9 +537,11 @@ export default function Church() {
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
-            <Button startIcon={<AddIcon />} onClick={() => navigate("/church/new")} sx={{ ...primaryBtnSx, py: 1 }}>
-              New service
-            </Button>
+            {canManage ? (
+              <Button startIcon={<AddIcon />} onClick={() => navigate("/church/new")} sx={{ ...primaryBtnSx, py: 1 }}>
+                New service
+              </Button>
+            ) : null}
           </Stack>
         </Stack>
 
@@ -623,9 +630,11 @@ export default function Church() {
               <EmptyNote>
                 {filter.value === "pending"
                   ? "Nothing is waiting for approval."
-                  : "No services here yet. Create one and draw its seating plan."}
+                  : canManage
+                    ? "No services here yet. Create one and draw its seating plan."
+                    : "No church services to show yet."}
               </EmptyNote>
-              {filter.value !== "pending" ? (
+              {canManage && filter.value !== "pending" ? (
                 <Button startIcon={<AddIcon />} onClick={() => navigate("/church/new")} sx={primaryBtnSx}>
                   New service
                 </Button>
@@ -635,7 +644,7 @@ export default function Church() {
             <AnimatePresence>
               <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" } }}>
                 {services.map((s, i) => (
-                  <ServiceCard key={s.id} service={s} index={i} onAction={onAction} />
+                  <ServiceCard key={s.id} service={s} index={i} onAction={onAction} canManage={canManage} />
                 ))}
               </Box>
             </AnimatePresence>

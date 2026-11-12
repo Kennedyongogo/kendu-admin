@@ -752,9 +752,7 @@ export default function ExamTimetables() {
             >
               Create first plan
             </Button>
-          ) : (
-            <Typography sx={{ color: textMuted, fontWeight: 600 }}>View only</Typography>
-          )}
+          ) : null}
         </Box>
       ) : (
         <Box>
