@@ -44,6 +44,7 @@ import Registrations from "./Units/Registrations";
 import Access from "./Access/Access";
 import Meals from "./Meals/Meals";
 import CohortTransferPage from "./CohortTransfer/CohortTransferPage";
+import ClassTranscriptSummaryPage from "./CohortTransfer/ClassTranscriptSummaryPage";
 import StudentTranscriptPage from "./CohortTransfer/StudentTranscriptPage";
 import StudentTranscriptEditorPage from "./CohortTransfer/StudentTranscriptEditorPage";
 import Announcements from "./Announcements/Announcements";
@@ -132,6 +133,7 @@ function PageRoutes() {
                 element={<StudentTranscriptEditorPage />}
               />
               <Route path="cohort-transfer/students/:studentId/transcript" element={<StudentTranscriptPage />} />
+              <Route path="cohort-transfer/class-summary" element={<ClassTranscriptSummaryPage />} />
               <Route path="cohort-transfer" element={<CohortTransferPage />} />
               <Route path="users/create" element={<UsersCreate />} />
               <Route path="users" element={<UsersTable />} />

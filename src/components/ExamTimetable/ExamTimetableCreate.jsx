@@ -41,6 +41,8 @@ import {
   formatPeriodRange,
   formatSlotWhen,
 } from "./examTimetableShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageExamTimetables } from "../../auth/roleAccess";
 
 const emptyForm = () => ({
   title: "",
@@ -56,6 +58,11 @@ const emptyForm = () => ({
 export default function ExamTimetableCreate() {
   const navigate = useNavigate();
   const token = getPortalToken();
+  const canManage = canManageExamTimetables(getPortalUser()?.role);
+
+  useEffect(() => {
+    if (!canManage) navigate("/exam-timetables", { replace: true });
+  }, [canManage, navigate]);
 
   const [programmes, setProgrammes] = useState([]);
   const [form, setForm] = useState(emptyForm);

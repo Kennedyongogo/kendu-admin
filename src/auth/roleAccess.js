@@ -1,4 +1,4 @@
-/** Admin-portal pages each office may open. Mirrors the requirements capture. */
+/** Admin-portal pages each office may open. Mirrors the LMS requirements capture. */
 const leadershipPaths = [
   "/dashboard",
   "/students",
@@ -14,6 +14,7 @@ const leadershipPaths = [
   "/programmes",
   "/departments",
   "/units",
+  "/cohort-transfer",
   "/staff-chat",
   "/staff-commons",
   "/settings",
@@ -45,14 +46,11 @@ const NAV_ONLY_PATHS = [
   "/settings",
 ];
 
-const TIMETABLE_MANAGE_ROLES = new Set([
-  "admin",
-  "dean",
-  "lecturer",
-  "examinations",
-  "academic_registrar",
-  "hod",
-]);
+/** Class timetable write: admin, dean, HOD only (lecturer/exams/AR view-only). */
+const CLASS_TIMETABLE_MANAGE_ROLES = new Set(["admin", "dean", "hod"]);
+
+/** Exam timetable write / approve UI: admin + examinations. */
+const EXAM_TIMETABLE_MANAGE_ROLES = new Set(["admin", "examinations"]);
 
 /** Extra sidebar links for specific offices (on top of Dashboard / News & Events / Chat / Settings). */
 const NAV_EXTRA_BY_ROLE = {
@@ -69,6 +67,7 @@ const NAV_EXTRA_BY_ROLE = {
     "/students",
     "/accounting",
     "/library",
+    "/cohort-transfer",
   ],
   deputy_principal: [
     "/programmes",
@@ -80,20 +79,32 @@ const NAV_EXTRA_BY_ROLE = {
     "/students",
     "/accounting",
     "/library",
+    "/cohort-transfer",
   ],
-  hod: ["/programmes", "/departments", "/units", "/assignments", "/church", "/registrations", "/students"],
-  lecturer: ["/programmes", "/departments", "/units", "/assignments"],
-  secretary: ["/programmes", "/departments", "/units"],
+  hod: [
+    "/programmes",
+    "/departments",
+    "/units",
+    "/assignments",
+    "/church",
+    "/registrations",
+    "/students",
+    "/accounting",
+    "/library",
+  ],
+  lecturer: ["/assignments", "/programmes", "/departments", "/students", "/library"],
+  secretary: ["/students", "/admissions", "/registrations", "/programmes", "/departments", "/units", "/cohort-transfer"],
   academic_registrar: [
     "/programmes",
     "/departments",
     "/students",
-    "/cohort-transfer",
     "/units",
     "/admissions",
+    "/accounting",
+    "/cohort-transfer",
   ],
-  examinations: ["/units", "/assignments"],
-  dean: ["/programmes", "/departments", "/units", "/church"],
+  examinations: ["/students", "/accounting", "/units", "/assignments", "/cohort-transfer", "/programmes"],
+  dean: ["/students", "/meals", "/church", "/programmes", "/departments", "/units"],
 };
 
 const ROLE_PATHS = {
@@ -118,6 +129,7 @@ const ROLE_PATHS = {
     "/staff-commons",
     "/settings",
   ],
+  /** Academic registrar: capture sheet = read-only on listed modules. */
   academic_registrar: [
     "/dashboard",
     "/students",
@@ -162,8 +174,8 @@ const ROLE_PATHS = {
     "/dashboard",
     "/students",
     "/timetable",
+    "/exam-timetables",
     "/library",
-    "/units",
     "/assignments",
     "/programmes",
     "/departments",
@@ -175,6 +187,7 @@ const ROLE_PATHS = {
   secretary: [
     "/dashboard",
     "/students",
+    "/admissions",
     "/registrations",
     "/programmes",
     "/departments",
@@ -221,30 +234,22 @@ const ROLE_PATHS = {
 const EXTRA_PREFIXES = {
   secretary: ["/users/create"],
   hod: ["/users/create"],
-  academic_registrar: ["/users/create"],
   finance: ["/accounting/record-payment"],
 };
 
-/** Admin and academic registrar may create/edit programmes and departments. */
+/** Admin only — academic registrar is read-only per capture sheet. */
 export function canManageProgrammesAndDepartments(role) {
-  return role === "admin" || role === "academic_registrar";
+  return role === "admin";
 }
 
-/** Admin, secretary, and academic registrar may create/edit/delete students. */
+/** Admin and secretary may create/edit/delete students. */
 export function canManageStudents(role) {
-  return role === "admin" || role === "secretary" || role === "academic_registrar";
+  return role === "admin" || role === "secretary";
 }
 
-/** Roles that may create/edit/submit units (principal/deputy/secretary are view-only). */
+/** Admin and HOD maintain the units catalogue (lecturer is view-only). */
 export function canManageUnits(role) {
-  return (
-    role === "admin" ||
-    role === "hod" ||
-    role === "lecturer" ||
-    role === "academic_registrar" ||
-    role === "examinations" ||
-    role === "dean"
-  );
+  return role === "admin" || role === "hod";
 }
 
 /** Admin and secretary may create/edit/delete news & events. */
@@ -252,9 +257,9 @@ export function canManageAnnouncements(role) {
   return role === "admin" || role === "secretary";
 }
 
-/** Admin and academic registrar may update/delete admissions; principal/deputy are view-only. */
+/** Admin and secretary may update admissions; leadership/AR view-only. */
 export function canManageAdmissions(role) {
-  return role === "admin" || role === "academic_registrar";
+  return role === "admin" || role === "secretary";
 }
 
 /** Admin and secretary may upload/edit/delete brochures; other roles are view-only. */
@@ -267,7 +272,7 @@ export function canManageAssignments(role) {
   return role === "admin" || role === "lecturer";
 }
 
-/** Leadership, HOD, examinations, lecturer, and admin may view assignments. Catering cannot. */
+/** Leadership, HOD, examinations, lecturer, and admin may view assignments. */
 export function canViewAssignments(role) {
   return (
     role === "admin" ||
@@ -295,9 +300,36 @@ export function canViewChurch(role) {
   );
 }
 
-/** Admin, dean, lecturer, examinations, academic registrar, and HOD may manage timetables. */
+/** Class timetable write (not exam periods). */
 export function canManageTimetables(role) {
-  return TIMETABLE_MANAGE_ROLES.has(role);
+  return CLASS_TIMETABLE_MANAGE_ROLES.has(role);
+}
+
+/** Exam timetable create/edit/approve. */
+export function canManageExamTimetables(role) {
+  return EXAM_TIMETABLE_MANAGE_ROLES.has(role);
+}
+
+/** Transcripts: examinations + admin write; secretary and others with exam read may view. */
+export function canManageTranscripts(role) {
+  return role === "admin" || role === "examinations";
+}
+
+export function canViewTranscripts(role) {
+  return (
+    role === "admin" ||
+    role === "examinations" ||
+    role === "principal" ||
+    role === "deputy_principal" ||
+    role === "hod" ||
+    role === "academic_registrar" ||
+    role === "secretary"
+  );
+}
+
+/** Library catalogue/loans write: admin + library office. Leadership is summary/view only. */
+export function canManageLibrary(role) {
+  return role === "admin" || role === "library";
 }
 
 /** All portal roles except catering may view class and exam timetables. */
@@ -316,11 +348,17 @@ function isTimetablePath(pathname) {
   );
 }
 
-function isTimetableWritePath(pathname) {
+function isClassTimetableWritePath(pathname) {
   const path = pathname || "/";
   if (path === "/timetable/create" || path.startsWith("/timetable/create/")) return true;
   if (/^\/timetable\/[^/]+\/edit\/?$/.test(path)) return true;
+  return false;
+}
+
+function isExamTimetableWritePath(pathname) {
+  const path = pathname || "/";
   if (path === "/exam-timetables/create" || path.startsWith("/exam-timetables/create/")) return true;
+  if (/^\/exam-timetables\/[^/]+\/edit\/?$/.test(path)) return true;
   return false;
 }
 
@@ -345,6 +383,24 @@ function isChurchWritePath(pathname) {
   return /^\/church\/[^/]+\/design\/?$/.test(path);
 }
 
+function isTranscriptWritePath(pathname) {
+  const path = pathname || "/";
+  if (path.includes("/transcripts/new")) return true;
+  // Edit existing transcript (not the list page …/transcript)
+  if (/\/transcripts\/[^/]+\/?$/.test(path)) return true;
+  return false;
+}
+
+function isClassTranscriptSummaryPath(pathname) {
+  const path = pathname || "/";
+  return path === "/cohort-transfer/class-summary" || path.startsWith("/cohort-transfer/class-summary/");
+}
+
+function isLibraryWritePath(pathname) {
+  const path = pathname || "/";
+  return path === "/library/issue" || path.startsWith("/library/issue/");
+}
+
 export function homeForRole(role) {
   return ROLE_HOME[role] || "/dashboard";
 }
@@ -356,12 +412,22 @@ export function canOpenPath(role, pathname) {
     return false;
   }
   if (isTimetablePath(path)) {
-    if (isTimetableWritePath(path) && !canManageTimetables(role)) return false;
+    if (isClassTimetableWritePath(path) && !canManageTimetables(role)) return false;
+    if (isExamTimetableWritePath(path) && !canManageExamTimetables(role)) return false;
     return canViewTimetables(role);
   }
   if (isChurchPath(path)) {
     if (isChurchWritePath(path) && !canManageChurch(role)) return false;
     return canViewChurch(role);
+  }
+  if (isTranscriptWritePath(path) && !canManageTranscripts(role)) {
+    return false;
+  }
+  if (isClassTranscriptSummaryPath(path) && !canViewTranscripts(role)) {
+    return false;
+  }
+  if (isLibraryWritePath(path) && !canManageLibrary(role)) {
+    return false;
   }
   // All portal offices may open brochures (write is gated separately).
   if ((path === "/brochures" || path.startsWith("/brochures/")) && ROLE_PATHS[role]) {

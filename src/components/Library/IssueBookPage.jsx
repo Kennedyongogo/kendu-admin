@@ -43,6 +43,8 @@ import {
   warmCream,
 } from "../Users/usersShared";
 import { FormSection, UsersHero, fadeUp } from "../Users/usersUi";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageLibrary } from "../../auth/roleAccess";
 
 const VISIBLE = 10;
 
@@ -394,6 +396,11 @@ function PickerSection({
 
 export default function IssueBookPage() {
   const navigate = useNavigate();
+  const canManage = canManageLibrary(getPortalUser()?.role);
+
+  useEffect(() => {
+    if (!canManage) navigate("/library", { replace: true });
+  }, [canManage, navigate]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [books, setBooks] = useState([]);

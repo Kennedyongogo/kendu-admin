@@ -34,6 +34,8 @@ import {
   fontBody,
   profileImageSrc,
 } from "../Users/usersShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageTranscripts } from "../../auth/roleAccess";
 
 function DetailChip({ icon: Icon, label, value }) {
   return (
@@ -86,6 +88,7 @@ export default function StudentTranscriptPage() {
   const { studentId } = useParams();
   const location = useLocation();
   const navState = location.state || {};
+  const canManage = canManageTranscripts(getPortalUser()?.role);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -206,23 +209,25 @@ export default function StudentTranscriptPage() {
             >
               Back to cohort transfer
             </Button>
-            <Button
-              startIcon={<AddRoundedIcon />}
-              onClick={() => openEditor(null)}
-              disabled={loading || !student}
-              sx={{
-                textTransform: "none",
-                fontFamily: fontBody,
-                fontWeight: 800,
-                color: navy,
-                bgcolor: accentGold,
-                borderRadius: "12px",
-                px: 1.75,
-                "&:hover": { bgcolor: "#d4b34a" },
-              }}
-            >
-              New transcript
-            </Button>
+            {canManage ? (
+              <Button
+                startIcon={<AddRoundedIcon />}
+                onClick={() => openEditor(null)}
+                disabled={loading || !student}
+                sx={{
+                  textTransform: "none",
+                  fontFamily: fontBody,
+                  fontWeight: 800,
+                  color: navy,
+                  bgcolor: accentGold,
+                  borderRadius: "12px",
+                  px: 1.75,
+                  "&:hover": { bgcolor: "#d4b34a" },
+                }}
+              >
+                New transcript
+              </Button>
+            ) : null}
           </Stack>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "center" }}>
@@ -312,26 +317,29 @@ export default function StudentTranscriptPage() {
               No transcripts yet
             </Typography>
             <Typography sx={{ fontFamily: fontBody, color: textSecondary, mt: 0.75, maxWidth: 420, mx: "auto" }}>
-              Create a transcript for a semester after the student has registered units. Select registered
-              units, assign grades, and save.
+              {canManage
+                ? "Create a transcript for a semester after the student has registered units. Select registered units, assign grades, and save."
+                : "No issued or draft transcripts are on file for this student yet."}
             </Typography>
-            <Button
-              startIcon={<AddRoundedIcon />}
-              onClick={() => openEditor(null)}
-              sx={{
-                mt: 2.5,
-                textTransform: "none",
-                fontFamily: fontBody,
-                fontWeight: 800,
-                bgcolor: primaryGreen,
-                color: "#fff",
-                borderRadius: "12px",
-                px: 2.5,
-                "&:hover": { bgcolor: primaryDark },
-              }}
-            >
-              Create first transcript
-            </Button>
+            {canManage ? (
+              <Button
+                startIcon={<AddRoundedIcon />}
+                onClick={() => openEditor(null)}
+                sx={{
+                  mt: 2.5,
+                  textTransform: "none",
+                  fontFamily: fontBody,
+                  fontWeight: 800,
+                  bgcolor: primaryGreen,
+                  color: "#fff",
+                  borderRadius: "12px",
+                  px: 2.5,
+                  "&:hover": { bgcolor: primaryDark },
+                }}
+              >
+                Create first transcript
+              </Button>
+            ) : null}
           </Box>
         ) : (
           <Stack spacing={1.25}>
@@ -400,11 +408,13 @@ export default function StudentTranscriptPage() {
                     <PictureAsPdfOutlinedIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Edit transcript">
-                  <IconButton onClick={() => openEditor(row.id)} sx={{ color: navy }}>
-                    <EditOutlinedIcon />
-                  </IconButton>
-                </Tooltip>
+                {canManage ? (
+                  <Tooltip title="Edit transcript">
+                    <IconButton onClick={() => openEditor(row.id)} sx={{ color: navy }}>
+                      <EditOutlinedIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : null}
               </Box>
             ))}
           </Stack>

@@ -48,7 +48,7 @@ import {
   textPrimary,
   textSecondary,
 } from "../Users/usersShared";
-import { canManageTimetables } from "../../auth/roleAccess";
+import { canManageExamTimetables } from "../../auth/roleAccess";
 import {
   STATUS_META,
   formatPeriodRange,
@@ -142,7 +142,7 @@ export default function ExamTimetablePlan() {
   const navigate = useNavigate();
   const token = getPortalToken();
   const user = getPortalUser();
-  const canManage = canManageTimetables(user?.role);
+  const canManage = canManageExamTimetables(user?.role);
   const canApproveExam = user?.role === "admin" || user?.role === "examinations";
 
   const [period, setPeriod] = useState(null);

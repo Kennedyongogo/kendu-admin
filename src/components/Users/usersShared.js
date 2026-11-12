@@ -53,7 +53,7 @@ export function getActorFromStorage() {
 /** Roles the signed-in user may assign when creating or editing users. */
 export function assignableRoles(actorRole) {
   if (actorRole === "admin") return [...ALL_ROLES];
-  if (actorRole === "secretary" || actorRole === "academic_registrar") return ["student"];
+  if (actorRole === "secretary") return ["student"];
   return [];
 }
 

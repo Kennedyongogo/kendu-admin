@@ -43,7 +43,7 @@ import {
   textSecondary,
   warmCream,
 } from "../Users/usersShared";
-import { canManageTimetables } from "../../auth/roleAccess";
+import { canManageExamTimetables } from "../../auth/roleAccess";
 import {
   STATUS_META,
   cohortLabel,
@@ -403,7 +403,7 @@ export default function ExamTimetables() {
   const navigate = useNavigate();
   const token = getPortalToken();
   const user = getPortalUser();
-  const canManage = canManageTimetables(user?.role);
+  const canManage = canManageExamTimetables(user?.role);
 
   const canDeletePlan = useCallback(
     (row) => {

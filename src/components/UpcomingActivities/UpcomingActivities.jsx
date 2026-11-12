@@ -22,10 +22,8 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import SendIcon from "@mui/icons-material/Send";
 import Swal from "sweetalert2";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import { UsersHero, HeroActionButton, PremiumDialog } from "../Users/usersUi";
@@ -46,17 +44,28 @@ import {
 } from "../Users/usersShared";
 
 const SHAPE_LABELS = {
-  circle: "Circle",
-  pill: "Pill",
-  rounded_square: "Rounded square",
-  diamond: "Diamond",
-  hexagon: "Hexagon",
-  oval: "Oval",
-  speech_bubble: "Speech bubble",
-  ribbon: "Ribbon",
-  banner: "Banner",
-  star: "Star",
+  event_card: "Event card",
+  ticket: "Ticket",
 };
+
+const LEGACY_SHAPE_MAP = {
+  circle: "event_card",
+  pill: "ticket",
+  rounded_square: "event_card",
+  diamond: "event_card",
+  hexagon: "event_card",
+  oval: "event_card",
+  speech_bubble: "event_card",
+  ribbon: "ticket",
+  banner: "ticket",
+  star: "event_card",
+};
+
+function normalizeShape(shape) {
+  const raw = String(shape || "").trim();
+  if (SHAPE_LABELS[raw]) return raw;
+  return LEGACY_SHAPE_MAP[raw] || "event_card";
+}
 
 const STATUS_COLORS = {
   draft: { bg: "rgba(15,23,42,0.08)", color: textSecondary },
@@ -68,7 +77,7 @@ const STATUS_COLORS = {
 const emptyForm = () => ({
   title: "",
   body: "",
-  shape: "pill",
+  shape: "event_card",
   accent: "gold",
   position_hint: "mid_right",
   display_start: "",
@@ -88,7 +97,7 @@ function rowToForm(row) {
   return {
     title: row.title || "",
     body: row.body || "",
-    shape: row.shape || "pill",
+    shape: normalizeShape(row.shape),
     accent: row.accent || "gold",
     position_hint: row.position_hint || "mid_right",
     display_start: toLocalInput(row.display_start),
@@ -99,47 +108,61 @@ function rowToForm(row) {
 
 function ShapePreview({ shape, accent = "gold" }) {
   const colors = {
-    gold: { bg: "#c8a840", fg: "#1e2858" },
-    blue: { bg: "#1B5EA8", fg: "#fff" },
-    navy: { bg: "#1e2858", fg: "#fff" },
-    cream: { bg: "#f4f1ea", fg: "#1e2858" },
+    gold: { bg: "#c8a840", fg: "#1e2858", surface: "#fffcf8" },
+    blue: { bg: "#1B5EA8", fg: "#fff", surface: "#fff" },
+    navy: { bg: "#1e2858", fg: "#fff", surface: "#1e2858" },
+    cream: { bg: "#1e2858", fg: "#c8a840", surface: "#fffcf8" },
   };
   const c = colors[accent] || colors.gold;
-  const clip = {
-    diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-    hexagon: "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)",
-    star: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-  };
-  const radius = {
-    circle: "50%",
-    pill: "999px",
-    rounded_square: "14px",
-    oval: "50% / 40%",
-    speech_bubble: "16px 16px 16px 4px",
-    ribbon: "4px 18px 18px 4px",
-    banner: "8px",
-    diamond: 0,
-    hexagon: 0,
-    star: 0,
-  };
+  const style = normalizeShape(shape);
+  const isTicket = style === "ticket";
   return (
     <Box
       sx={{
-        width: 44,
-        height: shape === "banner" || shape === "pill" ? 28 : 44,
-        bgcolor: c.bg,
-        color: c.fg,
-        borderRadius: radius[shape] ?? "12px",
-        clipPath: clip[shape] || "none",
-        display: "grid",
-        placeItems: "center",
-        fontSize: "0.55rem",
-        fontWeight: 800,
-        fontFamily: fontBody,
+        width: 56,
+        height: 36,
+        bgcolor: accent === "navy" ? "#1e2858" : c.surface,
+        color: accent === "navy" ? "#fff" : textPrimary,
+        borderRadius: "10px",
+        border: `1px solid ${c.bg}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 0.6,
         flexShrink: 0,
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      {shape === "star" || shape === "diamond" || shape === "hexagon" ? "" : "Ad"}
+      {isTicket ? (
+        <Box
+          sx={{
+            position: "absolute",
+            left: -5,
+            top: "50%",
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            bgcolor: warmCream,
+            transform: "translateY(-50%)",
+            boxShadow: `inset 0 0 0 1px ${c.bg}`,
+          }}
+        />
+      ) : null}
+      <Box
+        sx={{
+          width: 14,
+          height: 18,
+          borderRadius: "4px",
+          bgcolor: c.bg,
+          color: c.fg,
+          ml: isTicket ? 0.6 : 0,
+          flexShrink: 0,
+        }}
+      />
+      <Typography sx={{ fontSize: "0.48rem", fontWeight: 800, fontFamily: fontBody, lineHeight: 1.1 }}>
+        {isTicket ? "Ticket" : "Event"}
+      </Typography>
     </Box>
   );
 }
@@ -150,7 +173,11 @@ export default function UpcomingActivities() {
   const isAdmin = user?.role === "admin";
 
   const [items, setItems] = useState([]);
-  const [meta, setMeta] = useState({ shapes: Object.keys(SHAPE_LABELS), accents: [], positions: [] });
+  const [meta, setMeta] = useState({
+    shapes: Object.keys(SHAPE_LABELS),
+    accents: [],
+    positions: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
@@ -237,8 +264,10 @@ export default function UpcomingActivities() {
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
       await Swal.fire({
         icon: "success",
-        title: editingId ? "Updated" : "Created",
-        text: editingId ? "Activity changes saved as draft." : "Activity saved as draft.",
+        title: editingId ? "Updated" : "Published",
+        text: editingId
+          ? "Activity updated and live on the home hero."
+          : "Activity published to the home hero.",
         timer: 1400,
         showConfirmButton: false,
       });
@@ -255,63 +284,6 @@ export default function UpcomingActivities() {
       });
     } finally {
       setSaving(false);
-    }
-  };
-
-  const runAction = async (row, action) => {
-    const labels = {
-      submit: {
-        confirmTitle: "Submit for approval?",
-        confirmText: `"${row.title}" will be sent for admin approval.`,
-        confirmButtonText: "Submit",
-        successTitle: "Submitted",
-        successText: "Waiting for admin approval.",
-      },
-      approve: {
-        confirmTitle: "Approve activity?",
-        confirmText: `"${row.title}" will float on the home hero in its display window.`,
-        confirmButtonText: "Approve",
-        successTitle: "Approved",
-        successText: "It can now appear on the public home hero.",
-      },
-    };
-    const cfg = labels[action];
-    if (!cfg) return;
-
-    const result = await Swal.fire({
-      icon: action === "approve" ? "question" : "info",
-      title: cfg.confirmTitle,
-      text: cfg.confirmText,
-      showCancelButton: true,
-      confirmButtonColor: primaryGreen,
-      cancelButtonColor: "#64748b",
-      confirmButtonText: cfg.confirmButtonText,
-    });
-    if (!result.isConfirmed) return;
-
-    try {
-      const res = await fetch(`/api/upcoming-activities/${row.id}/${action}`, {
-        method: "POST",
-        headers: authJsonHeaders(token),
-        body: JSON.stringify({}),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) throw new Error(data.message || "Action failed");
-      await Swal.fire({
-        icon: "success",
-        title: cfg.successTitle,
-        text: cfg.successText,
-        timer: 1400,
-        showConfirmButton: false,
-      });
-      await load();
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: err.message || "Action failed",
-        confirmButtonColor: primaryGreen,
-      });
     }
   };
 
@@ -362,7 +334,7 @@ export default function UpcomingActivities() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Upcoming activities"
-        subtitle="Draft, approve, then float briefly on the home hero."
+        subtitle="Create once — it publishes straight to the home hero."
         icon={<CampaignIcon />}
         actions={
           <HeroActionButton startIcon={<AddIcon />} onClick={openAdd}>
@@ -378,20 +350,22 @@ export default function UpcomingActivities() {
       )}
 
       <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
-        {["", "draft", "pending", "approved", "rejected"].map((s) => (
+        {[
+          { value: "", label: "All" },
+          { value: "approved", label: "Live" },
+        ].map((s) => (
           <Chip
-            key={s || "all"}
-            label={s ? s : "All"}
+            key={s.value || "all"}
+            label={s.label}
             onClick={() => {
-              setStatusFilter(s);
+              setStatusFilter(s.value);
               setPage(0);
             }}
             sx={{
               fontFamily: fontBody,
               fontWeight: 700,
-              textTransform: "capitalize",
-              bgcolor: statusFilter === s ? primaryGreen : "rgba(27,94,168,0.08)",
-              color: statusFilter === s ? "#fff" : textPrimary,
+              bgcolor: statusFilter === s.value ? primaryGreen : "rgba(27,94,168,0.08)",
+              color: statusFilter === s.value ? "#fff" : textPrimary,
             }}
           />
         ))}
@@ -433,9 +407,9 @@ export default function UpcomingActivities() {
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <ShapePreview shape={row.shape} accent={row.accent} />
+                      <ShapePreview shape={normalizeShape(row.shape)} accent={row.accent} />
                       <Typography sx={{ fontFamily: fontBody, fontSize: "0.82rem" }}>
-                        {SHAPE_LABELS[row.shape] || row.shape}
+                        {SHAPE_LABELS[normalizeShape(row.shape)] || normalizeShape(row.shape)}
                       </Typography>
                     </Stack>
                   </TableCell>
@@ -463,7 +437,7 @@ export default function UpcomingActivities() {
                   <TableCell>
                     <Chip
                       size="small"
-                      label={row.status}
+                      label={row.status === "approved" ? "Live" : row.status}
                       sx={{
                         height: 22,
                         textTransform: "capitalize",
@@ -478,26 +452,6 @@ export default function UpcomingActivities() {
                       <Button size="small" startIcon={<EditIcon />} onClick={() => openEdit(row)} sx={ghostBtnSx}>
                         Edit
                       </Button>
-                      {["draft", "rejected"].includes(row.status) && (
-                        <Button
-                          size="small"
-                          startIcon={<SendIcon />}
-                          onClick={() => runAction(row, "submit")}
-                          sx={ghostBtnSx}
-                        >
-                          Submit
-                        </Button>
-                      )}
-                      {isAdmin && ["draft", "pending", "rejected"].includes(row.status) && (
-                        <Button
-                          size="small"
-                          startIcon={<CheckIcon />}
-                          onClick={() => runAction(row, "approve")}
-                          sx={{ ...ghostBtnSx, color: primaryGreen }}
-                        >
-                          Approve
-                        </Button>
-                      )}
                       {isAdmin && (
                         <Button
                           size="small"
@@ -517,7 +471,7 @@ export default function UpcomingActivities() {
               <TableRow>
                 <TableCell colSpan={5}>
                   <Typography sx={{ py: 4, textAlign: "center", color: textMuted, fontFamily: fontBody }}>
-                    No upcoming activities yet. Create one, submit for approval, then it can float on the home hero.
+                    No upcoming activities yet. Create one and it goes live on the home hero.
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -565,16 +519,19 @@ export default function UpcomingActivities() {
             />
 
             <Typography sx={{ fontFamily: fontBody, fontWeight: 700, fontSize: "0.85rem" }}>
-              Choose a shape
+              Card style
             </Typography>
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                 gap: 1,
               }}
             >
-              {(meta.shapes || Object.keys(SHAPE_LABELS)).map((shape) => {
+              {(meta.shapes || Object.keys(SHAPE_LABELS))
+                .map(normalizeShape)
+                .filter((shape, idx, arr) => arr.indexOf(shape) === idx)
+                .map((shape) => {
                 const selected = form.shape === shape;
                 return (
                   <Button
@@ -589,7 +546,8 @@ export default function UpcomingActivities() {
                       bgcolor: selected ? "rgba(27,94,168,0.06)" : "#fff",
                       textTransform: "none",
                       fontFamily: fontBody,
-                      fontSize: "0.68rem",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
                       color: textPrimary,
                     }}
                   >
@@ -663,7 +621,7 @@ export default function UpcomingActivities() {
                 startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
                 sx={primaryBtnSx}
               >
-                Save as draft
+                Save & publish
               </Button>
             </Stack>
           </Stack>

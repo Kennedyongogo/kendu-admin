@@ -63,6 +63,8 @@ import { HeroActionButton, PremiumDialog, UsersHero } from "../Users/usersUi";
 import BrandPageLoader from "../Util/BrandPageLoader";
 import BookImportDialog from "./BookImportDialog";
 import ElearningImportDialog from "./ElearningImportDialog";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageLibrary } from "../../auth/roleAccess";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -438,10 +440,12 @@ function LibraryTabs({ activeTab, onChange, tabs }) {
 
 export default function Library() {
   const navigate = useNavigate();
+  const canManage = canManageLibrary(getPortalUser()?.role);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
+  const [weekly, setWeekly] = useState(null);
   const [programmes, setProgrammes] = useState([]);
 
   const [books, setBooks] = useState([]);
@@ -507,6 +511,15 @@ export default function Library() {
     setStats(data.data);
   }, [api]);
 
+  const loadWeekly = useCallback(async () => {
+    try {
+      const data = await api("/api/library/summary/weekly");
+      setWeekly(data.data || null);
+    } catch {
+      setWeekly(null);
+    }
+  }, [api]);
+
   const loadProgrammes = useCallback(async () => {
     const res = await fetch("/api/programmes?is_active=true&limit=100");
     const data = await res.json().catch(() => ({}));
@@ -563,6 +576,7 @@ export default function Library() {
     try {
       await Promise.all([
         loadStats(),
+        loadWeekly(),
         loadProgrammes(),
         loadBooks(),
         loadRules(),
@@ -575,7 +589,7 @@ export default function Library() {
     } finally {
       setLoading(false);
     }
-  }, [loadStats, loadProgrammes, loadBooks, loadRules, loadLoans, loadElearn, loadServices]);
+  }, [loadStats, loadWeekly, loadProgrammes, loadBooks, loadRules, loadLoans, loadElearn, loadServices]);
 
   useEffect(() => {
     void loadAll();
@@ -1017,10 +1031,16 @@ export default function Library() {
     <Box sx={pageShellSx}>
       <UsersHero
         title="Library"
-        subtitle="Books, services, rules, loans, and e-learning."
+        subtitle={
+          canManage
+            ? "Books, services, rules, loans, and e-learning."
+            : "Library summary reports and catalogue overview."
+        }
         icon={<LocalLibraryRoundedIcon sx={{ fontSize: 28 }} />}
         actions={
-          tab === 1 ? (
+          !canManage
+            ? null
+            : tab === 1 ? (
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
               <HeroActionButton
                 variant="outlined"
@@ -1077,6 +1097,57 @@ export default function Library() {
           ) : null
         }
       />
+
+      {weekly ? (
+        <Box
+          sx={{
+            borderRadius: "18px",
+            border: "1px solid rgba(27,94,168,0.12)",
+            bgcolor: "var(--kd-surface)",
+            p: 2,
+            mb: 2,
+          }}
+        >
+          <Typography sx={{ fontWeight: 800, color: textPrimary, mb: 0.5 }}>
+            Weekly library summary
+          </Typography>
+          <Typography sx={{ fontSize: "0.8rem", color: textMuted, mb: 1.5 }}>
+            {weekly.from ? new Date(weekly.from).toLocaleDateString() : "—"} →{" "}
+            {weekly.to ? new Date(weekly.to).toLocaleDateString() : "—"}
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} useFlexGap flexWrap="wrap">
+            <Chip size="small" label={`${weekly.issued || 0} issued`} sx={{ fontWeight: 700 }} />
+            <Chip
+              size="small"
+              label={`${weekly.returned || 0} returned`}
+              sx={{ fontWeight: 700, bgcolor: "rgba(27,94,168,0.12)", color: primaryGreen }}
+            />
+            <Chip
+              size="small"
+              label={`${weekly.overdue_open || 0} overdue open`}
+              sx={{ fontWeight: 700, bgcolor: "rgba(154,103,0,0.12)", color: "#9a6700" }}
+            />
+            {(weekly.by_borrower_role || []).slice(0, 6).map((row) => (
+              <Chip
+                key={row.role}
+                size="small"
+                variant="outlined"
+                label={`${row.role}: ${row.count}`}
+                sx={{ fontWeight: 600 }}
+              />
+            ))}
+            {(weekly.top_books || []).slice(0, 4).map((book) => (
+              <Chip
+                key={book.book_id}
+                size="small"
+                variant="outlined"
+                label={`${book.title}: ${book.loan_count}`}
+                sx={{ fontWeight: 600 }}
+              />
+            ))}
+          </Stack>
+        </Box>
+      ) : null}
 
       <LibraryTabs
         activeTab={tab}
@@ -1385,16 +1456,20 @@ export default function Library() {
                             <VisibilityRoundedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton onClick={() => openBookEdit(row)}>
-                            <EditRoundedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton onClick={() => deleteBook(row)}>
-                            <DeleteOutlineRoundedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {canManage ? (
+                          <>
+                            <Tooltip title="Edit">
+                              <IconButton onClick={() => openBookEdit(row)}>
+                                <EditRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton onClick={() => deleteBook(row)}>
+                                <DeleteOutlineRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        ) : null}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -1471,14 +1546,16 @@ export default function Library() {
                           {row.body || "—"}
                         </Typography>
                       </Box>
-                      <Stack direction="row" spacing={0.25} sx={{ flexShrink: 0 }}>
-                        <IconButton onClick={() => openRuleEdit(row)} size="small">
-                          <EditRoundedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton onClick={() => deleteRule(row)} size="small">
-                          <DeleteOutlineRoundedIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
+                      {canManage ? (
+                        <Stack direction="row" spacing={0.25} sx={{ flexShrink: 0 }}>
+                          <IconButton onClick={() => openRuleEdit(row)} size="small">
+                            <EditRoundedIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton onClick={() => deleteRule(row)} size="small">
+                            <DeleteOutlineRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      ) : null}
                     </Stack>
                   </Box>
               ))}
@@ -1561,15 +1638,15 @@ export default function Library() {
                       <StatusChip status={row.status} />
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
-                        {row.status !== "returned" ? (
+                      {canManage && row.status !== "returned" ? (
+                        <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
                           <Tooltip title="Discharge / return">
                             <IconButton onClick={() => returnLoan(row)} sx={{ color: primaryGreen }}>
                               <AssignmentReturnRoundedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                        ) : null}
-                      </Stack>
+                        </Stack>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1657,14 +1734,16 @@ export default function Library() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
-                        <IconButton onClick={() => openElearnEdit(row)}>
-                          <EditRoundedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton onClick={() => deleteElearn(row)}>
-                          <DeleteOutlineRoundedIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
+                      {canManage ? (
+                        <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
+                          <IconButton onClick={() => openElearnEdit(row)}>
+                            <EditRoundedIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton onClick={() => deleteElearn(row)}>
+                            <DeleteOutlineRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1759,14 +1838,16 @@ export default function Library() {
                         </Typography>
                       ) : null}
                     </Box>
-                    <Stack direction="row" spacing={0.25} sx={{ flexShrink: 0 }}>
-                      <IconButton onClick={() => openServiceEdit(row)} size="small">
-                        <EditRoundedIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton onClick={() => deleteService(row)} size="small">
-                        <DeleteOutlineRoundedIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
+                    {canManage ? (
+                      <Stack direction="row" spacing={0.25} sx={{ flexShrink: 0 }}>
+                        <IconButton onClick={() => openServiceEdit(row)} size="small">
+                          <EditRoundedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton onClick={() => deleteService(row)} size="small">
+                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    ) : null}
                   </Stack>
                 </Box>
               ))}

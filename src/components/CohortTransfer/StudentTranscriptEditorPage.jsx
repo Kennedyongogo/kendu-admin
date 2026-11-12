@@ -34,6 +34,8 @@ import {
   fontDisplay,
   fontBody,
 } from "../Users/usersShared";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canManageTranscripts } from "../../auth/roleAccess";
 
 const GRADES = ["A", "B", "C", "D", "E", "#"];
 
@@ -49,6 +51,16 @@ export default function StudentTranscriptEditorPage() {
   const location = useLocation();
   const { studentId, transcriptId } = useParams();
   const isNew = !transcriptId || transcriptId === "new";
+  const canManage = canManageTranscripts(getPortalUser()?.role);
+
+  useEffect(() => {
+    if (!canManage) {
+      navigate(`/cohort-transfer/students/${studentId}/transcript`, {
+        replace: true,
+        state: location.state,
+      });
+    }
+  }, [canManage, navigate, studentId, location.state]);
 
   const [bootLoading, setBootLoading] = useState(true);
   const [saving, setSaving] = useState(false);

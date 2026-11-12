@@ -60,9 +60,9 @@ const FEATURE_META = {
   exams: {
     label: "Exams",
     icon: FactCheckIcon,
-    title: "Exam timetable & card",
+    title: "Exam timetable & clearance",
     blurb:
-      "Gate exam timetable viewing/download and exam card PDF behind a minimum fee payment share.",
+      "Gate exam timetable viewing/download and exam clearance PDF behind a minimum fee payment share.",
   },
 };
 
@@ -290,7 +290,7 @@ export default function Access() {
       const openBodies = {
         meals: "Any student can preview and download their meal card — fee progress is not checked.",
         exams:
-          "Any student can view and download their exam timetable and exam card — fee progress is not checked.",
+          "Any student can view and download their exam timetable and exam clearance — fee progress is not checked.",
         units: "Any student in the cohort can enroll — fee progress is not checked.",
       };
       return {

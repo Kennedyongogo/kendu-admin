@@ -33,6 +33,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import CohortTransferRegisterPanel from "./CohortTransferRegisterPanel";
 import {
   authJsonHeaders,
@@ -48,6 +49,8 @@ import {
   profileImageSrc,
 } from "../Users/usersShared";
 import { useNavigate } from "react-router-dom";
+import { getPortalUser } from "../../auth/portalAuth";
+import { canViewTranscripts } from "../../auth/roleAccess";
 
 const DRAG_BODY_CLASS = "cohort-transfer-dragging";
 
@@ -549,6 +552,7 @@ export default function CohortTransferPage() {
   const currentYear = years[yearIndex] || null;
   const selectedStudentIds = useMemo(() => new Set(selectedStudents.keys()), [selectedStudents]);
   const selectedCount = selectedStudents.size;
+  const showClassSummary = canViewTranscripts(getPortalUser()?.role);
 
   const handleViewStudent = useCallback(
     (student, year, semester) => {
@@ -1371,6 +1375,30 @@ export default function CohortTransferPage() {
                 </Typography>
               </Box>
             </Box>
+            {showClassSummary ? (
+              <Tooltip title="Class transcript summary" arrow>
+                <IconButton
+                  onClick={() =>
+                    navigate("/cohort-transfer/class-summary", {
+                      state: {
+                        programme_id: selectedProgramme?.id || "",
+                        year_of_study: currentYear?.year_of_study || 1,
+                        semester: 1,
+                      },
+                    })
+                  }
+                  aria-label="Class transcript summary"
+                  sx={{
+                    color: navy,
+                    bgcolor: accentGold,
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    "&:hover": { bgcolor: "#d4b34a" },
+                  }}
+                >
+                  <AssessmentOutlinedIcon />
+                </IconButton>
+              </Tooltip>
+            ) : null}
             <IconButton
               onClick={onRefresh}
               aria-label="Refresh"
