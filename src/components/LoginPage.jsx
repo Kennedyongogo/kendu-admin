@@ -419,6 +419,12 @@ export default function LoginPage() {
       }
       savePortalSession(authed, data.data.token);
       try {
+        const { armAdminIdleTimer } = await import("../auth/sessionSecurity");
+        armAdminIdleTimer();
+      } catch {
+        /* idle arm is best-effort */
+      }
+      try {
         localStorage.setItem(LAST_EMAIL_KEY, email);
       } catch {
         /* remembering the email is a convenience only */
